@@ -785,8 +785,9 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		nvb1,nvb1steps[10],
 		nzs1_6,nzs2_6, nzs1_5, nzs2_5;
 	//======= status after step 2 in band 2 then 2 uas in band 1
-	uint64_t tusb1[2000], tusb1_128[128], tusb2[1000];
-	uint32_t ntusb1, ntusb1_128, ntusb2;
+	uint64_t tusb1[2000], tusb1_128[128], tusb2[1000],
+		tusb_clean[1000];
+	uint32_t ntusb1, ntusb1_128, ntusb2, ntusb_clean;
 	uint64_t fb1,acb1, fb2, fb12, fb12c, acb2a,  acb2, acb12, acb12c;
 
 
@@ -851,22 +852,9 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 		//============ main loop process
 	BF128 v128uas, vc128[54];// 0 to 128
-	uint64_t tua12_r[1000], ntua12_r;
-	uint64_t tua12_rb1[1000], ntua12_rb1;
-	uint64_t tua12_rb2[1000], ntua12_rb2;
-	// paameter for chunk 128
+	// parameter for chunk 128
 	ZS128 *za, *zb;
 	uint32_t nza, nzb;
-
-	//============ vectors 64 128 bits 
-	uint64_t v64uas, vc64[54];
-	BF128 v64_192uas, vc64_192[54], bv192;
-	BF128 v192_320uas, vc192_320[54], bv320;
-	BF128 v320_448uas, vc320_448[54], bv448;
-	BF128 v448_576uas, vc448_576[54], bv576;
-	BF128 v576_704uas, vc576_704[54], bv704;
-	BF128 v704_832uas, vc704_832[54], bv832;
-	BF128 v832_960uas, vc832_960[54], bv960;
 	uint64_t  n_to_clean, n_to_clean2;
 	
 	//___________ extract potential valid bands 1+2 (no more uas)

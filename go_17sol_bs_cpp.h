@@ -1569,26 +1569,26 @@ void G17B::CleanAll() {
 }
 
 int G17B::CleanAll1_a() {// <= 10 remaining uas 
-	if (!ntusb2)	{
+	if (!ntusb_clean)	{
 		n_to_clean2= n_to_clean;
 		return 0;
 	}
 	for (uint64_t i = 0; i < n_to_clean; i++) {// direct check
 		register uint64_t Bf = to_clean[i];
 		int aig = 1;
-		for (uint32_t iua = 0; iua < ntusb2; iua++)
-			if (!(Bf & tusb2[iua])) {	aig = 0; break;	}
+		for (uint32_t iua = 0; iua < ntusb_clean; iua++)
+			if (!(Bf & tusb_clean[iua])) {	aig = 0; break;	}
 		if (aig)  to_clean[n_to_clean2++] = Bf;
 	}
 	return (n_to_clean2==0);
 }
 int G17B::CleanAll1_64(uint64_t bfc) {// <= 64 uas
-	uint64_t ve= maskLSB[ntusb2].u64[0],vc[54];
+	uint64_t ve= maskLSB[ntusb_clean].u64[0],vc[54];
 	memset(vc, 255, sizeof vc);// all bits to 1
 	uint32_t cc64;// build cells vectors A
 	uint64_t biti = 1;
-	for (uint32_t i = 0; i < ntusb2; i++, biti <<= 1) {
-		register uint64_t Rw = tusb2[i] & BIT_SET_2X;
+	for (uint32_t i = 0; i < ntusb_clean; i++, biti <<= 1) {
+		register uint64_t Rw = tusb_clean[i] & BIT_SET_2X;
 		while (bitscanforward64(cc64, Rw)) {// look for  possible cells
 			Rw ^= (uint64_t)1 << cc64;// clear bit
 			vc[From_128_To_81[cc64]] ^= biti;
@@ -1618,7 +1618,7 @@ int G17B::CleanAll1_128(uint64_t bfc, uint32_t nu) {
 	memset(vc, 255, sizeof vc);// all bits to 1
 	uint32_t cc64;
 	for (uint32_t i = 0; i < nu; i++) {
-		register uint64_t Rw = tusb2[i] & BIT_SET_2X;
+		register uint64_t Rw = tusb_clean[i] & BIT_SET_2X;
 		while (bitscanforward64(cc64, Rw)) {// look for  possible cells
 			Rw ^= (uint64_t)1 << cc64;// clear bit
 			vc[From_128_To_81[cc64]].clearBit(i);
@@ -1672,22 +1672,22 @@ int G17B::CleanAll1() {
 		register uint64_t bf = to_clean[i];
 		And &= bf; Or |= bf;
 	}
-	{ //  collect still valid uas and check dead branch (skip 0_63 checked)
-		ntusb2 = 0;
-		for (uint32_t iua = 64; iua < ntusb1; iua++) {
-			register uint64_t Ru = tusb1[iua];
+	{ //  collect still valid uas and check dead branch  
+		ntusb_clean = 0;
+		for (uint32_t iua = 0; iua < ntusb2; iua++) {
+			register uint64_t Ru = tusb2[iua];
 			if (!(Ru&And)) {
 				Ru &= Or;
 				if (!Ru) 	return 1;
-				else tusb2[ntusb2++] = Ru;
+				else tusb_clean[ntusb_clean++] = Ru;
 			}
 		}
 	}
 	while (1) {// loop if > 128 uas in tusb2
 		n_to_clean2 = 0;
-		if (ntusb2 <= 10 || n_to_clean < 10) return CleanAll1_a();
-		if (ntusb2 <= 64) return CleanAll1_64(And);
-		if (ntusb2 <= 128) return CleanAll1_128(And, ntusb2);
+		if (ntusb_clean <= 10 || n_to_clean < 10) return CleanAll1_a();
+		if (ntusb_clean <= 64) return CleanAll1_64(And);
+		if (ntusb_clean <= 128) return CleanAll1_128(And, ntusb_clean);
 		// more than 128, do the first 128
 		if (CleanAll1_128(And, 128)) return 1; // at least one ua not hit
 		n_to_clean = n_to_clean2; // new status for clean (>0)
@@ -1696,9 +1696,9 @@ int G17B::CleanAll1() {
 			register uint64_t bf = to_clean[i];
 			And &= bf; Or |= bf;
 		}
-		for (uint32_t i = 128; i < ntusb2; i++) 
-			tusb2[i - 128]= tusb2[i] & Or;
-		ntusb2 -= 128;
+		for (uint32_t i = 128; i < ntusb_clean; i++)
+			tusb_clean[i - 128]= tusb_clean[i] & Or;
+		ntusb_clean -= 128;
 	}
 }
 
@@ -1897,7 +1897,7 @@ void G17B::Clean_3() {// this is for a given band 1+2
 		stack_count.u16[2] > 6) return;
 	p_cpt2g[43]++;
 
-	if (genb12.nband3 > 15) {
+	if (genb12.nband3 > 10) {
 		p_cpt2g[28]++;		
 		clean_valid_done = 1;
 		myua = zh2b[0].ValidXY(tclues, nclues + nclues_step);

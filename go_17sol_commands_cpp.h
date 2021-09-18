@@ -32,7 +32,7 @@ const char * libs_c17_00_cpt2g[60] = {
 	"25 nvg3 <=256",
 	"26  nvg3 >256",
 	"27  ",	
-	"28  check valid 12 first", 
+	"28  check valid b 1 2 first", 
 	"29  b3 other call check",
 	"30  b3_expand call check",	
 	"31 ajouts uas",
