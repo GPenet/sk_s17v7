@@ -3,7 +3,7 @@
 #define SEARCH17SOL
 
 
-//#define DEFPHASE -3
+//#define DEFPHASE -4
 #ifdef DEFPHASE
 #endif
 
@@ -20,11 +20,11 @@
 #ifdef DEBUGINIT
 #endif
 
-#define DEBUGEXL
+//#define DEBUGEXL
 #ifdef DEBUGEXL
 #endif
 
-#define DEBUGL1L2  
+//#define DEBUGL1L2  
 #ifdef DEBUGL1L2
 #endif
 

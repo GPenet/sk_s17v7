@@ -727,10 +727,6 @@ struct G17B3HANDLER {
 	void Do_miss1();
 	void GoMiss2Init(STD_B3 & b3);
 	void GoMiss2(STD_B3 & b3, uint32_t uamin);
-	inline void AddCellMiss1(uint32_t cell, int bit) {
-		stack_count.u16[C_stack[cell]]++;
-		known_b3 |= bit;
-	}
 	inline void AddCell_Miss2(uint32_t * t);
 	inline int AddCell_Of(uint32_t cell, int bit) {
 		register int s = C_stack[cell];
@@ -755,6 +751,15 @@ struct G17B3HANDLER {
 	void SubMini(int M, int mask);
 	void Go_Subcritical();
 	void Go_SubcriticalMiniRow();
+	void DebugCycle() {
+		cout << "CriticalLoop() cycle nif=  nuasb3if="<< nuasb3if << endl;
+		cout << Char27out(known_b3) << " known" << endl;
+		cout << Char27out(active_b3) << " active_b3" << endl;
+		smin.Status("");
+		for(uint32_t i=0;i< nuasb3if;i++)
+			cout << Char27out(uasb3if[i]) << endl;
+
+	}
 
 };
 
@@ -892,7 +897,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	uint32_t tcluesb12[20], ncluesb3x;
 	uint32_t   nmiss;
 	uint32_t uasb3_1[2000], uasb3_2[2000], 
-		nuasb3_1, nuasb3_2, b3_andout;
+		nuasb3_1, nuasb3_2, b3_andout, ua_out_seen;
 	MINCOUNT smin;
 	MORE32 moreuas_b3, moreuas_b3_small;
 
@@ -913,7 +918,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	int CleanAll1_64(uint64_t bfc);// 64 usb2 maxi
 	int CleanAll1_128(uint64_t bfc,uint32_t nu);// 128 usb2 maxi
 	int CleanAllFifo();// check FIFO uas 12 tables 
-	void CleanAll2();
+	void Clean_2();
 	void Clean_3();
 
 	void CleanAll();
@@ -922,20 +927,13 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		stack_count.u16[C_stack[cell]]++;
 		t[n++] = cell;
 	}
-	int Is_B12_Not_Unique();
 	void NewUaB12();
 	void DebugAdd12();
 	void GoB3(STD_B3 & b);
-	void GoB3Expand();//mincount too low
-	void GoB3_5();//mincount 5 max 1 outfield
-	void GoB3_4();//mincount 4 max 2 outfield
-	void GoB3_4Expand();//mincount 4 max 2 outfield
 
 	void FinalCheckB3(uint32_t bfb3);
 	void Out17(uint32_t bfb3);
 	void NewUaB3();
-	void NewUaB3_g2(uint32_t i81, uint64_t ua12);
-	void NewUaB3_g3(uint32_t i81, uint64_t ua12);
 
 	void Debug_If_Of_b3();
 
