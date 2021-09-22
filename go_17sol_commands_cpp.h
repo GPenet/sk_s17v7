@@ -31,7 +31,7 @@ const char * libs_c17_00_cpt2g[60] = {
 	"24  nvg2 >256",//24
 	"25 nvg3 <=256",
 	"26  nvg3 >256",
-	"27  ",	
+	"27  chunk count",	
 	"28  check valid b 1 2 first", 
 	"29  b3 other call check",
 	"30  b3_expand call check",	
@@ -168,10 +168,13 @@ void Go_c17_10( ) {
 			break;
 		}
 	}
-	cout << "print final stats" << endl;
-	for (int i = 0; i < 60; i++) {
-		if (!p_cpt2g[i])continue;
-		cout << p_cpt2g[i] << "\t\t" << libs_c17_00_cpt2g[i] << endl;
+	if (0) {
+		cout << "print final stats" << endl;
+		for (int i = 0; i < 60; i++) {
+			if (!p_cpt2g[i])continue;
+			cout << p_cpt2g[i] << "\t\t" << libs_c17_00_cpt2g[i] << endl;
+		}
+
 	}
 }
 

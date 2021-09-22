@@ -32,7 +32,8 @@ struct MINCOUNT {
 		return cc;
 	}
 	void Status(const char * lib) {
-		cout << lib << "critical Status mincount =" << mincount << " minplus=" << minplus << endl;
+		cout << lib << "critical Status mincount =" << mincount 
+			<< " minplus=" << minplus << endl;
 		cout << Char27out(critbf) << " critical bf" << endl;
 		cout << Char27out(pairs27) << " pairs 27" << endl;
 		cout << Char9out(mini_bf1) << "     minis bf1" << endl;
@@ -316,6 +317,21 @@ struct MORE32 {// FIFO table of more for band b
 		while (--Rt > Rtl)if (!((*Rt) & V))return 1;
 		return 0;
 	}
+	void CheckNew(uint32_t bf, uint32_t & ua) {
+		register uint32_t V = bf, *Rt = &t[nt];
+		while (--Rt >= t) {
+			if ((*Rt) & V) continue;
+			ua &= *Rt;
+		}
+	}
+	void InsertIn(uint32_t *tb1, uint32_t & ntb1) {
+		register uint32_t  *Rt = &t[nt];
+		while (--Rt >= t) {
+			tb1[ntb1++]= *Rt;
+		}
+		nt = 0;
+	}
+
 
 };
 struct MOREALL {// FIFO table of more for bands 1+2
@@ -719,7 +735,7 @@ struct G17B3HANDLER {
 		active_sub, ndead, wactive0, nmiss, //ncritical,
 		irloop, wua, stack;
 	uint32_t *uasb3if, nuasb3if, *uasb3of, nuasb3of, andoutf;
-	GINT64 stack_count;
+	GINT64 stack_count,stack_count_b12;
 	int diagh;
 	// ================== entry in the proces
 	void GoMiss0(STD_B3 & b3);
@@ -744,23 +760,15 @@ struct G17B3HANDLER {
 	uint32_t IsMultiple(int bf);
 	//=============== process critical
 	void CriticalAssignCell(int Ru);
-	void Critical2pairs();
+	void Critical2pairs(int modesub=0);
 	void Go_Critical();
 	void CriticalLoop();
+	void SubCriticalLoop();
 	//==================== process subcritical no cell added outside the GUAs field
 	void SubMini(int M, int mask);
 	void Go_Subcritical();
 	void Go_SubcriticalMiniRow();
-	void DebugCycle() {
-		cout << "CriticalLoop() cycle nif=  nuasb3if="<< nuasb3if << endl;
-		cout << Char27out(known_b3) << " known" << endl;
-		cout << Char27out(active_b3) << " active_b3" << endl;
-		smin.Status("");
-		for(uint32_t i=0;i< nuasb3if;i++)
-			cout << Char27out(uasb3if[i]) << endl;
-
-	}
-
+	void DebugCycle();
 };
 
 struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
@@ -768,7 +776,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	BF128 p17diag;// known 17 pattern for tests
 	int b3lim, debug17,debug17_check,
-		diag, diagbug,debugb3, aigstop, aigstopxy,
+		diag, diagbug, diagbugclean, debugb3, aigstop, aigstopxy,
 		iretb1,doloopnotok,
 		npuz, a_17_found_here;
 	uint32_t	iband1,iband2, step1count;

@@ -7,16 +7,16 @@
 #ifdef DEFPHASE
 #endif
 
-//#define DEBUGKNOWN 0
+#define DEBUGKNOWN 0
 #ifdef DEBUGKNOWN
 #else
 #endif
 
-//#define DEBUGONE 48
-#ifdef DEBUGONE
+//#define DEBUGONECLEAN 1
+#ifdef DEBUGONECLEAN
 #endif
 
-#define DEBUGINIT
+//#define DEBUGINIT
 #ifdef DEBUGINIT
 #endif
 
@@ -28,11 +28,22 @@
 #ifdef DEBUGL1L2
 #endif
 
+//#define DEBUGL1 5 
+#ifdef DEBUGL1 
+#endif
+//#define DEBUGL2 8 
+#ifdef DEBUGL2 
+#endif
+
+//#define DEBUGCHUNK 1
+#ifdef DEBUGCHUNK 
+#endif
+
 //#define DEBUGSTEP 9246
 #ifdef DEBUGSTEP
 #endif
 
-//#define DEBUGB3 61934
+//#define DEBUGB3 1
 #ifdef DEBUGB3
 #endif
 
