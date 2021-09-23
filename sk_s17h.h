@@ -170,8 +170,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		}
 		return -1;
 	}
-	uint32_t  CleanG2(); // guas 2
-	uint32_t CleanG3(); //  guas 3
+	int  CleanG2(); // guas 2
+	int CleanG3(); //  guas 3
 	void CleanBuildIfOf();
 	inline void Insert2(uint32_t i81) {
 		register uint32_t	bit = guas.ua2bit[i81];
@@ -743,7 +743,7 @@ struct G17B3HANDLER {
 	void Do_miss1();
 	void GoMiss2Init(STD_B3 & b3);
 	void GoMiss2(STD_B3 & b3, uint32_t uamin);
-	inline void AddCell_Miss2(uint32_t * t);
+	void Miss2_go_miss1(uint32_t ua);
 	inline int AddCell_Of(uint32_t cell, int bit) {
 		register int s = C_stack[cell];
 		if (stack_count.u16[s] > 5) return 0;

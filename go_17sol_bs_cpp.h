@@ -1579,19 +1579,16 @@ void G17B::Do128Go(ZS128 * a, ZS128 * b, uint32_t na, uint32_t nb) {
 void G17B::CleanAll() {
 	//cout << " entry clean " << n_to_clean << " p_cpt2g[4]=" << p_cpt2g[4] << endl;
 	p_cpt2g[5]++;	p_cpt2g[7] += n_to_clean;
-	if (CleanAll1()) return;// filter all uas
+	if (CleanAll1()) {	n_to_clean = 0; return;	}// filter all uas
 	n_to_clean = n_to_clean2; // remaining valid
-	if (CleanAllFifo()) return;// filter Fifo tables 
+	if (CleanAllFifo()) {	n_to_clean = 0; return;	}// filter Fifo tables 
 	n_to_clean = n_to_clean2; // remaining valid
 	//cout << " clean2 " << n_to_clean  << endl;
 	p_cpt2g[6]++;	p_cpt2g[8] += n_to_clean;
 	// no more uas 12 filters, stack control and sockets settings
 #ifdef DEFPHASE
-	if (DEFPHASE == -2) {
-		n_to_clean = 0; return;
-	}
+	if (DEFPHASE == -2) {	n_to_clean = 0; return;	}
 #endif
-
 	Clean_2();
 	n_to_clean = 0;
 }
@@ -1808,7 +1805,7 @@ void G17B::Clean_2() {
 //_________________________________ apply guas in band3
 
 
-uint32_t STD_B3::CleanG2() {// critical code guas2
+int STD_B3::CleanG2() {// critical code guas2
 	memset(&smin, 0, sizeof smin);
 	BF128 g2 = tguas.g2ok&guas.isguasocketc2;
 	int cc81;
@@ -1818,15 +1815,18 @@ uint32_t STD_B3::CleanG2() {// critical code guas2
 	}
 	sminr = smin;
 	smin.SetMincount();
-	//cout << "min=" << smin.mincount << endl;
-	if (smin.mincount > 6)return 0;
+	if (g17b.diagbugclean) {
+		cout << "min=" << smin.mincount << endl;
+		smin.Status("CleanG2()");
+	}
+	if (smin.mincount > 6)return -1;
 	stack_count.u64 = g17b.stack_count.u64 + smin.Count_per_stack().u64;
 	if (stack_count.u16[0] > 6 || stack_count.u16[1] > 6 ||
-		stack_count.u16[2] > 6) return 0; // not ok
+		stack_count.u16[2] > 6) return -1; // not ok
 	//smin.Status("clean0");
 	return smin.mincount;
 }
-uint32_t STD_B3::CleanG3() {// guas 3
+int STD_B3::CleanG3() {// guas 3
 	smin = sminr;
 	BF128 g3 = tguas.g3ok & guas.isguasocketc3;
 	int cc81;
@@ -1836,10 +1836,10 @@ uint32_t STD_B3::CleanG3() {// guas 3
 	}
 	smin.SetMincount();
 
-	if (smin.mincount > 6)return 0;
+	if (smin.mincount > 6)return -1;
 	stack_count.u64 = g17b.stack_count.u64 + smin.Count_per_stack().u64;
 	if (stack_count.u16[0] > 6 || stack_count.u16[1] > 6 ||
-		stack_count.u16[2] > 6) return 0; // not ok
+		stack_count.u16[2] > 6) return -1; // not ok
 	return smin.mincount;
 }
 void STD_B3::CleanBuildIfOf() {
@@ -1910,7 +1910,7 @@ void STD_B3::CleanBuildIfOf() {
 
 
 void G17B::Clean_3() {// this is for a given band 1+2
-	if (diagbugclean) cout << "entry clean 3" << endl;
+	if (diagbugclean) cout << "entry clean 3 aigstop=" << aigstop << endl;
 
 	p_cpt2g[42]++;
 	//if (p_cpt2g[42]>300) return;//<<<<<<<<<<<<<<<<<<<<<<
@@ -1930,6 +1930,8 @@ void G17B::Clean_3() {// this is for a given band 1+2
 			stack_count.u16[C_stack[cell]]++;
 		}
 	}
+
+
 	if (stack_count.u16[0] > 6 || stack_count.u16[1] > 6 ||
 		stack_count.u16[2] > 6) return;
 	p_cpt2g[43]++;
@@ -1943,13 +1945,15 @@ void G17B::Clean_3() {// this is for a given band 1+2
 #ifdef DEFPHASE
 	if (DEFPHASE == -3)  return;	
 #endif
+	if (diagbugclean) cout << " clean 3 ApplyG2()"   << endl;
 
 	tguas.ApplyG2();// all guas2 
-	//tguas.g2ok.Print("g2ok");
-	uint32_t tvb3[256], nvb3 = 0, minf=10,minr; //for Bands 3 still valid
+	if (diagbugclean)tguas.g2ok.Print("g2ok");
+	uint32_t tvb3[256], nvb3 = 0;
+	int minf = 10, minr; //for Bands 3 still valid
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 		minr = genb12.bands3[ib3].CleanG2();
-		if (minr) { 
+		if (minr>=0) { 
 			tvb3[nvb3++] = ib3; 
 			if (minr<minf) minf = minr;
 		}
@@ -1972,13 +1976,14 @@ void G17B::Clean_3() {// this is for a given band 1+2
 	}
 	*/
 	p_cpt2g[45]++;
+	if (diagbugclean) cout << " clean 3 ApplyG3()" << endl;
 	if (tguas.ApplyG3()) {
 		uint32_t n = nvb3;
 		nvb3 = 0;
 		for (uint32_t iw = 0; iw < n; iw++) {
 			uint32_t ib3 = tvb3[iw];
 			minr = genb12.bands3[ib3].CleanG3();
-			if (minr) {
+			if (minr>=0) {
 				tvb3[nvb3++] = ib3;
 				if (minr < minf) minf = minr;
 			}
@@ -2016,8 +2021,6 @@ void G17B::Clean_3() {// this is for a given band 1+2
 
 }
 
-
-
 //______________________ start process final b3
 void G17B::GoB3(STD_B3 & b) {
 	if (diagbugclean)cout << "gob3 p_cpt2g[48]=" << p_cpt2g[48] << endl;
@@ -2045,7 +2048,7 @@ void G17B::GoB3(STD_B3 & b) {
 		cout << Char27out(wactive0) << " active ";
 		cout << stack_countf.u16[0] << stack_countf.u16[1] << stack_countf.u16[2] << endl;
 	}
-	//Debug_If_Of_b3();
+	Debug_If_Of_b3();
 #endif
 #ifdef DEBUGKNOWN
 	cout <<b.band<< " gob3 smincount =" << b.smin.mincount << endl;
@@ -2069,6 +2072,8 @@ void G17B::GoB3(STD_B3 & b) {
 	if (nmiss == 2 && nuasb3_2>1 && (!myband3->and_out)) {// want always 2 clues 
 		// start with the smallest ua next will be "and" of remaining uas
 		p_cpt2g[12]++;
+#ifdef DEBUGB3
+#endif
 		hh0.GoMiss2Init((*myband3));
 		uint32_t  uamin = uasb3_2[0];
 		{
@@ -2081,6 +2086,7 @@ void G17B::GoB3(STD_B3 & b) {
 				}
 			}
 		}
+		//cerr<<"go miss2 npur=" << npuz << endl;
 		hh0.GoMiss2((*myband3), uamin);
 		return;
 	}
@@ -2090,8 +2096,6 @@ void G17B::GoB3(STD_B3 & b) {
 	}
 	ExpandB3();
 }
-
-
 
 //__________ phase 2___ find band 3 clues for one band 3
 
@@ -2204,6 +2208,7 @@ void G17B3HANDLER::GoMiss2Init(STD_B3 & b3) {
 		}
 }
 
+
 void G17B3HANDLER::GoMiss2(STD_B3 & b3, uint32_t uamin) {
 	nmiss = 2;
 	uasb3if = g17b.uasb3_1;	nuasb3if = g17b.nuasb3_1;
@@ -2211,18 +2216,18 @@ void G17B3HANDLER::GoMiss2(STD_B3 & b3, uint32_t uamin) {
 	Critical2pairs();// assign 2 pairs in minirow to common cell
 	wua = uamin;
 	// cells added must produce cells hitting all remaining uas
-	uint32_t res, tcellsok[27][3], ntcellsok = 0 ;
-	while (bitscanforward(res, wua)) {
-		uint32_t   nout=0;
-		register uint32_t  bit = 1 << res;
-		wua ^= bit; 
+	uint32_t cell;
+	while (bitscanforward(cell, wua)) {
+		uint32_t   nout = 0;
+		register uint32_t  bit = 1 << cell;
+		wua ^= bit;
 		wactive0 ^= bit;
 		//if (g17b.debug17 && (!(bit & g17b.p17diag.bf.u32[2])))continue;
 		//if (diagh) cout << Char27out(bit) << "seen" << endl;
-		register uint32_t andx = wactive0, s = C_stack[res];
+		register uint32_t andx = wactive0, s = C_stack[cell];
 		if (stack_count.u16[s] == 5) {
-			s = ~(07007007 << (3 * s));// mask
-			andx &= s;
+			uint32_t mask = ~(07007007 << (3 * s));// mask
+			andx &= mask;
 		}
 		for (uint32_t i = 0; i < nuasb3of; i++) {
 			register uint32_t ua = uasb3of[i];
@@ -2230,53 +2235,43 @@ void G17B3HANDLER::GoMiss2(STD_B3 & b3, uint32_t uamin) {
 				nout = 1;	andx &= ua;	if (!andx) break;
 			}
 		}
-		if (andx|| (!nuasb3of)) {
-			tcellsok[ntcellsok][0] = res;
-			tcellsok[ntcellsok][1] = andx;
-			tcellsok[ntcellsok++][2] = nout; 
+		if (andx ) {
+#ifdef DEBUGB3
+			cout << "  miss2 add cell " << cell << " wua "  
+				<< Char27out(andx)  << endl;
+#endif
+			G17B3HANDLER hn = *this;
+			hn.known_b3 |= bit;
+			hn.stack_count.u16[s]++;
+			hn.Miss2_go_miss1(andx);
+			if (g17b.aigstop || g17b.aigstopxy)return;
+			if (g17b.ua_out_seen) {
+				wua &= g17b.ua_out_seen;
+				g17b.ua_out_seen = 0;
+			}
 
 		}
 	}
-	//if (diagh) 	cout <<  "  miss2 uamin ntcellsok=" << ntcellsok << endl;
-	for (uint32_t i = 0; i < ntcellsok; i++) {// now call 
-		G17B3HANDLER hn = *this;
-		hn.AddCell_Miss2(tcellsok[i]);
-		if (g17b.aigstop || g17b.aigstopxy)return;
-	}
+
 }
-inline void G17B3HANDLER::AddCell_Miss2(uint32_t * t) {//uint32_t cell, int bit) {
-	if (g17b.diagbug == 2) {
-		cout << "  miss2 add cell " << t[0] << " nuaof=" << t[2] << endl;
-		cout << Char27out(t[1]) << " wua" << endl;
-	}
-	nuasb3of = t[2];
-	wua = t[1];
-	{
-		register uint32_t cell = t[0];
-		register int s = C_stack[cell];
-		stack_count.u16[s]++;
-		if (stack_count.u16[s] > 5) {
-			s = ~(07007007 << (3 * s));// mask
-			wua &= s;
-			wactive0 &= s;
-		}
-	}
+void G17B3HANDLER::Miss2_go_miss1(uint32_t ua) {
+	wua = ua;
 	nmiss--;
-	known_b3 |= 1 << t[0];
-	uint32_t res;
-	while (bitscanforward(res, wua)) {
-		int bit = 1 << res; wua ^= bit; wactive0 ^= bit;
+	uint32_t cell;
+	while (bitscanforward(cell, wua)) {
+		int bit = 1 << cell; wua ^= bit; wactive0 ^= bit;
 		G17B3HANDLER hn = *this;
 		hn.known_b3 |= bit;
-		hn.stack_count.u16[C_stack[res]]++;
+		hn.stack_count.u16[C_stack[cell]]++;
 		hn.CriticalLoop();
 		if (g17b.aigstop || g17b.aigstopxy)return;
 		if (g17b.ua_out_seen) {
 			wua &= g17b.ua_out_seen;
-			g17b.ua_out_seen = 0;
+			if(wua)	g17b.ua_out_seen = 0;
 		}
 	}
 }
+
 void G17B3HANDLER::Critical2pairs(int modesub) {// assign 2 pairs in minirow to common cell
 	int tbitsrows[8] = { 0, 07, 07000, 07007, 07000000, 07000007, 07007000, 07007007 };
 	if (smin.mini_bf2) {// and 2 pairs in minirow forced to common cell
@@ -2343,11 +2338,15 @@ void G17B3HANDLER::CriticalLoop() {// after optional assignment
 	if (_popcnt32(known_b3) > 6) return;
 	if (!active_b3) {// must be here expected number of clues
 		if (nuasb3if) return; //can not be valid
-		//cout << Char27out(known_b3) << "final check crit" << endl;
-		//zh_g2.cells_assigned.bf.u32[2] = 0;
+#ifdef DEBUGB3
+		cout << Char27out(known_b3) << "final check crit" << endl;
+		zh_g2.cells_assigned.bf.u32[2] = 0;
+#endif
 		g17b.FinalCheckB3(known_b3);
-		//if (zh_g2.cells_assigned.bf.u32[2])
-			//cout << Char27out(zh_g2.cells_assigned.bf.u32[2]) << " new ua" << endl;
+#ifdef DEBUGB3
+		if (zh_g2.cells_assigned.bf.u32[2])
+			cout << Char27out(zh_g2.cells_assigned.bf.u32[2]) << " new ua" << endl;
+#endif
 		return; // branch closed
 	}
 	int wua = uasb3if[0] & active_b3, cell;
@@ -2460,11 +2459,12 @@ void G17B::ExpandB3(){// uint32_t *tua, uint32_t nua) {// find all 5 and 6 clues
 	p_cpt2g[13]++;
 	uint32_t *tuaw=uasb3_1, nuaw = nuasb3_1;// use  in field pre loaded in the right way
 #ifdef DEBUGKNOWN
-	if (p_cpt2g[13]<2 && DEBUGKNOWN>1) {
-		cout << "ExpandB3() nuaw=" << nuaw
-			<< "\tstacks b12 " << stack_count.u16[0] << stack_count.u16[1] << stack_count.u16[2]
-			<< "\tstacks " << stack_countf.u16[0] << stack_countf.u16[1] << stack_countf.u16[2] << endl;
-	}
+#ifdef DEBUGB3
+	cout << "ExpandB3() nuaw=" << nuaw
+		<< "\tstacks b12 " << stack_count.u16[0] << stack_count.u16[1] << stack_count.u16[2]
+		<< "\tstacks " << stack_countf.u16[0] << stack_countf.u16[1] << stack_countf.u16[2] << endl;
+
+#endif
 #endif
 
 	struct SPB3 {// spots to find band 3 minimum valid solutions
@@ -2526,6 +2526,9 @@ next:
 		}
 	}
 	if (ispot < 5) {// no more uas use active as possible
+#ifdef DEBUGB3
+		cout << Char27out(sn3->all_previous_cells) << " no more ua" << endl;
+#endif
 		sn3->possible_cells = sn3->active_cells;
 		sn3->iuab3 = nuaw;
 		s3 = sn3; // switch to next spot
@@ -2542,6 +2545,10 @@ next:
 
 	if (zhou[1].CallMultipleB3(zhou[0], sn3->all_previous_cells, 0)) {
 		register uint32_t ua = zh_g2.cells_assigned.bf.u32[2];
+#ifdef DEBUGB3
+		cout << Char27out(ua) << " ua to add ";
+		cout	<< Char27out(sn3->all_previous_cells) << endl;
+#endif
 		if (nuaw < 300)tuaw[nuaw++] = ua;
 		NewUaB3();		
 		s3->possible_cells &= ua;

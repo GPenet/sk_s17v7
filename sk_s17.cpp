@@ -43,7 +43,7 @@
 #ifdef DEBUGSTEP
 #endif
 
-//#define DEBUGB3 1
+#define DEBUGB3 1
 #ifdef DEBUGB3
 #endif
 
