@@ -23,16 +23,19 @@ a change in the sequence of the next controls after the main loop testing the 12
 
   here the main goal is to reduce the calls to the brute force.
   
-  the brute force for bands 1+2 is always done first
+    the final check (if any) uses the fact that the bands 1+2 subset is valid to optimize the guess sequence
   
-  the final check (if any) uses the fact that the bands 1+2 subset is valid to optimize the guess sequence
-  
-The guess sequence uses 2 facts to optimize the process
+The guess sequence uses always cells as guess, starting from the smallest size
 
   the final true solution is known, the guess uses as much as possible the true value first
   
   the final check will nearly always fail and produce a unavoidable set (UA) (usually no 17 clues)
   
   note : the guess "true first" increases the chance to get a small additionnal ua
+  
+  If the number of bands 3 attached is high, the brute force is first applied to bands 1+2
+  If not, if a 17 to test appears, the brute force for bands 1+2 is applied
+  
+  At the end, in the final brute force check, at least one false must be in band 3
   
 And everywhere, the maximm is done to benefit of the fresh uas produced in the brute force check
