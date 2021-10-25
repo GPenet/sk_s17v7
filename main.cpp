@@ -1,9 +1,8 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "main.h"
-//#include "Zhn_cpp.h"
+#include "Zhn_cpp.h"
 
-extern ZH_GLOBAL zh_g;
 
 void ASMtestdet(int &x32, uint64_t &x64 ,int & r32,uint64_t & r64) {
 	r32 = 1 << x32;

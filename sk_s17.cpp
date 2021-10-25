@@ -2,49 +2,8 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define SEARCH17SOL
 
-
-//#define DEFPHASE -4
+#define DEFPHASE -4
 #ifdef DEFPHASE
-#endif
-
-#define DEBUGKNOWN 0
-#ifdef DEBUGKNOWN
-#else
-#endif
-
-//#define DEBUGONECLEAN 1
-#ifdef DEBUGONECLEAN
-#endif
-
-//#define DEBUGINIT
-#ifdef DEBUGINIT
-#endif
-
-//#define DEBUGEXL
-#ifdef DEBUGEXL
-#endif
-
-//#define DEBUGL1L2  
-#ifdef DEBUGL1L2
-#endif
-
-//#define DEBUGL1 5 
-#ifdef DEBUGL1 
-#endif
-//#define DEBUGL2 8 
-#ifdef DEBUGL2 
-#endif
-
-//#define DEBUGCHUNK 1
-#ifdef DEBUGCHUNK 
-#endif
-
-//#define DEBUGSTEP 9246
-#ifdef DEBUGSTEP
-#endif
-
-#define DEBUGB3 1
-#ifdef DEBUGB3
 #endif
 
 
@@ -62,11 +21,11 @@
 #define XCHUNK256 100
 #define YCHUNK256 100
 #define GTEST17_ON 1
-#define UALIMSIZE 20
+#define UALIMSIZE 21
 #define GUALIMSIZE 18
 #define UA32_10 0xffc00000
 #define UA64_54 0x3fffffffffffff
-#define TUA64_12SIZE 3000
+#define TUA64_12SIZE 5000
 /*entry 92
 maxindex= 983
 maxn5= 51516
@@ -124,18 +83,23 @@ STD_B1_2 myband1, myband2;
 BI2 bi2_1[250], bi2_2[250];
 VALIDB vab_1[MAX_56], vab_2[MAX_56];
 VALIDB64 vab1_1[MAX_56],vab1a[MAX_56],
-vab5_1[MAXN5], vab5_2[MAXN5],
-vab6_1[MAXN6], vab6_2[MAXN6];
+	vab5_1[MAXN5], vab5_2[MAXN5],
+	vab6_1[MAXN6], vab6_2[MAXN6];
 
 ZS128 Z128_5_1[MAXN5], Z128_5_2[MAXN5],
-	Z128_6_1[MAXN5], Z128_6_2[MAXN5];
+Z128_6_1[MAXN5], Z128_6_2[MAXN5];
+
+
+
+
+//uint64_t mainloop11[100000];
 uint64_t to_clean[100000];
 
 BI2 bi2_b1w[250], bi2_b1yes[250];
 BI2 bi2_b2w[250], bi2_b2yes[250];
 BI2 bi2_b1w2[250], bi2_b1yes2[250];
 BI2 bi2_b2w2[250], bi2_b2yes2[250];
-//#define MAXEXP7 1200000
+
 VALIDB vab1w[MAX_56], vab1yes[MAX_56];
 VALIDB vab2w[MAX_56], vab2yes[MAX_56];
 VALIDB vab1w2[MAX_56], vab1yes2[MAX_56];
@@ -143,24 +107,15 @@ VALIDB vab2w2[MAX_56], vab2yes2[MAX_56];
 
 VALIDB64 vab64b1[MAX_56], vab64b2[MAX_56];
 
-
-
 GINT64 tempXY[30000];// limit chunkx * chunky here 100*200=20000
-uint64_t valid_b12[30000];// in Clear tempxy
 
-
-
-
-uint64_t p_cptg[40], p_cpt1g[20], p_cpt2g[60];
-uint64_t p_cpt[40], p_cpt1[20];
+uint64_t p_cpt[40], p_cptg[40], p_cpt2g[60];
 
 
 
 #include "go_17_bands_cpp.h"  
-
 #include "go_17_genb12_cpp.h"     
 #include "go_17sol_bs_cpp.h"     
-//#include "go_17sol_zx_cpp.h"  
 #include "go_17sol_commands_cpp.h"
 
 
@@ -186,10 +141,7 @@ void Go_0() {
 		}
 	}
 	cerr << "running command " << sgo.command << endl;
-	switch (sgo.command) {
-	case 0: Go_c17_00(); break; // search one band1
-	case 10: Go_c17_10(); break; // search known 17s 
-	}
-	cerr << "go_0 return" << endl;
+	if(!sgo.command) Go_c17_00();
+	else cerr << "go_0 return" << endl;
 }
 

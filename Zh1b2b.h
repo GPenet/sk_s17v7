@@ -62,7 +62,7 @@ struct ZH2B_GLOBAL { // global variables for the game table
 	BF64  cellshigh,mysol, mystart, andsol, myandsol;
 	BF64 sols_buffer[3000], ua_buffer[3000];
 
-	uint32_t nuaold, nua, ndigits;
+	uint32_t nuaold, nua, ndigits,guess_xcell;
 	int tsd[7], ntsd, tsd2[7], ntsd2,
 		socket_digits, isd1,diag;// socket more
 	int nsol, lim, icount, ntsol, single_applied, new_single_in_Update,
@@ -110,14 +110,14 @@ struct ZH2B {// size 32 bytes
 	void InitTclues(uint32_t * tclues, int n);
 	void Init_2digits_banda(BF64  cellsbf);
 	//void EndInit_2digits_bandb(int fl, int ibandb);
-	void ValidXY_Step(uint32_t * tclues, int n); 
+	void ValidXY_Stepx(uint32_t * tclues, int n); 
 
 	uint64_t ValidXY(uint32_t * tclues, int n);// , int diag = 0);
-	uint64_t Valid_XY(uint32_t * tclues, int n);// , int diag = 0);
+	uint64_t Valid_XYx(uint32_t * tclues, int n);// , int diag = 0);
 	//void DebugValidXY(uint32_t * tclues, int n, int test = 0);
 	int Update();
 	int FullUpdate();
-	void ComputeNext();
+	inline void ComputeNext();
 	void GuessValidB12();
 	//void GuessGo(int dig, BF64 & wsol);
 
