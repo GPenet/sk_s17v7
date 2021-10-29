@@ -412,7 +412,6 @@ void ZHOU::Guess() {
 		zh_g.ValidPuzzle(this);
 		return;
 	}
-	zh_g2.cpt[1]++;
 	if (zh_g.pairs.isNotEmpty()) {	GuessInCell();	return;	}
 	if (GuessHiddenBivalue()) return;
 	// no pair, no bi valuesolve a full digit 

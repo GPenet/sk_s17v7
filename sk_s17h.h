@@ -62,21 +62,7 @@ struct VALIDB64 {// minimal valid band no index
 	uint32_t tval[6]; // 0-6 cells in int mode
 	uint64_t nval;// n cells over the 2
 };
-struct CTR162 {// bit field 162 bits for guas2_3
-	uint64_t bf[3];
-	inline void New(CTR162 & o) {
-		bf[0] &=  ~o.bf[0];
-		bf[1] &=  ~o.bf[1];
-		bf[2] &=  ~o.bf[2];
-	}
-	inline void Or(CTR162 & o) {
-		bf[0] |= o.bf[0];
-		bf[1] |= o.bf[1];
-		bf[2] |= o.bf[2];
-	}
-	inline uint64_t NotEmpty() { return (bf[0] | bf[1] | bf[2]); }
 
-}bf162all, bf162new, bf162more;
 
 // standard first band (or unique band)
 struct STD_B416 {
@@ -125,7 +111,6 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			ua2pair27[81], ua2bit[81], ua3bit[81];
 	}guas;
 	BF128 isguasocketc246;//all linked to a socket 2
-	CTR162 bf162b,bf162b46;// g2 g3  in 162 bits mode 
 	uint32_t ntua128, ntua128_b1, ntua128_b2;
 	int minirows_bf[9];
 	int triplet_perms[9][2][3];
@@ -140,15 +125,6 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	void InitStack(int i16, int  * z0, BANDMINLEX::PERM & p, int iband);
 	int IsGua(int i81);
 	int IsGua3(int i81);
-	void Setup_bf162b() {
-		bf162b.bf[0] = guas.isguasocketc2.bf.u64[0];
-		register uint64_t R= guas.isguasocketc2.bf.u64[1],
-			R2= guas.isguasocketc3.bf.u64[0];
-		bf162b.bf[1] = R | (R2 << 17);//17g2 47 g3
-		R2 >>= 47; //now 17 g3
-		R = guas.isguasocketc3.bf.u64[1];// last 17 g3
-		bf162b.bf[2] = R2 | (R << 17);//17+17=34 g3
-	}
 	inline int GetI81_2(int bf) {
 		for (uint32_t i = 0; i < 27; i++) {
 			register uint32_t i81 = i_27_to_81[i];
@@ -197,7 +173,6 @@ struct INDEX_XY {
 
 }index_xy_b1, index_xy_b2;
 
-BF128 uas_buffer[20000], uasnn_buffer[30000];
 struct MORE64VECT {// FIFO table of more for bands 1+2
 	BF128 vect,vc[54];
 	uint64_t  t[128];
@@ -569,46 +544,6 @@ struct GUA {
 		}
 	}
 }guaw;
-struct TVG64 {// gua vector for 64 bits
-	uint64_t v, cells[54];
-	uint32_t ti162[64];
-	inline void SetVect54(uint64_t ua, uint32_t i64, uint32_t i162) {
-		register uint64_t 	nbit, W = ua;;
-		if (!i64) {//new bloc to create
-			v = 1;
-			nbit = ~1;
-			memset(cells, 255, sizeof cells);
-		}
-		else {
-			register uint64_t bit = (uint64_t)1 << i64;
-			v |= bit;
-			nbit = ~bit;
-		}
-		ti162[i64] = i162;
-		register uint32_t cc54;
-		while (bitscanforward64(cc54, W)) {// look for  possible cells
-			W ^= (uint64_t)1 << cc54;// clear bit
-			cells[cc54] &= nbit;
-		}
-	}
-
-	inline void ApplyXYcells(uint32_t *tc, uint32_t ntc) {
-		for (uint32_t i = 0; i < ntc; i++)
-			v &= cells[tc[i]];
-	}
-
-	void Dump() {
-		for (uint64_t bit = 1, i = 0; i < 64; i++, bit <<= 1) {
-			if (!(bit & v)) return;
-			cout << i << "\t" << ti162[i] << "\t";
-			for (int j = 0; j < 54; j++)
-				if (cells[j] & bit)cout << '.';
-				else cout << 1;
-			cout << endl;
-		}
-	}
-
-} tvg64g2[16], tvg64g3[8];// designed for 64*64 = 4096 uas
 struct TVG128 {// gua vector for 128 bits
 	BF128 v, cells[54];
 	uint32_t ti162[128];
@@ -661,38 +596,15 @@ struct TGUAS {
 		tvg128g2[ibloc].SetVect54(ua, ir, i162);
 		nvg2++;
 	}
-	inline void AddVG2(uint64_t ua, uint32_t i162) {
-		uint32_t ibloc = nvg2 >> 6, ir = nvg2 - 64 * ibloc;
-		tvg64g2[ibloc].SetVect54(ua, ir, i162);
-		nvg2++;
-	}
 	inline void AddVG3_128(uint64_t ua, uint32_t i162) {
 		if (nvg3 >= 640) return;
 		uint32_t ibloc = nvg3 >> 7, ir = nvg3 - 128 * ibloc;
 		tvg128g3[ibloc].SetVect54(ua, ir, i162);
 		nvg3++;
 	}
-	inline void AddVG3(uint64_t ua, uint32_t i162) {
-		uint32_t ibloc = nvg3 >> 6, ir = nvg3 - 64 * ibloc;
-		tvg64g3[ibloc].SetVect54(ua, ir, i162);
-		nvg3++;
-	}
-	inline void AddVect(uint64_t ua, uint32_t etype, uint32_t ei81) {
-		//switch to ua54
-		uint64_t Ua1 = ua & BIT_SET_27, Ua2 = ua & BIT_SET_B2;
-		if (etype) {
-			if (nvg3 >= 512) return;
-			AddVG3(Ua1 | (Ua2 >> 5), ei81);
-		}
-		else {
-			if (nvg2 >= 1024) return;
-			AddVG2(Ua1 | (Ua2 >> 5), ei81);
-		}
-	}
+
 	void ApplyLoopB1();
 	void ApplyLoopB2();
-	void ApplyG2();
-	int ApplyG3();
 	int ApplyG2_128();
 	int ApplyG3_128();
 }tguas;
@@ -844,23 +756,8 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 			}
 			return 0;
 		}
-		void Debug(uint32_t nuas) {
-			cout << "debug uas vectors n=" << nuas << endl;
-			vx[0].Print("vx[0]");
-			if(nuas>127 )nuas=127;
-			for (uint32_t i = 0; i < nuas; i++) {
-				for (int j = 0; j < 54; j++)
-					if (vcx[0][j].On(i))cout << ".";
-					else cout << '1';
-				cout << endl;
-			}
-		}
-
 	}ub2;
 
-
-	//uint64_t v64uas, vc64[54];
-	ZS64 zs64b1[MAX_56], zs64b2[MAX_56];
 	//============ main loop process
 	BF128 v128uas, vc128[54];// 0 to 128
 	// parameter for chunk 128
@@ -875,20 +772,14 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Do128Go(ZS128 * a, ZS128 * b, uint32_t na, uint32_t nb);
 
 	//============================ b12 no more uas to test
-	//G17TMORE  moreuas_AB, moreuas_AB_big;
-	//MORE64VECT m64v1, m64v2;
 	uint64_t wb12bf, wb12active,myua;
 	GINT64  stack_count_step, stack_count, stack_countf;
-	uint32_t tclues[40],tb3[256],*tcluesxy; 
-	int nclues_step, nclues,ntb3, clean_valid_done;
-	BF128 bands_active_pairs, bands_active_triplets,
-		valid_vect;
+	uint32_t tclues[40],*tcluesxy; 
+	int nclues_step, nclues,  clean_valid_done;
+	uint32_t	ua_of_seen;
 	//============  go band3
 	STD_B3* myband3;
-	uint32_t fstk, andmiss1, noutmiss1, wactive0,
-		diagb3;
-	//uint32_t free1x, free2, free3;
-	uint32_t tua128_b3[1000], ntua128_b3;
+	uint32_t fstk, andmiss1, noutmiss1, wactive0;
 	BF128 wg46;
 	int ib3_current;
 	uint32_t   nmiss, ua_out_seen;
@@ -897,15 +788,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	MINCOUNT smin;
 	MORE32 moreuas_b3, moreuas_b3_small;
 
-	
-	inline void AddB3_2_to_B3_1() {
-		memcpy(&uasb3_1[nuasb3_1], uasb3_2, nuasb3_2 * 4);
-		nuasb3_1 += nuasb3_2;
-	}
-	
-	
-	
-	
+		
 	//=====================process for a new band 2 / set of bands 3
 	void GoM10();// standard entry
 	void GoM10Uas();// collect uas guas
@@ -921,11 +804,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	int Clean_2b();// test first guas2
 	int Clean_2c();// test only guas2
 	void CleanAll();
-	inline void AddXClue(uint32_t * t, int & n, uint32_t xcell) {
-		uint32_t cell = From_128_To_81[xcell];
-		stack_count.u16[C_stack[cell]]++;
-		t[n++] = cell;
-	}
+
 	void NewUaB12();
 	void DebugAdd12();
 	void GoB3(STD_B3 & b);

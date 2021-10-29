@@ -23,13 +23,13 @@ const char * libs_c17_00_cpt2g[60] = {
 	"16 maxuas",//16
 	"17 maxuas b1",//17
 	"18 switch mv2",//18
-	"19 pass all filters",//19
+	"19 ",//19
 	"20 ",//20
 	"21 pass mincount",//21
 	"22 3a mincount <=6",//22
 	"23 check b12 first",//23
 	"24 check b12 first ok  ",//24
-	"25 clean 3 count",
+	"25 ",
 	"26 chunk count ",
 	"27 clean count ",	
 	"28  need to assign", 
@@ -50,15 +50,15 @@ const char * libs_c17_00_cpt2g[60] = {
 	"43 ",
 	"44 ",
 	"45 step dead  b2",
-	"46 n cleamore",
-	"47 n cleanplus",
+	"46 ",
+	"47",
 	"48 n clean b",
 	"49 matrix ",
 	"50 count clean",
 	"51  check g2 ok",
 	"52  check g2 ",
-	"53 count g2ok set  ",
-	"54 count g2ok ",
+	"53  ",
+	"54  ",
 	"55 zhou[1].CallMultipleB3",
 	"56 nmiss1 ua of found",
 	"57 nmiss1 go subcritical",
