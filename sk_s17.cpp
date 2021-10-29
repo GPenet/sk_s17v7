@@ -87,12 +87,8 @@ VALIDB64 vab1_1[MAX_56],vab1a[MAX_56],
 	vab6_1[MAXN6], vab6_2[MAXN6];
 
 ZS128 Z128_5_1[MAXN5], Z128_5_2[MAXN5],
-Z128_6_1[MAXN5], Z128_6_2[MAXN5];
+Z128_6_1[MAXN6], Z128_6_2[MAXN6];
 
-
-
-
-//uint64_t mainloop11[100000];
 uint64_t to_clean[100000];
 
 BI2 bi2_b1w[250], bi2_b1yes[250];
@@ -100,14 +96,12 @@ BI2 bi2_b2w[250], bi2_b2yes[250];
 BI2 bi2_b1w2[250], bi2_b1yes2[250];
 BI2 bi2_b2w2[250], bi2_b2yes2[250];
 
-VALIDB vab1w[MAX_56], vab1yes[MAX_56];
+VALIDB xvab1w[MAX_56], vab1yes[MAX_56];
 VALIDB vab2w[MAX_56], vab2yes[MAX_56];
 VALIDB vab1w2[MAX_56], vab1yes2[MAX_56];
 VALIDB vab2w2[MAX_56], vab2yes2[MAX_56];
 
 VALIDB64 vab64b1[MAX_56], vab64b2[MAX_56];
-
-GINT64 tempXY[30000];// limit chunkx * chunky here 100*200=20000
 
 uint64_t p_cpt[40], p_cptg[40], p_cpt2g[60];
 
