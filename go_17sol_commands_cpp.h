@@ -46,7 +46,7 @@ const char * libs_c17_00_cpt2g[60] = {
 	"39 all steps",
 	"40 b3 new size 2",
 	"41 b3 new size 3",
-	"42 ",
+	"42 b3 new size>3",
 	"43 ",
 	"44 ",
 	"45 step dead  b2",
@@ -71,9 +71,6 @@ void Go_c17_00( ) {// p2 process
 	cout << sgo.vx[2] << " -v2- skip first nnn restart after batch failure" << endl;
 	cout << sgo.vx[3] << " -v3- last entry number for this batch must be > vx[2]" << endl;
 	cout << sgo.vx[4] << " -v4- 0 if p2a 1 if p2b" << endl;
-	if(sgo.vx[5])cout << sgo.vx[5] << " -v5- band filter" << endl;
-	if (sgo.vx[6])cout << sgo.vx[6] << " -v6- diag option" << endl;
-
 	int it16_start = sgo.vx[0];
 	g17b.aigstop=0;
 	//g17b.diag = sgo.vx[6];

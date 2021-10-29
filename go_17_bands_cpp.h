@@ -29,7 +29,6 @@ void STD_B416::SetGangster() {
 		}
 	}
 
-
 }
 void STD_B416::InitC10(int i) {
 	GetBandTable(i); SetGangster();
@@ -70,15 +69,6 @@ void STD_B416::InitBand2_3(int i16, char * ze, BANDMINLEX::PERM & p
 	SetGangster();
 }
 void STD_B1_2::FillMiniDigsMiniPairs(STD_B1_2 & bb) {
-	if (0) {
-		cout << "gangster other band" << oct << endl;
-		for (int i = 0; i < 9; i++)cout << bb.gangster[i] << " ";
-		cout << endl << "my gangster  " << endl;
-		for (int i = 0; i < 9; i++)cout << gangster[i] << " ";
-		cout << dec << endl;
-		cout << band << " my band" << endl;
-	}
-
 	nvpairs = 0;
 	for (int i = 0, j = 0; i < 9; i++, j += 3) {
 		int a = (1 << band0[j]), b = (1 << band0[j + 1]), c = (1 << band0[j + 2]);
@@ -94,16 +84,6 @@ void STD_B1_2::FillMiniDigsMiniPairs(STD_B1_2 & bb) {
 			tv_pairs[nvpairs++] = j+1;
 		if ((gg[jcol] & b) && (gg[jcol + 1] & a))
 			tv_pairs[nvpairs++] = j + 2;
-	}
-	if (0) {
-		cout << " valid pairs table ";
-		for (int i = 0; i < nvpairs; i++)
-			cout << tv_pairs[i] << " ";
-		cout << endl;
-		cout << " valid pairs pairs " << oct;
-		for (int i = 0; i < nvpairs; i++)
-			cout << mini_pairs[tv_pairs[i]] << " ";
-		cout << dec << endl;
 	}
 }
 int STD_B1_2::ReviseG_triplet(int imini, int ip, STD_B1_2 * bb) {
@@ -139,7 +119,6 @@ uint32_t  STD_B1_2::GetMiniData(int index, uint32_t & bcells, STD_B1_2 *bb) {
 		 perm = index % 3,	*pcol = tpcol[perm];
 	bcells = tcells[perm] << (3 * imini);
 	uint32_t digs= mini_pairs[index];
-	//bb->InitRevisedg();// must be done by the caller
 	bb->revised_g[dcol + pcol[0]] ^= digs;
 	bb->revised_g[dcol + pcol[1]] ^= digs;
 	return digs;
@@ -155,8 +134,6 @@ void STD_B3::InitBand3(int i16, char * ze, BANDMINLEX::PERM & p) {
 		for (int j = 0; j < 3; j++)
 			minirows_bf[i] |= 1 << p[j];
 	}
-	//cout << band << " " << oct << minirows_bf[0]
-	//	<< " " << minirows_bf[1] << dec << endl;
 
 }
 /* GUA4 GUA6
@@ -194,8 +171,6 @@ int STD_B3::IsGua(int i81) {
 		guas.ua2_imini[i81] = imini;
 		guas.ua2pair27[i81] = (7 << (3 * imini))^ua;
 		guas.ua2bit[i81] = 1 << imini;
-		//cout << "set gua2 i81=" << i81 << " imini=" << 3 * r1 + w81.i9 / 3 
-		//	<<	" guas.ua2_i27="<< guas.ua2_i27[i81] << endl;;
 		return 1;
 	}
 	// is it a gua4 gua6 catch data to use
@@ -207,7 +182,6 @@ int STD_B3::IsGua(int i81) {
 		if (*p1 == d2)col1 = icol;
 		if (*p2 == d1)col2 = icol;
 	}
-
 
 	if (ntc == 2) {// gua6 first type find and store ua
 		int cella = 9 * r1 + col1, cellb = 9 * r2 + col2,
@@ -280,21 +254,6 @@ int GENUAS_B12::Initgen() {// buil start myband1 myband2
 	zh2b_i.Init_std_bands();
 	//_______________________________________________________
 	nua = 0;// final table of uas bands 12 empty at start
-
-/*
-	for (uint32_t i = 0; i < myband1.nua; i++) {// collect band 1
-		register uint64_t  ua = myband1.tua[i] & BIT_SET_27;
-		uint64_t cc = _popcnt64(ua);
-		ua |= cc << 59;
-		AddUA64(tua, nua, ua);
-	}
-	for (uint32_t i = 0; i < myband2.nua; i++) {// collect band 2
-		register uint64_t  ua = myband2.tua[i] & BIT_SET_27;
-		uint64_t cc = _popcnt64(ua);
-		ua <<= 32;
-		ua |= cc << 59;
-		AddUA64(tua, nua, ua);
-	}*/
 	nuab1b2 = 0;// switch uas band1 and uas band2 to 2X mode
 	for (uint32_t i = 0; i < myband1.nua; i++) // collect band 1
 		tuab1b2[nuab1b2++] = myband1.tua[i] & BIT_SET_27;
@@ -303,27 +262,19 @@ int GENUAS_B12::Initgen() {// buil start myband1 myband2
 		R <<= 32;
 		tuab1b2[nuab1b2++] = R;
 	}
-
 	//___________________________ Start collection of uas
 	zh2b_g.nua = 0;// new uas 
 	for (int i = 0; i < 36; i++) BuildFloorsAndCollectOlds(floors_2d[i]);
 	for (int i = 0; i < 84; i++) BuildFloorsAndCollectOlds(floors_3d[i]);
 	for (int i = 0; i < 126; i++)BuildFloorsAndCollectOlds(floors_4d[i]);
 	for (int i = 0; i < 126; i++) BuildFloorsAndCollectOlds(0x1ff ^ floors_4d[i]);
-	//if(g17b.debug17&&g17b.GodebugCheckUas("standars uas")) return 1;
 
 	//==================== collect more uas 6/7 digit 
-	//cout << "initial status for UAS bands 1+2 nua="<<nua << endl;
 	CollectMore2digits();
 	myband1.FillMiniDigsMiniPairs(myband2);
 	myband2.FillMiniDigsMiniPairs(myband1);
-	//cout << "after collect more nua=" << nua << endl;
 	CollectTriplets();
-	//cout << "after collect triplets nua=" << nua << endl;
 	CollectMore2minirows();
-	//cout << "after collect 2 mini rows nua=" << nua << endl;
-	//if (g17b.debug17&&g17b.GodebugCheckUas(" all us")) return 1;
-	//DebugUas();
 	return 0; // ok
 }
 
@@ -337,8 +288,6 @@ void GENUAS_B12::BuildFloorsAndCollectOlds(int fl) {
 	{	register uint64_t R = solved_cells;
 	for (uint32_t i = 0; i < nuab1b2; i++)
 		if (!(R & tuab1b2[i])) tuaold[nuaold++] = tuab1b2[i];
-	/*
-	*/
 	for (uint32_t i = 0; i < nua; i++)
 		if (!(R & tua[i])) tuaold[nuaold++] = tua[i];
 	}
@@ -352,14 +301,12 @@ void GENUAS_B12::BuildFloorsAndCollectOlds(int fl) {
 		ua |= cc << 59;
 		AddUA64(tua, nua, ua);
 	}
-
 }
 int GENUAS_B12::BuilOldUAs(uint32_t r0) {
 	//====extract uas not hit in the band where is the mini row
 	nuaold = 0;
 	register uint64_t R = BIT_SET_27 ^ r0,R2= BIT_SET_27;
-	if (ib)R <<= 32;
-	else R2 <<= 32;
+	if (ib)R <<= 32;	else R2 <<= 32;
 	for (uint32_t i = 0; i < nua; i++) {
 		register uint64_t U = tua[i];
 		if (R&U) continue;// hitting another cell in band B
@@ -368,7 +315,6 @@ int GENUAS_B12::BuilOldUAs(uint32_t r0) {
 	}
 	for (uint32_t i = 0; i < nuab1b2; i++)
 		if (!(R & tuab1b2[i])) tuaold[nuaold++] = tuab1b2[i];
-	//cout<<Char2Xout(R) << "BuilOldUAs nuas=" << nuaold << endl;
 	return 0;
 }
 int GENUAS_B12::CheckOld() {// ua 2x27  + 5 bit length
@@ -608,7 +554,6 @@ void GENUAS_B12::CollectMore2minirows() {
 	modemore = 4;
 	STD_B1_2 * mybx[2] = { &myband1 ,&myband2 };
 	for (ib = 0; ib < 2; ib++) {
-		//if(ib)	zh1b_g.diag = 1;
 		ba = mybx[ib];
 		bb = mybx[1 - ib];
 		zh1b_g.GetBand(bb->band0, tuamore);
@@ -617,7 +562,6 @@ void GENUAS_B12::CollectMore2minirows() {
 			zhone[0].CheckSolPerDigit(); 
 		}
 		int npairs = ba->nvpairs;
-		//cout << " CollectMore2minirows vpairs status nvpairs=" << npairs <<" ib="<<ib<< endl;
 		uint32_t bcells1,bcells2;
 		for (int i1 = 0; i1 < npairs-1; i1++) {
 			int cell1 = ba->tv_pairs[i1],
@@ -626,7 +570,7 @@ void GENUAS_B12::CollectMore2minirows() {
 				int cell2 = ba->tv_pairs[i2],
 					box2 = cellsFixedData[cell2].eb;
 				if (box1 == box2) continue;
-				// 2 mini rrows
+				// 2 mini rows
 				bb->InitRevisedg();
 				digp = ba->GetMiniData(cell1, bcells1, bb);
 				digp |= ba->GetMiniData(cell2, bcells2, bb);

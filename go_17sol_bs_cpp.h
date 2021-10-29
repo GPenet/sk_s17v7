@@ -40,7 +40,6 @@ void G17B::ExpandB2() {
 	ExpandOneBand(2);
 	nbi2_2 = nmybi2t;
 	memcpy(b2cpt, p_cpt, sizeof b2cpt);
-	b2count = totb2 = b2cpt[0]; // debugging for max expected
 	b.my_bi2 = bi2_2;
 	b.nbi2 = nbi2_2;
 	b.my_validb = vab_2;
@@ -1302,7 +1301,6 @@ void G17B::GoB3(STD_B3 & b) {
 }
 
 //__________ phase 2___ find band 3 clues for one band 3
-
 void G17B3HANDLER::GoMiss0() {
 	smin = g17b.smin;
 	uasb3if = g17b.uasb3_1;
@@ -1756,6 +1754,27 @@ int ZHOU::Full17Update() {
 	}
 	return 1;
 }
+void ZHOU::Compute17Next(int index) {
+	int ir = Full17Update();
+	if (!ir) return;// locked 
+	if (ir == 2) {//solved
+		if (index) {// store false as ua
+			BF128 & wua = zh_g2.cells_assigned;
+			int * sol = genb12.grid0;
+			wua.SetAll_0();;
+			for (int i = 0; i < 81; i++) {
+				int d = sol[i];
+				if (FD[d][0].Off_c(i))	wua.Set_c(i);
+			}
+			if (wua.isNotEmpty()) {
+				zh_g.nsol++;
+				zh_g.go_back = 1;// closed anyway
+			}
+		}
+		return;
+	}
+	Guess17(index);// continue the process
+}
 void ZHOU::Guess17(int index) {
 	if (zh_g.go_back) return;
 	int xcell = zh_g2.xcell_to_guess,
@@ -1781,27 +1800,6 @@ void ZHOU::Guess17(int index) {
 		}
 	}
 }
-void ZHOU::Compute17Next(int index) {
-	int ir = Full17Update();
-	if (!ir) return;// locked 
-	if (ir == 2) {//solved
-		if (index) {// store false as ua
-			BF128 & wua = zh_g2.cells_assigned;
-			int * sol = genb12.grid0;
-			wua.SetAll_0();;
-			for (int i = 0; i < 81; i++) {
-				int d = sol[i];
-				if (FD[d][0].Off_c(i))	wua.Set_c(i);
-			}
-			if (wua.isNotEmpty()) {
-				zh_g.nsol++;
-				zh_g.go_back = 1;// closed anyway
-			}
-		}
-		return;
-	}
-	Guess17(index);// continue the process
-}
 
 
 //================= critical process
@@ -1826,15 +1824,11 @@ void G17B3HANDLER::CriticalAssignCell(int Ru) {// assign a cell within the criti
 	}
 }
 uint32_t G17B3HANDLER::IsMultiple(int bf) {
-	if (p_cpt2g[6] == 69)
-		cout << Char27out(bf) << " call ismultiple"  << endl;
-
 	if (bf == rknown_b3) return 0;
 	uint32_t ua = 0;
 	rknown_b3 = bf;
 	G17B & bab = g17b;
 	// check first if all tuab3 is hit
-	p_cpt2g[55] ++;
 	int ir = zhou[1].CallMultipleB3(zhou[0], bf, 0);
 	if (ir) {
 		ua = zh_g2.cells_assigned.bf.u32[2];
@@ -1918,6 +1912,19 @@ void G17B3HANDLER::Go_Subcritical() {// nmiss to select in the critical field
 
 
 //________ final called by all branches
+void G17B::FinalCheckB3(uint32_t bfb3) {
+	p_cpt2g[29]++;
+	if (!clean_valid_done) {
+		if (Clean_Valid()) {
+			moreuas_b3.Add(0);//lock the call 
+			aigstopxy = 1;		return;
+		}
+	}
+	if (moreuas_b3.Check(bfb3))return;
+	register uint32_t ir = zhou[1].CallMultipleB3(zhou[0], bfb3, 0);
+	if (ir) { NewUaB3();	return; }
+	Out17(bfb3);
+}
 void G17B::Out17(uint32_t bfb3) {
 	cout << Char27out(bfb3) << "\t\tone sol to print final check " << endl;
 	char ws[82];
@@ -1933,53 +1940,6 @@ void G17B::Out17(uint32_t bfb3) {
 
 }
 
-void G17B::DebugAdd12() {
-	aigstop = 1;
-	cerr << "ua < 12 to add clean" << endl;
-	cout << endl << endl << Char2Xout(myua) << " ua < 12 to add   clean" << endl;
-	cout << "bug location band 2 id=" << genb12.nb12 << endl;
-	cout << "p_cpt2g[0]=" << p_cpt2g[0]  << "\tp_cpt2g[2]=" << p_cpt2g[2];
-	cout << "\tp_cpt2g[3]=" << p_cpt2g[3]<< "\tp_cpt2g[6]=" << p_cpt2g[6] << endl;
-	cout << Char2Xout(wb12bf) << " b12 at call" << endl;
-	cout << "ntusb1=" << ntusb1 << " ntoclean=" << n_to_clean << endl;
-	for (int i = 0; i < nclues_step; i++) cout << tclues[i] << " ";
-	cout << "\t";
-	for (int i = 0; i < nclues; i++) cout << tcluesxy[i] << " ";
-	cout << endl;
-	zh2b[0].ImageCandidats();
-	if (0) {
-		cout << "table uas" << endl;
-		uint64_t *t = genuasb12.tua;
-		uint32_t n = genuasb12.nua;
-		for (uint32_t i = 0; i < n; i++) {
-			uint64_t cc = _popcnt64(t[i] & BIT_SET_2X);
-			if (cc > 12)break;
-			cout << Char2Xout(t[i]) << " " << i << " " << cc << endl;
-
-		}
-		for (uint32_t i = 0; i < ntusb1; i++) {
-			uint64_t cc = _popcnt64(tusb1[i] & BIT_SET_2X);
-			if (cc > 12)break;
-			cout << Char2Xout(tusb1[i]) << " b1 i=" << i << " " << cc << endl;
-
-		}
-
-	}
-
-}
-void G17B::FinalCheckB3(uint32_t bfb3) {
-	p_cpt2g[29]++;
-	if (!clean_valid_done) {
-		if (Clean_Valid()) {
-			moreuas_b3.Add(0);//lock the call 
-			aigstopxy = 1;		return;
-		}
-	}
-	if (moreuas_b3.Check(bfb3))return;
-	register uint32_t ir = zhou[1].CallMultipleB3(zhou[0], bfb3, 0);
-	if (ir) {	NewUaB3();	return;	}
-	Out17(bfb3);
-}
 void G17B::NewUaB12() {
 	uint64_t cc64 = _popcnt64(myua&BIT_SET_2X);
 	if (cc64 < 12) {// this should never be this is a check for a bug
@@ -2004,18 +1964,15 @@ void G17B::NewUaB12() {
 		morev2c.Add(myua);
 	}
 }
-
 void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 	BF128 ua128 = zh_g2.cells_assigned;
 	register uint64_t ua12 = ua128.bf.u64[0];
 	register uint32_t ua = ua128.bf.u32[2],
-		cc = _popcnt32(ua),
-		cc0 = (uint32_t)_popcnt64(ua12);
+		cc = _popcnt32(ua),		cc0 = (uint32_t)_popcnt64(ua12);
 	if (!cc) {// bands 1+2 not valid
 		cerr << " uab12 in newuab3" << endl;
 		cout << " uab12 in newuab3 nmiss="<<hh0.nmiss << endl;
 		DebugAdd12();		aigstop = 1;
-		//		myua = ua12;		NewUaB12();		aigstopxy = 1;// don't process other bands 3
 		return;
 	}
 	if (!(ua&hh0.smin.critbf))ua_out_seen = ua;
@@ -2025,7 +1982,6 @@ void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 		if ((cc0 + cc) > 15) return;
 		if (cc == 4 && cc0 > 15) return;
 	}
-	p_cpt2g[32]++;// 2;3 or 4 cells in band 3
 	uint64_t ua54 = (ua12 & BIT_SET_27) | ((ua12 & BIT_SET_B2) >> 5);
 
 	// find the digits pattern from the current band 3
@@ -2049,7 +2005,7 @@ void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 		}
 	}
 	if (cc > 3) {
-		p_cpt2g[33]++;
+		p_cpt2g[42]++;
 		// could also be added later to other bands 3 where it is valid
 		if (myband3->ntua128 < 1000) {
 			myband3->tua128[myband3->ntua128++] = ua128;
@@ -2058,8 +2014,6 @@ void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 		}
 		return;
 	}
-
-	//if(cc0<16)cout << Char27out(ua) << " " << Char2Xout(ua12) << " new uab3 to store " << endl;
 
 	if (cc == 2) {// one of the 27 GUA2s add to the table
 		p_cpt2g[40]++;
@@ -2091,3 +2045,19 @@ void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 
 }
 
+
+void G17B::DebugAdd12() {
+	aigstop = 1;
+	cerr << "ua < 12 to add clean" << endl;
+	cout << endl << endl << Char2Xout(myua) << " ua < 12 to add   clean" << endl;
+	cout << "bug location band 2 id=" << genb12.nb12 << endl;
+	cout << "p_cpt2g[0]=" << p_cpt2g[0] << "\tp_cpt2g[2]=" << p_cpt2g[2];
+	cout << "\tp_cpt2g[3]=" << p_cpt2g[3] << "\tp_cpt2g[6]=" << p_cpt2g[6] << endl;
+	cout << Char2Xout(wb12bf) << " b12 at call" << endl;
+	cout << "ntusb1=" << ntusb1 << " ntoclean=" << n_to_clean << endl;
+	for (int i = 0; i < nclues_step; i++) cout << tclues[i] << " ";
+	cout << "\t";
+	for (int i = 0; i < nclues; i++) cout << tcluesxy[i] << " ";
+	cout << endl;
+	zh2b[0].ImageCandidats();
+}
