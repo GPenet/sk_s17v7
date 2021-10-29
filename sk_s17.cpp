@@ -96,7 +96,7 @@ BI2 bi2_b2w[250], bi2_b2yes[250];
 BI2 bi2_b1w2[250], bi2_b1yes2[250];
 BI2 bi2_b2w2[250], bi2_b2yes2[250];
 
-VALIDB xvab1w[MAX_56], vab1yes[MAX_56];
+VALIDB vab1w[MAX_56], vab1yes[MAX_56];
 VALIDB vab2w[MAX_56], vab2yes[MAX_56];
 VALIDB vab1w2[MAX_56], vab1yes2[MAX_56];
 VALIDB vab2w2[MAX_56], vab2yes2[MAX_56];
