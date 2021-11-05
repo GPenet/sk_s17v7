@@ -919,21 +919,21 @@ void G17B::Do128Chunk() {
 	// cut in chunks max Xchunk Ychunk
 	ZS128 * z1 = za, *z2 = zb;
 	uint32_t n1 = nza, n2 = nzb;
-	uint32_t  ideb2 = 0, iend2 = YCHUNK64;
+	uint32_t  ideb2 = 0, iend2 = YCHUNK128;
 	if (iend2 > n2)iend2 = n2;
 	while (ideb2 < n2) { //Y chunk
 		uint32_t ny = iend2 - ideb2;
-		uint32_t ideb1 = 0, iend1 = XCHUNK64;
+		uint32_t ideb1 = 0, iend1 = XCHUNK128;
 		if (iend1 > n1)iend1 = n1;
 
 		while (ideb1 < n1) {// X chunk
 			uint32_t nx = iend1 - ideb1;
 			if (nx < ny)Do128Go(&z1[ideb1], &z2[ideb2], nx, ny);
 			else Do128Go(&z2[ideb2], &z1[ideb1], ny, nx);
-			ideb1 = iend1; iend1 += XCHUNK64;
+			ideb1 = iend1; iend1 += XCHUNK128;
 			if (iend1 > n1)iend1 = n1;
 		}
-		ideb2 = iend2; iend2 += YCHUNK64;
+		ideb2 = iend2; iend2 += YCHUNK128;
 		if (iend2 > n2)iend2 = n2;
 	}
 	if (n_to_clean) CleanAll();
@@ -1416,6 +1416,7 @@ void G17B3HANDLER::GoMiss2( uint32_t uamin) {
 		}
 		if (andx) {
 			G17B3HANDLER hn = *this;
+			AddCell_Miss2(res, andx);
 			if (g17b.aigstopxy) return;
 		}
 	}
