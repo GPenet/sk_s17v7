@@ -2,30 +2,16 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define SEARCH17SOL
 
-#define DEFPHASE -4
-#ifdef DEFPHASE
-#endif
-
-
-
-/* program organisation
-	main is the standard frame including the basic brute force 
-*/
-
-//#define MODE66_ON
-#define CLEAN_SWITCH 8
-#define XCHUNK64 200
-#define YCHUNK64 200
 #define XCHUNK128 200
 #define YCHUNK128 200
-#define XCHUNK256 100
-#define YCHUNK256 100
-#define GTEST17_ON 1
 #define UALIMSIZE 21
 #define GUALIMSIZE 18
+
 #define UA32_10 0xffc00000
 #define UA64_54 0x3fffffffffffff
+
 #define TUA64_12SIZE 5000
+
 /*entry 92
 maxindex= 983
 maxn5= 51516
@@ -36,12 +22,12 @@ maxdet6= 2004
 #define MAXN5 51520
 #define MAXN6 237770 
 #define MAX_56 300000 
+
 #define MAXSTEP5 5000
 #define MAXSTEP6 23000 
+
 #define MAXNIND6 2100
 #define MAXNIND5 300
-// max for band 3 sockets 2,3,4,6
-#define MAXSOCKB3 100
 
 //============================================== 
 
@@ -103,7 +89,7 @@ VALIDB vab2w2[MAX_56], vab2yes2[MAX_56];
 
 VALIDB64 vab64b1[MAX_56], vab64b2[MAX_56];
 
-uint64_t p_cpt[40], p_cptg[40], p_cpt2g[60];
+uint64_t p_cpt[40],  p_cpt2g[60];
 
 
 
@@ -136,6 +122,7 @@ void Go_0() {
 	}
 	cerr << "running command " << sgo.command << endl;
 	if(!sgo.command) Go_c17_00();
+	if (sgo.command==10) Go_c17_10();
 	else cerr << "go_0 return" << endl;
 }
 

@@ -1089,6 +1089,9 @@ int TGUAS::ApplyG3_128() {
 
 
 //___________ potential valid bands 1+2  after 128 uas
+#define DBK
+#ifdef DBK
+#endif
 
 void G17B::CleanAll() {
 	nwc = n_to_clean;	n_to_clean = 0;
@@ -1100,6 +1103,10 @@ void G17B::CleanAll() {
 		if (aigstop) return;
 		aigstopxy = 0;
 		wb12bf = to_clean[i];
+#ifdef DBK
+		if (wb12bf != p17diag.bf.u64[0]) continue;
+		cout << Char2Xout(wb12bf) << " expected bands 1+2" << endl;
+#endif
 		nclues = 0;
 		{
 			register uint64_t w = wb12bf ^ fb12;
@@ -1265,6 +1272,15 @@ void G17B::GoB3(STD_B3 & b) {
 			andout &= u3;
 		}
 	}
+
+//#define DBM
+#ifdef DBM
+	cout << " nmiss=" << nmiss << endl;
+	smin.Status("debug");
+	cout << " nif=" << nuasb3_1 <<"  nof=" << nuasb3_2 << endl;
+	cout << Char27out(andout)<<" andout"  << endl;
+#endif
+
 	if (!nmiss) {
 		if (nuasb3_2)return;
 		else {p_cpt2g[10]++;hh0.GoMiss0(); return;}
@@ -1325,6 +1341,9 @@ void G17B3HANDLER::GoMiss1(uint32_t andout) {
 	Do_miss1();
 }
 void G17B3HANDLER::Do_miss1(){
+#ifdef DBM
+	cout << Char27out(wua) << " wua   entry miss1  " << endl;
+#endif
 	if (!nuasb3of) {// subcritical in hn if solved
 		if (!g17b.clean_valid_done) 
 			if (g17b.Clean_Valid()) {
@@ -1332,7 +1351,6 @@ void G17B3HANDLER::Do_miss1(){
 				return; // b 12 not valid
 			}
 		int uabr = IsMultiple(active_b3);
-
 		if (uabr)wua &= uabr ; // one ua outfield seen
 		else {// confirmed subcritical possible
 			G17B3HANDLER hn = *this;
@@ -1341,9 +1359,8 @@ void G17B3HANDLER::Do_miss1(){
 			wua &= ~active_b3; // don't re use this as first cell
 		}
 	}
-	Critical2pairs();// assign 2 pairs in minirow to common cell
+	Critical2pairs(1);// assign 2 pairs in minirow to common cell
 	uint32_t res;
-	if (!g17b.moreuas_b3.CheckNew(known_b3, wua))return;
 	while (bitscanforward(res, wua)) {
 		int bit = 1 << res; wua ^= bit; wactive0 ^= bit;
 		G17B3HANDLER hn = *this;
@@ -1379,6 +1396,9 @@ void G17B3HANDLER::GoMiss2Init() {
 }
 void G17B3HANDLER::AddCell_Miss2(uint32_t cell, uint32_t wand) {
 	nuasb3of = 1;
+#ifdef DBM
+	cout << Char27out(wand) << " wand   entry miss2 cell " <<cell<< endl;
+#endif
 	wua = wand;
 	{
 		register int s = C_stack[cell];
@@ -1398,7 +1418,15 @@ void G17B3HANDLER::GoMiss2( uint32_t uamin) {
 	uasb3if = g17b.uasb3_1;
 	nuasb3if = g17b.nuasb3_1;
 	uasb3of = g17b.uasb3_2;
+	nuasb3of = g17b.nuasb3_2;
 	wua = uamin;
+#ifdef DBM
+	cout << Char27out(wua) << " wua entry go miss2" << endl;
+	for (uint32_t i = 0; i < nuasb3of; i++) {
+		cout << Char27out(uasb3of[i]) << "  ua of" << endl;
+	}
+
+#endif
 	// cells added must produce cells hitting all remaining uas
 	uint32_t res ;
 	while (bitscanforward(res, wua)) {
@@ -1416,7 +1444,7 @@ void G17B3HANDLER::GoMiss2( uint32_t uamin) {
 		}
 		if (andx) {
 			G17B3HANDLER hn = *this;
-			AddCell_Miss2(res, andx);
+			hn.AddCell_Miss2(res, andx);
 			if (g17b.aigstopxy) return;
 		}
 	}
@@ -1854,8 +1882,6 @@ void G17B3HANDLER::Go_SubcriticalMiniRow() {
 			G17B3HANDLER hn = *this;
 			hn.smin.mini_bf1 ^= bit;
 			hn.SubMini( M, mask);
-			if(!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
-
 		}
 		else if (bit & smin.mini_bf2)// it was 2 gua2 pair assign 2 out of 3
 			for (int j = 0; j < 3; j++) {
@@ -1863,13 +1889,11 @@ void G17B3HANDLER::Go_SubcriticalMiniRow() {
 				G17B3HANDLER hn = *this;
 				hn.smin.mini_bf2 ^= bit;
 				hn.SubMini(M, mask);
-				if (!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 			}
 		else if (bit & smin.mini_bf3) {// it was 3 gua2 pair assign 3 out of 3
 			G17B3HANDLER hn = *this;
 			hn.smin.mini_bf3 ^= bit;
 			hn.SubMini(M, mask);
-			if (!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 		}
 		else if (bit & smin.mini_triplet)// it was a gua3 triplet assign 2 out of 3
 			for (int j = 0; j < 3; j++) {
@@ -1878,12 +1902,10 @@ void G17B3HANDLER::Go_SubcriticalMiniRow() {
 				hn.smin.mini_triplet ^= bit;
 			if(!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 				hn.SubMini(M, mask);
-				if (!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 			}
 		else {// second add in the mini row one residual cell take it
 			G17B3HANDLER hn = *this;
 			hn.SubMini(M, mask);
-			if (!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 		}
 	}
 }
@@ -1977,6 +1999,9 @@ void G17B::NewUaB3() {// new ua from final check zh_g2.cells_assigned
 		return;
 	}
 	if (!(ua&hh0.smin.critbf))ua_out_seen = ua;
+#ifdef DBM
+	cout << Char27out(ua) << " ua to add in b3" << endl;
+#endif
 	moreuas_b3.Add(ua);
 	if (cc0 > GUALIMSIZE) return; 
 	if (cc > 3) {

@@ -23,6 +23,17 @@ struct MINCOUNT {
 		}
 		return cc;
 	}
+	void Status(const char * lib) {
+		cout << lib << "critical Status mincount =" << mincount
+			<< " minplus=" << minplus << endl;
+		cout << Char27out(critbf) << " critical bf" << endl;
+		cout << Char27out(pairs27) << " pairs 27" << endl;
+		cout << Char9out(mini_bf1) << "     minis bf1" << endl;
+		cout << Char9out(mini_bf2) << "     minis bf2" << endl;
+		cout << Char9out(mini_bf3) << "     minis bf3" << endl;
+		cout << Char9out(mini_triplet) << " mini triplets" << endl << endl;
+
+	}
 };
 struct BI2 {//Index 2 valid in band
 	uint64_t bf, // 2 cells in bit fiekd
@@ -554,6 +565,7 @@ struct G17B3HANDLER {
 };
 
 struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
+	BF128 p17diag;
 	G17B();// initial tasks all commands
 	int b3lim,  aigstop, aigstopxy,
 		iretb1,doloopnotok,		npuz, a_17_found_here;
