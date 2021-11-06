@@ -1273,7 +1273,7 @@ void G17B::GoB3(STD_B3 & b) {
 		}
 	}
 
-//#define DBM
+#define DBM
 #ifdef DBM
 	cout << " nmiss=" << nmiss << endl;
 	smin.Status("debug");
@@ -1900,7 +1900,7 @@ void G17B3HANDLER::Go_SubcriticalMiniRow() {
 				M = c2[j] << (3 * i);// 2cell bit field in the mini row
 				G17B3HANDLER hn = *this;
 				hn.smin.mini_triplet ^= bit;
-			if(!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
+			//if(!g17b.moreuas_b3.CheckNew(known_b3, active_sub))return;
 				hn.SubMini(M, mask);
 			}
 		else {// second add in the mini row one residual cell take it
