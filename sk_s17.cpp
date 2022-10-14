@@ -2,38 +2,21 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define SEARCH17SOL
 
-#define XCHUNK128 200
-#define YCHUNK128 200
-#define UALIMSIZE 21
-#define GUALIMSIZE 18
+//#define HAVEKNOWN 
+//#define DEBUGKNOWN 0  forget use sgo.vx[1]
 
+
+
+/* program organisation
+	main is the standard frame including the basic brute force 
+*/
+
+#define GTEST17_ON 1
+#define UALIMSIZE 20
+#define GUALIMSIZE 18
 #define UA32_10 0xffc00000
 #define UA64_54 0x3fffffffffffff
-
-#define TUA64_12SIZE 5000
-
-/*entry 92
-maxindex= 983
-maxn5= 51516
-maxn6= 237762
-maxdet5= 261
-maxdet6= 2004
-*/
-#define MAXN5 51520
-#define MAXN6 237770 
-#define MAX_56 300000 
-
-#define MAXSTEP5 5000
-#define MAXSTEP6 23000 
-
-#define MAXNIND6 2100
-#define MAXNIND5 300
-
 //============================================== 
-
-#define G17MORESIZE 32
-
-#define G17TESTUASGUASLIMITS 1
 
 #include <sys/timeb.h>
 #include "main.h"  // main and main tables and basic brute force
@@ -44,15 +27,18 @@ extern SGO sgo;
 extern ZHOU    zhou[50],zhou_i;// , zhou_i, zhou_solve;
 extern ZH_GLOBAL zh_g;
 extern ZH_GLOBAL2 zh_g2;
+extern ZHGXN zhgxn;
+extern ZHOU2 zhou2[5];
+extern ZHOU3 zhou3[10];
 extern ZH2B_GLOBAL   zh2b_g;
-extern ZH2B5_GLOBAL   zh2b5_g;   // 2_5 digits 2 bands
-extern ZH2B_1D_GLOBAL zh2b1d_g;  // one digit 2 bands
+//extern ZH2B_1D_GLOBAL zh2b1d_g;  // one digit 2 bands
+extern ZH2GXN zh2gxn;
+extern ZH2_2  zh2_2[5];
+extern ZH2_3  zh2_3[10];
+extern ZH2_4  zh2_4[20];
+extern ZH2_5  zh2_5[20];
 extern ZH2B zh2b[40], zh2b_i, zh2b_i1;
-extern ZH2B5 zh2b5[10]; // solved digit per digit
-extern ZH2B_1D zh2b1d[6]; // maxi 6 guesses, one per row
-extern ZHONE_GLOBAL   zh1b_g;
-extern ZHONE zhone[20];
-extern ZHONE zhone_i;
+//extern ZH2B_1D zh2b1d[6]; // maxi 6 guesses, one per row
 
 FINPUT finput;
 ofstream  fout1, fout2;
@@ -60,42 +46,26 @@ ofstream  fout1, fout2;
 #include "sk_s17h.h"   //main classes of the project
 #include "go_17sol_tables.h"
 G17B g17b;
-GENUAS_B12 genuasb12;
 GEN_BANDES_12 genb12;
-STD_B1_2 myband1, myband2;
+STD_B416 myband1, myband2;
 
-//=== buffers to store valid bands and vectors
-// max found in test all bands 243 steps 17063 valid bands
-BI2 bi2_1[250], bi2_2[250];
-VALIDB vab_1[MAX_56], vab_2[MAX_56];
-VALIDB64 vab1_1[MAX_56],vab1a[MAX_56],
-	vab5_1[MAXN5], vab5_2[MAXN5],
-	vab6_1[MAXN6], vab6_2[MAXN6];
 
-ZS128 Z128_5_1[MAXN5], Z128_5_2[MAXN5],
-Z128_6_1[MAXN6], Z128_6_2[MAXN6];
+//tables of potential bands 1+2
+BF128 tbelow7[4], tbelow8[10], tbelow9[50], tbelow10[100], tbelow11[100];
+uint32_t ntbelow[6], ntfull;//7,8,9,10,11,full clues
+uint64_t tandbelow[6]; // same as count
+uint64_t tfull[10000];
+CBS tbelow7cbs[4], tbelow8cbs[10], tbelow9cbs[50], tbelow10cbs[100], tbelow11cbs[100], tfullcbs[10000];
 
-uint64_t to_clean[100000];
-
-BI2 bi2_b1w[250], bi2_b1yes[250];
-BI2 bi2_b2w[250], bi2_b2yes[250];
-BI2 bi2_b1w2[250], bi2_b1yes2[250];
-BI2 bi2_b2w2[250], bi2_b2yes2[250];
-
-VALIDB vab1w[MAX_56], vab1yes[MAX_56];
-VALIDB vab2w[MAX_56], vab2yes[MAX_56];
-VALIDB vab1w2[MAX_56], vab1yes2[MAX_56];
-VALIDB vab2w2[MAX_56], vab2yes2[MAX_56];
-
-VALIDB64 vab64b1[MAX_56], vab64b2[MAX_56];
-
-uint64_t p_cpt[40],  p_cpt2g[60];
+uint64_t p_cptg[40], p_cpt1g[20], p_cpt2g[100];
+uint64_t p_cpt[40], p_cpt1[20];
 
 
 
 #include "go_17_bands_cpp.h"  
+
 #include "go_17_genb12_cpp.h"     
-#include "go_17sol_bs_cpp.h"     
+#include "go_17sol_bs_cpp.h"    
 #include "go_17sol_commands_cpp.h"
 
 
@@ -121,8 +91,14 @@ void Go_0() {
 		}
 	}
 	cerr << "running command " << sgo.command << endl;
-	if(!sgo.command) Go_c17_00();
-	if (sgo.command==10) Go_c17_10();
-	else cerr << "go_0 return" << endl;
+	switch (sgo.command) {
+	case 0: Go_c17_00(); break; // search one band1
+	case 10: Go_c17_10(); break; // run known
+	case 12: Go_c17_12(); break; // band analysis and more 
+	case 15: Go_c17_15(); break; // split knwon 17s 665 and others
+	case 16: Go_c17_16(); break; // add solution+bands index
+	case 80:  Go_c17_80(); break; // enumeration test 
+	}
+	cerr << "go_0 return" << endl;
 }
 
