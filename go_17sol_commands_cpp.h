@@ -49,6 +49,7 @@ const char * libs_c17_00_cpt2g[100] = {
 };
 void Go_c17_00( ) {// p2 process
 	cout << "Go_c17_00 search batch 17 clues  " << endl;
+	op.SetUp(0);
 	cout << sgo.vx[0] << " -v0- band 0_415" << endl;
 	cout << sgo.vx[1] << " -v1- verbose if 1" << endl;
 	cout << sgo.vx[2] << " -v2- skip first nnn restart after batch failure" << endl;
@@ -60,10 +61,7 @@ void Go_c17_00( ) {// p2 process
 	if (sgo.vx[7])cout << sgo.vx[7] << " -v7- diag filter 6" << endl;
 	if (sgo.bfx[0] & 1)g17b.nsearched = 18; else g17b.nsearched = 17;
 	int it16_start = sgo.vx[0];
-	g17b.debug17_check =   g17b.aigstop=0;
-	g17b.diag = g17b.debug17 = sgo.vx[1];
-	genb12.skip = sgo.vx[2];
-	genb12.last = sgo.vx[3];
+	g17b.aigstop=0;
 	if (sgo.vx[2] < 0) {
 		cerr << "invalid value for skip" << endl;
 		return;
@@ -89,70 +87,50 @@ void Go_c17_00( ) {// p2 process
 }
 
 void Go_c17_09() {// p2 process locate 
-	cout << "Go_c17_09 search locate batch 17 clues 656 566 " << endl;
-	cout << sgo.vx[0] << " -v0- band 0_415" << endl;
-	cout << sgo.vx[2] << " -v2- skip first nnn restart after batch failure" << endl;
-	cout << sgo.vx[3] << " -v3- last entry number for this batch must be > vx[2]" << endl;
-	cout << sgo.vx[4] << " -v4- 0 if p2a 1 if p2b" << endl;
-	if (!sgo.vx[7] || !sgo.vx[8]) sgo.vx[7] = sgo.vx[8] = 0;
-	cout << sgo.vx[7] << " -v7- band2 searched" << endl;
-	cout << sgo.vx[8] << " -v8- band3 searched" << endl;
-	int it16_start = sgo.vx[0];
-	g17b.debug17 = g17b.debug17_check=0;
-	g17b.diag =  sgo.vx[6];
-	genb12.skip = sgo.vx[2];
-	genb12.last = sgo.vx[3];
-	if (sgo.vx[2] < 0) {
-		cerr << "invalid value for skip" << endl;
-		return;
-	}
-	if (sgo.vx[3] < sgo.vx[2]) {
-		cerr << "invalid value for last to process" << endl;
-		return;
-	}
-	zh_g.modevalid = 1;
-	zh_g2.grid0 = genb12.grid0;
-	zh_g2.zsol = zh_g2.stdfirstsol;
-	memset(p_cpt2g, 0, sizeof p_cpt2g);// used in debugging sequences only
-	genb12.Start(0);
-	genb12.NewBand1(sgo.vx[0]);
+
 }
 //========================= known s17 file 10/19
 void Go_c17_10( ) {
+	//op.SetUp(10,0);
+	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
+	op.SetUp(10);
+	cout << "back setup " << endl;
+
 	zh_g.modevalid = 1;
 	zh_g2.grid0 = genb12.grid0;
 	zh_g2.zsol = zh_g2.stdfirstsol;
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char * ze = finput.ze;
 	int * zs0 = genb12.grid0, npuz = 0;
-	g17b.debug17 = g17b.diag = sgo.vx[1];
-	g17b.debug17_check = 0;
-	if (sgo.bfx[0] & 1)g17b.nsearched = 18; else g17b.nsearched = 17;
-	cout << "Go_c17_10() search 17 using a file having known 17 656 " << endl;
+	if (op.t18)g17b.nsearched = 18; else g17b.nsearched = 17;
+	if (op.t18) return;
+	if (op.p1) return;
+	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
 	while (finput.GetLigne()) {
 		if(strlen(ze)<160) continue;// skip blank lines
 		npuz++;
 		g17b.npuz = npuz;
 		g17b.a_17_found_here = 0;
 		g17b.aigstop= 0;
-		if (npuz <= (int)sgo.vx[2]) continue;
-		if (npuz > (int)sgo.vx[3]) break;
+		if (npuz <= op.skip) continue;
+		if (npuz > op.last) break;
 		//if (npuz >5) return;
-		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< sgo.vx[1] << endl;
+		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< op.ton << endl;
 		long tdeb = GetTimeMillis();
 		//================================ to avoid the 665 case
 		int ncb3 = 0;
 		for (int i = 0; i < 27; i++) 
 			if (ze[i + 136] - '.')ncb3++;
+		op.p2b = 0;
 		if (ncb3 == 5) {// change band3 <-> band2
+			op.p2b = 1;
 			for (int i = 0; i < 27; i++) {
 				char temp = ze[i + 27];	ze[i + 27] = ze[i + 54];	ze[i + 54] = temp;
 				temp = ze[i + 109];	ze[i + 109] = ze[i + 136];	ze[i + 136] = temp;
 			}
 		}
 
-		if (sgo.vx[1])
-			cout << ze <<  " to process  n="  << npuz << endl;
+		if (op.ton)		cout << ze << " to process  n="  << npuz << endl;
 
 		// =======================morph entry 
 		for (int i = 0; i < 81; i++)zs0[i] = ze[i] - '1';
@@ -187,20 +165,14 @@ void Go_c17_10( ) {
 		//continue;;
 
 		ze[81] = 0;
-		if (g17b.debug17)
+		if (op.ton)
 			cout << Char2Xout(g17b.p17diag.bf.u64[0]) << " b12 pattern for the 17" << endl;
 		register uint64_t U = g17b.p17diag.bf.u64[0];
 		g17b.pk54= (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);
 		genb12.ValidInitGang();
 		g17b.npuz = npuz;
-
-#ifdef HAVEKNOWN
-
-		g17b.StartKnown();
-#else
-		g17b.Start();
-#endif
-
+		if(sgo.bfx[2] & 1)g17b.StartKnown();
+		else	g17b.Start();
 		//g17b.a_17_found_here = 1;
 		if (!g17b.a_17_found_here) {
 			cout << "puz="<<npuz << " failed to find the searched 17" << endl;
@@ -306,14 +278,15 @@ void Go_c17_12() {// check diagonal status in a 665
 
 
 void Go_c17_80() {// enumeration test
+	return; // revise command line
 	cout << "Go_c17_80 phase 2a enumeration test " << endl;
 	cout << sgo.vx[0] << " -v0- first id 0_415" << endl;
 	cout << sgo.vx[1] << " -v1- second id 0_415" << endl;
 	cout << sgo.vx[2] << " -v2- if 1 printout asked" << endl;
 	cout << sgo.vx[4] << " -v4- 0 mode p2a 1 mode p2b 2 mode p1" << endl;
 	int it16_start = sgo.vx[0], it16_end = sgo.vx[1];
-	genb12.skip = 0;
-	genb12.last = 100000;
+	op.skip = 0;
+	op.last = 100000;
 
 	if (it16_start > 415 || it16_end > 415 || it16_start > it16_end) {
 		cerr << "invalid it16_start it16_end" << endl;

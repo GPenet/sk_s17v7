@@ -51,11 +51,11 @@ STD_B416 myband1, myband2;
 
 
 //tables of potential bands 1+2
-BF128 tbelow7[4], tbelow8[10], tbelow9[50], tbelow10[100], tbelow11[100];
+BF128 tbelow7[10], tbelow8[100], tbelow9[500], tbelow10[1000], tbelow11[5000];
 uint32_t ntbelow[6], ntfull;//7,8,9,10,11,full clues
 uint64_t tandbelow[6]; // same as count
 uint64_t tfull[10000];
-CBS tbelow7cbs[4], tbelow8cbs[10], tbelow9cbs[50], tbelow10cbs[100], tbelow11cbs[100], tfullcbs[10000];
+CBS tbelow7cbs[10], tbelow8cbs[100], tbelow9cbs[500], tbelow10cbs[1000], tbelow11cbs[5000], tfullcbs[10000];
 
 uint64_t p_cptg[40], p_cpt1g[20], p_cpt2g[100];
 uint64_t p_cpt[40], p_cpt1[20];

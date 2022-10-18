@@ -1,3 +1,79 @@
+struct OPCOMMAND {// decoding command line option for this rpocess
+	// processing options 
+	int opcode;
+	int t18,p1,p2,p2b; //17 of 18 clues, pass or 2 (2a or 2b)
+	int b1;//band 1 in process 
+	// debugging options
+	int b2 ;//bands usually b2 not given
+	char* b2start;
+	int skip, last;
+	int ton;//test on and test level
+	int known; // 1 if known process 2 if known filter active 
+	uint64_t f3, f4, f7; // filters p_cpt2g [3] [4) [7]
+	int upto3, upto4; // active below f3 below f4
+	int dv12, dv3;// print fresh uas bands 1 2 band 3
+	int dumpa;
+	void SetUp(int opcod,int k = 0,int p=1) {// init known or not
+		memset(this, 0, sizeof * this);
+		opcode = opcod;
+		known = k;
+		if (sgo.bfx[0] & 1)t18 = 1;
+		if (sgo.bfx[0] & 6) {// pass 1 2a 2b
+			p2 = 1;
+			if (sgo.bfx[0] & 4) p2b = 1;
+		}
+		else p1 = 1;
+		b1 = sgo.vx[0];
+		skip = sgo.vx[2];
+		last = sgo.vx[3];
+		b2 = sgo.vx[5];
+		if (sgo.s_strings[0])	if(strlen(sgo.s_strings[0]))
+			b2start = sgo.s_strings[0];
+		ton= sgo.vx[1];
+		f3 = sgo.vx[6];
+		if (sgo.bfx[1] & 1)upto3 = 1;
+		f4 = sgo.vx[7];
+		if (sgo.bfx[1] & 2)upto4 = 1;
+		f7 = sgo.vx[8];
+		if (sgo.bfx[1] & 4)dv12 = 1;
+		if (sgo.bfx[1] & 8)dumpa = 1;
+
+/*
+-b1- 1 mode up to 3	2 mode upto 4		4 cout adds 12 		8 debug A
+
+	int it16_start = sgo.vx[0];
+	g17b.debug17_check =   g17b.aigstop=0;
+	g17b.diag = g17b.debug17 = sgo.vx[1];
+	genb12.skip = sgo.vx[2];
+	genb12.last = sgo.vx[3];
+*/
+
+
+		if (p) {
+			cout << "standard processing commands_______________" << endl;
+			if(t18) cout <<"\t\tsearch 18 clues via -b0-x."<<endl;
+			else cout << "\t\tsearch 17 clues via -b0-x." << endl;
+			if(p1)cout << "\t\tpass1 via -b0-.x." << endl;
+			if (p2)cout << "\t\tpass2 via -b0-.x." << endl;
+			if (p2b)cout << "\t\tpass2b via -b0-..x." << endl;
+			cout << sgo.vx[0] << " b1  -v0- band 0_415" << endl;
+			cout << sgo.vx[2] << " skip  -v2- skip first nnn restart after batch failure" << endl;
+			cout << sgo.vx[3] << " last  -v3- last entry number for this batch must be > vx[2]" << endl;
+			cout << "debugging commands___________________" << endl;
+			cout << sgo.vx[5] << " b2 -v5- filter band 2 index" << endl;
+			if (b2start)	cout << b2start << " filter band 2 start" << endl;
+
+			if (ton)cout << ton << "  test on  -v1- verbose mode " << endl;
+			if (f3)cout << f3 << "  f3  -v6- diag filter 3 clues [3]" << endl;
+			if (f4)cout << f4 << "  f4  -v7- diag filter 6 clues [6]" << endl;
+			if (f7)cout << f7 << "  f7  -v8- diag filter go full [7]" << endl;
+			if (dv12)cout << "  -b1-..x  dump add in valid b12" << endl;
+			if (dumpa)cout << "  -b1-...x  dump uas b12 at the start" << endl;
+
+
+		}
+	}
+}op;
 struct CBS {// clues band stack
 	uint16_t b[3];
 	uint16_t s[3];
@@ -16,9 +92,10 @@ struct CBS {// clues band stack
 		return bf;
 	}
 
-	inline int IsFilt11_17() {// 566 656 no stack>6
+	inline int IsFilt11_17(int p2b) {// 566 656 no stack>6
 		if (b[0] > 6 || b[1] > 6)return 1;
 		if (s[0] > 6 || s[1] > 6 || s[2] > 6)return 1;
+		if(p2b && (b[1] > 5))return 1;
 		return 0;
 	}
 
@@ -651,7 +728,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	char zsol[82], rband2[28];
 	int grid0[81], tc[6], ntc;
 	int gcheck[82], ib2check, ib3check;
-	int skip, last;// restart point; last entry in the batch
+	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
 	BANDMINLEX::PERM t_auto_b1[108], // maxi is 107excluding start position
 		t_auto_b1b2[108], t_auto_b2b1[108],
@@ -753,8 +830,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	uint64_t pk54;
 	int b3lim,	 aigstop, aigstopxy,
 		npuz, a_17_found_here,nsearched ;
-	int  debug17, debug17_check, diag, diagbug, debugb3,
-		is_test_on,ng2,ng3;
+	int ng2,ng3;
 	int grid0[81];
 
 	//____gangsters, brute force,sockets setup
@@ -845,11 +921,18 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Go_8_10();
 
 	int Expand_8_11_18();
-	int Expand_8_11_17();
-	void GoExpand_8_11();
 	void Go_10_11();
 	void Go_9_11();
 	void Go_8_11();
+	void Go_7_11();
+
+
+	int Expand_8_11_17();// must be 65 or 56
+	void Go_10_11_17();
+	void Go_9_11_17();
+	void Go_8_11_17();
+
+	void GoExpand_8_11();
 
 
 
@@ -865,9 +948,8 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void GoB3Miss1();
 	void GoB3MissMore();
 
-	void GoB3small(STD_B3* mb3);
-	void GoB3Big(STD_B3* mb3);
-	void ExpandB3Direct(int ntoass);
+	void GoB3End(int ntoass);
+	void GoB3Expand (int ntoass);
 	void Out17(uint32_t bfb3);
 
 	int nt4ok, okcheck;// for known
