@@ -50,16 +50,6 @@ const char * libs_c17_00_cpt2g[100] = {
 void Go_c17_00( ) {// p2 process
 	cout << "Go_c17_00 search batch 17 clues  " << endl;
 	op.SetUp(0);
-	cout << sgo.vx[0] << " -v0- band 0_415" << endl;
-	cout << sgo.vx[1] << " -v1- verbose if 1" << endl;
-	cout << sgo.vx[2] << " -v2- skip first nnn restart after batch failure" << endl;
-	cout << sgo.vx[3] << " -v3- last entry number for this batch must be > vx[2]" << endl;
-	cout << sgo.vx[4] << " -v4- 0 if p2a 1 if p2b" << endl;
-	cout << sgo.vx[5] << " filter band 2 index" << endl;
-	if(sgo.s_strings[0])	cout << sgo.s_strings[0] << " filter band 2 start" << endl;
-	if (sgo.vx[6])cout << sgo.vx[6] << " -v6- diag filter 3" << endl;
-	if (sgo.vx[7])cout << sgo.vx[7] << " -v7- diag filter 6" << endl;
-	if (sgo.bfx[0] & 1)g17b.nsearched = 18; else g17b.nsearched = 17;
 	int it16_start = sgo.vx[0];
 	g17b.aigstop=0;
 	if (sgo.vx[2] < 0) {
@@ -77,7 +67,7 @@ void Go_c17_00( ) {// p2 process
 	memset(p_cpt1g, 0, sizeof p_cpt1g);// used in debugging sequences only
 	memset(p_cpt2g, 0, sizeof p_cpt2g);// used in debugging sequences only
 	genb12.Start(0);
-	genb12.NewBand1(sgo.vx[0]);
+	genb12.NewBand1(op.b1);
 	cout << "print final stats" << endl;
 	for (int i = 0; i < 100; i++) {
 		if (!p_cpt2g[i])continue;
@@ -93,7 +83,7 @@ void Go_c17_09() {// p2 process locate
 void Go_c17_10( ) {
 	//op.SetUp(10,0);
 	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
-	op.SetUp(10);
+	op.SetUp(10,1);
 	cout << "back setup " << endl;
 
 	zh_g.modevalid = 1;
@@ -102,7 +92,6 @@ void Go_c17_10( ) {
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char * ze = finput.ze;
 	int * zs0 = genb12.grid0, npuz = 0;
-	if (op.t18)g17b.nsearched = 18; else g17b.nsearched = 17;
 	if (op.t18) return;
 	if (op.p1) return;
 	cout << "Go_10() search 17 using a file having known 17 656 " << endl;

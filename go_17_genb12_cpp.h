@@ -270,7 +270,7 @@ int GEN_BANDES_12::ValidBand2() {
 		}
 		ValidInitGang();// also called from existing 17 in test
 		if(F17Novalid1_2())return ((nb12 >> 6) >= op.last);
-		if (sgo.vx[4] == 2)Find_band3B_pass1();
+		if (op.p1)Find_band3B_pass1();
 		else Find_band3B();
 		return ((nb12 >> 6) >= op.last);
 	}
@@ -281,7 +281,7 @@ int GEN_BANDES_12::ValidBand2() {
 			for (int j = 0; j < 6; j++)	cold[i] ^= 1 << grid0[i + 9 * j];
 		}
 		memcpy(gangcols, cold, sizeof gangcols);
-		if (sgo.vx[4] == 2)Find_band3B_pass1(0);
+		if (op.p1)Find_band3B_pass1(0);
 		else Find_band3B(0);
 		if (nband3) {	p_cpt[0]++;	p_cpt[1] += nband3;	}
 	}
@@ -333,14 +333,14 @@ next:// erase previous fill and look for next
 		}	
 		int it16_3 = pband3.i416;
 		ib3check=i3t16 = t416_to_n6[it16_3];
-		if (sgo.vx[8] && i3t16 != sgo.vx[8]) goto next;
+		if (sgo.vx[9] && i3t16 != sgo.vx[9]) goto next;
 		if (i3t16 < i1t16)goto next;// not canonical
 		if (sgo.vx[4] !=1) {
 			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
 		}
 		else if (i3t16 > i2t16)goto next;// not canonical (must be in this case
 		//==============================  b1=b2=b3 use minlex check (simplest code, not common)
-		if (sgo.vx[4] < 1) {// p2a
+		if (!op.p2b) {// p2a
 			pcheck3 = pband3;
 			memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
 			if (Band3Check())goto next;
