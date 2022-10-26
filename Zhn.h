@@ -57,7 +57,7 @@ struct ZH_GLOBAL2 {
 	BF128 digit_sol[9]; // final solution per digit original sort sequence
 	BF128  cells_assigned;// to avoid redundancy in new assignments 
 	uint64_t  npuz;
-	int	xcell_to_guess, isfalse_on;
+	int	xcell_to_guess;// , isfalse_on;
 	GINT16 tgiven[81];
 	int ngiven, digitsbf;// digitsbf to check minimum 8 digits
 	int s17_b3_mini;// 17 search mode, 1 if minirows b3 not tested
@@ -96,12 +96,13 @@ struct ZH_GLOBAL { // global variables for the core brute force
 	Last 32 bits in FD[1]] contain  digit mapped
 */
 // class encapsulating the brute force 
+
+#define ISFALSEON misc.bf.u32[0]
 struct ZHOU{// size 32 bytes 
 	BF128 FD[9][2];
-	BF128 cells_unsolved;
+	BF128 cells_unsolved,misc;// misc used to check false
 //________________________________________
 	int CheckValidityQuick(char *puzzle);
-	int PartialInitSearch17(uint32_t * t, int n);// 17 search mode
 	int FullUpdate();
 	int ApplySingleOrEmptyCells();
 	void Guess();
@@ -161,7 +162,10 @@ struct ZHOU{// size 32 bytes
 	void ImageCandidats_b3();
 
 	//==== special final check 7 search
-	int CallMultipleB3(ZHOU & o, uint32_t bf, int diag = 0);// 17 search mode
+
+	int PartialInitSearch17(uint32_t * t, int n);// 17 search mode
+	int CallCheckB3( uint32_t bf,int nogo=0);// 17 search mode
+	int CallMultipleB3x(ZHOU & o, uint32_t bf, int diag = 0);// 17 search mode
 	int Apply17SingleOrEmptyCellsB3();
 	int Apply17SingleOrEmptyCellsB12();
 	int Full17Update();
@@ -171,3 +175,46 @@ struct ZHOU{// size 32 bytes
 
  };
  
+struct ZHGXN {
+	BF128 fsol[9], fsolw[5];
+	BF128 tua[1000];
+	uint32_t floors, nua, cell_to_guess, digit_map[9];
+	int * g0;
+
+	void SetupFsol(int * grid0);
+};
+// class encapsulating the brute force for ua generation 2 digits
+struct ZHOU2 {
+	BF128 FD[2][2];
+	BF128 cells_unsolved;
+
+	int GoZ2(int fl);
+	//________________________________________
+	int FullUpdate();
+	int ApplySingleOrEmptyCells();
+	void Guess();
+	void Assign(int digit, int cell, int xcell);
+	int Update();
+	inline int Unsolved_Count() { return cells_unsolved.Count(); }
+	void ComputeNext();
+	void ImageCandidats();
+
+};
+// class encapsulating the brute force for ua generation 2 digits
+struct ZHOU3 {
+	BF128 FD[3][2];
+	BF128 cells_unsolved;
+
+	int GoZ3(int fl);
+	int DoZ3(int * t, int nt);
+	//________________________________________
+	int FullUpdate();
+	int ApplySingleOrEmptyCells();
+	void Guess();
+	void Assign(int digit, int cell, int xcell);
+	int Update();
+	inline int Unsolved_Count() { return cells_unsolved.Count(); }
+	void ComputeNext();
+	void ImageCandidats();
+
+};

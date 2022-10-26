@@ -1,3 +1,6 @@
+#define stack1_54 07007007007007007
+
+
 struct OPCOMMAND {// decoding command line option for this rpocess
 	// processing options 
 	int opcode;
@@ -74,7 +77,12 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (f7)cout << f7 << "  f7  -v8- diag filter go full [7]" << endl;
 			if (dv12)cout << "  -b1-..x  dump add in valid b12" << endl;
 			if (dumpa)cout << "  -b1-...x  dump uas b12 at the start" << endl;
-
+			if (sgo.bfx[1])cout << "upto debugging  through -b1-"
+				<< Char9out(sgo.bfx[1]) << endl;
+			if (sgo.bfx[2])cout << "partial process through -b2-"
+				<< Char9out(sgo.bfx[2]) << endl;
+			if (sgo.bfx[3])cout << "add b3 diag through -b3-"
+				<< Char9out(sgo.bfx[3]) << endl;
 
 		}
 	}
@@ -82,6 +90,16 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 struct CBS {// clues band stack
 	uint16_t b[3];
 	uint16_t s[3];
+	inline void Init(uint64_t bf54, uint16_t n) {
+		register uint64_t U = bf54;
+		b[0] =(uint16_t) _popcnt64(U & BIT_SET_27);
+		b[1] = n - b[0];
+		register uint64_t S = stack1_54;
+		s[0]=(uint16_t) _popcnt64(U & S);
+		S <<= 3;
+		s[1] =(uint16_t) _popcnt64(U & S);
+		s[2] = n - s[0] - s[1];
+	}
 	inline void Add(uint32_t cell) {
 		b[cell / 27]++;
 		s[C_stack[cell]]++;
@@ -91,7 +109,7 @@ struct CBS {// clues band stack
 		return 0;
 	}
 	inline uint64_t LimBand6(uint64_t bf) {
-		if (b[0] >6 || b[1] > 67)return 0;
+		if (b[0] >6 || b[1] > 6)return 0;
 		if (b[0] == 6) return bf & (~BIT_SET_27);
 		if (b[1] == 6) return bf & BIT_SET_27;
 		return bf;
@@ -130,7 +148,7 @@ struct SPB03 {// spots to first 7 clues
 }spb_0_15[16]; 
 struct CALLBAND3 {
 	BF128 g2t, g3t;
-	uint64_t bf12,bfcom;
+	uint64_t bf12;
 	uint32_t ncl;
 	CBS cbs; 
 	void Dump() {
@@ -929,7 +947,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	BF128 gsock2, gsock3;
 	
 	//============================ b12 no more uas to test
-	uint64_t ua_ret7p, myb12, myb12f,
+	uint64_t ua_ret7p, myb12, myb12f,myandall,
 		myac, myacf,
 		myb12add, myacadd, 
 		anduab12, clean_valid_done;
@@ -1002,12 +1020,22 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	//void Init7p_guas();
 
 	int IsValid7p(SPB03* sn);
-	int IsValid_myb12();
 	uint32_t IsValidB3(uint32_t bf);
 	inline int GetNextCell(SPB03* s);
 	inline void GetNextUa(SPB03* sn);
 	inline void GetNextUaAdd(SPB03* sn);
 	inline int GetLastAndUa(SPB03* sn, int diag = 0);
+
+	// option no table of clues, no live count per band stack
+
+	int IsValid7pbf(SPB03* sn);
+	inline int GetNextCell_b(SPB03* s);
+
+	int IsValid_myb12();
+
+
+
+
 	int Expand_7_10();
 	void GoExpand_7_10();
 	void Go_9_10();
@@ -1030,9 +1058,12 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void GoExpand_8_11();
 
 
+	int Expand_7_11();
+	void GoExpand_7_11();
 
 
-	void Expand_7_11x();
+	int Expand_7_11_18();
+
 	void Expand_7_12x();
 
 	void GoB3CleanOne();

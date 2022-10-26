@@ -97,6 +97,7 @@ struct ZH2B {// size 32 bytes
 	void InitTclues(uint32_t * tclues, int n);
 	//void Init_2digits_banda(BF64  cellsbf);
 	uint64_t IsValid(uint32_t * tclues, int n,int onlyone=0); 
+	uint64_t IsValid(uint64_t bf54, int onlyone = 0);
 
 	int Update();
 	int FullUpdate();

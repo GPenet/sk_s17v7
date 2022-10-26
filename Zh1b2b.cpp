@@ -482,6 +482,26 @@ uint64_t ZH2B::IsValid(uint32_t * tclues, int n,int onlyone) {
 	ComputeNext();
 	return zh2gxn.nua;
 }
+uint64_t ZH2B::IsValid(uint64_t bf54,  int onlyone) {
+	*this = zh2b[0];
+	memset(zh2b_g.Digit_cell_Assigned_init, 0, sizeof zh2b_g.Digit_cell_Assigned_init);
+	register uint64_t B = bf54;
+	int cell;
+	while (bitscanforward64(cell, B)) {
+		B ^= (uint64_t)1 << cell;
+		int  digit = zh2b_g.puz0[cell], xcell = C_To128[cell];
+		Assign(digit, cell, xcell);
+		zh2b_g.Digit_cell_Assigned_init[digit].Set(xcell);
+	}
+	for (int i = 0; i < 9; i++)  FD[i] &= cells_unsolved |
+		zh2b_g.Digit_cell_Assigned_init[i];
+	zh2gxn.nua = 0;	zh2gxn.uamin = 100;
+	zh2gxn.onlyone = onlyone;
+	zh2b_g.go_back = 0;
+	ComputeNext();
+	return zh2gxn.nua;
+}
+
 inline void ZH2B::ComputeNext() {
 	if (zh2b_g.go_back) return;
 	int ir = FullUpdate();
