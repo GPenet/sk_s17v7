@@ -1448,7 +1448,7 @@ void T54B12::Build_ta128(uint64_t* t, uint32_t n) {
 			}
 		}
 	}
-	if (op.ton > 1)cout << "ntw=" << ntw << " nold" << n << endl;
+	if (op.ton > 1)cout << "build ta128 ntw=" << ntw << " nold" << n << endl;
 	//if(ntw!=n)ta128[0].Dump();
 }
 int T54B12::Build_tb128() {
@@ -1644,6 +1644,7 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 		A = active;
 
 	uint64_t* pbuf = gbuf;
+	uint64_t tw[60];// valid
 	for (int i81 = 0; i81 < 81; i81++) {
 		tg2[i81].Init(pbuf, 0, i81);
 		if (g17b.gsock2.On(i81)) {
@@ -1659,7 +1660,6 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 			}
 			uint64_t vsize[25];// sorting tw2 by size
 			memset(vsize, 0, sizeof vsize);
-			uint64_t tw[40];// valid
 			uint32_t ntw = 0, iw;
 			// store still valid for active cells
 			for (uint32_t i = 0; i < n1; i++) {
@@ -1706,7 +1706,6 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 			}
 			uint64_t vsize[25];// sorting tw2 by size
 			memset(vsize, 0, sizeof vsize);
-			uint64_t tw[40];// valid
 			uint32_t ntw = 0, iw;
 			// store still valid for active cells
 			for (uint32_t i = 0; i < n1; i++) {
@@ -1849,10 +1848,14 @@ void G17B::Expand_46() {
 	*s = spb_0_15[3];	// duplicate 3 for new vector
 	s->possible_cells = twu[0];
 	s->v = tu128.v0;// initial nothing done
+	int locdiag = 0;
 	if (op.ton) {
 		cout << Char54out(s->all_previous_cells) << " 3clues [3]" << p_cpt2g[3] << endl;
 		if (op.f3) {
-			if (p_cpt2g[3] == op.f3)cout << "call 4_6 good path" << endl;
+			if (p_cpt2g[3] == op.f3) {
+				cout << "call 4_6 good path" << endl;
+				if (op.ton > 2) {	t54b12.DebugB(); locdiag = 1;	}
+			}
 			else {
 				if (p_cpt2g[3] > op.f3) { cout << "stop" << endl;	aigstop = 1; return; }
 				if (!(op.upto3)) return;
@@ -1874,6 +1877,7 @@ next:	// catch and apply cell in bitfields
 	sn = s + 1; *sn = *s; sn->ncl++;
 	//sn->cbs.Add(cell);
 	sn->all_previous_cells |= bit;
+	if (locdiag)cout << Char54out(sn->all_previous_cells) << endl;
 	sn->v &= tu128.vc[cell];
 	if (sn->ncl == 6) {// 6 cells
 		p_cpt2g[4]++;
@@ -1887,6 +1891,26 @@ next:	// catch and apply cell in bitfields
 			}
 			else goto next;
 		}
+		if (locdiag) {
+			if (op.f4) {
+				if (p_cpt2g[4] == op.f4) {
+					cout << "[4] good path" << p_cpt2g[4] << endl;
+					if (op.ton > 2)  t54b12.DebugC();
+				}
+				else {
+					cout << "[4] " << p_cpt2g[4] << endl;
+					if (p_cpt2g[4] > op.f4) { cout << "stop" << endl;	aigstop = 1; return; }
+					if (!(op.upto4)) return;
+
+				}
+			}
+			else {
+				cout << " go 7_10/11 [4] " << p_cpt2g[4] << endl;
+			}
+		}
+
+
+
 		GoExpand_7_10();
 		if (aigstop) return;
 		goto next;
@@ -1895,6 +1919,8 @@ next:	// catch and apply cell in bitfields
 	int ir = sn->v.getFirst128();
 	uint64_t Ru;
 	if (ir < 0) {//never valid not a critical path
+		if (locdiag)cout << Char54out(sn->all_previous_cells)<<"next  not in the frst 128" << endl;
+
 		uint32_t tc[8], ntc = 0;
 		{// // build a safe table of clues 
 			int cell;
@@ -2474,16 +2500,19 @@ void G17B::GoExpand_7_10() {
 	int nbelow = ntbelow[4] + ntbelow[3] + ntbelow[2] + ntbelow[1] + ntbelow[0];
 	p_cpt2g[51] += ntbelow[5];
 	p_cpt2g[52] += nbelow;
+	if (p_cpt2g[62] < ntbelow[5])p_cpt2g[62] = ntbelow[5];
+
 	myandall = tandbelow[0] & tandbelow[1] & tandbelow[2] & tandbelow[3] & tandbelow[4] & tandbelow[5];
 
 	if (sgo.bfx[2] & 1) return;// debugging phase1
+	guah54_2.Build2(myandall, sn->active_cells);
+	if (locdiag > 1)cout << "buildg2 done" << endl;
 
 
 	if (ntbelow[0]) Go_7_10(); // do 7 clues then more
 	if (ntbelow[1]) Go_8_10(); // do 8 clues then more
 	if (ntbelow[2]) Go_9_10(); // do 9 clues then more
 
-	guah54_2.Build2(sn->all_previous_cells, sn->active_cells);
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 		genb12.bands3[ib3].guam2done = 0;
 	if (ntbelow[1]) {
@@ -3505,7 +3534,7 @@ void G17B::GoExpand_7_11() {
 			if (p_cpt2g[4] == op.f4) {
 				cout << "this is the expected path" << endl;
 				DumpPotential(2);
-				if (op.ton > 2) { t54b12.DebugA(); t54b12.DebugB(); t54b12.DebugC(); }
+				//if (op.ton > 2) { t54b12.DebugA(); t54b12.DebugB(); t54b12.DebugC(); }
 				locdiag = op.ton;
 			}
 		}
@@ -3518,25 +3547,16 @@ void G17B::GoExpand_7_11() {
 	int nbelow = ntbelow[4] + ntbelow[3] + ntbelow[2] + ntbelow[1] + ntbelow[0];
 	p_cpt2g[51] += ntbelow[5];
 	p_cpt2g[52] += nbelow;
+	if (p_cpt2g[61] < ntbelow[5])p_cpt2g[61] = ntbelow[5];
+	if (p_cpt2g[62] < ntbelow[3])p_cpt2g[62] = ntbelow[3];
 
 	myandall = tandbelow[0]& tandbelow[1]& tandbelow[2]& tandbelow[3]& tandbelow[4]& tandbelow[5];
 
-
 	if (sgo.bfx[2] & 2) 		return;// debugging phase1
-/*
-	if (ntbelow[2]) {
-		if (++p_cpt2g[19] < 5) {
-			cout << Char54out(myandall) << " " << _popcnt64(myandall)
-				<< "\tn=" << nbelow + ntbelow[5] << endl;
-			DumpPotential(0);
-		}
-	}
-	else return;
-*/
-	guah54_2.Build2(myandall, sn->active_cells);
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-		genb12.bands3[ib3].BuildGuam2(myandall);
 
+	guah54_2.Build2(myandall, sn->active_cells);
+	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) 
+		genb12.bands3[ib3].BuildGuam2(myandall);
 
 	if (op.t18) {
 		if (ntbelow[0])  Go_7_11_18(); // do 7 clues then more

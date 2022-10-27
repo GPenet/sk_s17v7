@@ -679,7 +679,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			cout << Char27out(bf3) 
 				<< " " << Count() << endl;
 		}
-	}tguam[384],tguam2[200];
+	}tguam[384],tguam2[300];
 	uint32_t ntguam,ntguam2,guam2done;
 	//_______________________
 
@@ -689,7 +689,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		register uint64_t F = known, n = 0;
 		for (uint32_t i = 0; i < ntguam; i++)
 			if (!(F & tguam[i].bf12))
-				if(n<200)tguam2[n++] = tguam[i];
+				if(n<300)tguam2[n++] = tguam[i];
 		ntguam2 = (int)n;
 		guam2done = 1;
 	}
@@ -735,7 +735,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		register uint64_t U = w.bf.u64[0];
 		U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
 		tguam[ntguam++].bf12 = U;
-		if (go2) {
+		if (go2&& ntguam2<300) {
 			tguam2[ntguam2].bf3 = w.bf.u32[2];
 			tguam2[ntguam2++].bf12 = U;
 
