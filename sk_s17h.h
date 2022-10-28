@@ -1019,7 +1019,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	//int SetupExpand_7p();
 	//void Init7p_guas();
 
-	int IsValid7p(SPB03* sn);
 	uint32_t IsValidB3(uint32_t bf);
 	inline int GetNextCell(SPB03* s);
 	inline void GetNextUa(SPB03* sn);

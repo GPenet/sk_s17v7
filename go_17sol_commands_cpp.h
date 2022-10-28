@@ -95,7 +95,7 @@ void Go_c17_10( ) {
 	char * ze = finput.ze;
 	int * zs0 = genb12.grid0, npuz = 0;
 	if (op.t18) return;
-	if (op.p1) return;
+	//if (op.p1) return;
 	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
 	while (finput.GetLigne()) {
 		if(strlen(ze)<160) continue;// skip blank lines
