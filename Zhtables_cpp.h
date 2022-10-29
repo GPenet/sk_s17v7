@@ -424,4 +424,5 @@ uint64_t zh2b_start[20] = {
 	BIT_SET_2X,	BIT_SET_2X,
 	BIT_SET_2X,// unsolved cells
 	0xffffff3fffffff,// unsolved rows 30 + 24 bits
+	//0// 
 };

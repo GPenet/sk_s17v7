@@ -1,7 +1,7 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 #include "main.h"
-#include "Zhn_cpp.h"
+//#include "Zhn_cpp.h"
 
 
 void ASMtestdet(int &x32, uint64_t &x64 ,int & r32,uint64_t & r64) {
@@ -118,10 +118,6 @@ int main(int narg, char *argv[]) {
 	if(finput_name) cerr <<" file1 (input) " << finput_name<<endl;
 	if(foutput_name) cerr <<" file2 (output) " << foutput_name<<endl;
 	cerr << "command " << command<<endl;
-	// set zh_g general commands
-	zh_g.modeguess =(int) bfx[9];
-	if (!(zh_g.modeguess & 1))zh_g.modeguess = 0;
-	zh_g.maxindex = (int)vx[7];
 	// store command line parameters 
 	sgo.command = command;
 	sgo.bfx = bfx;
@@ -129,7 +125,6 @@ int main(int narg, char *argv[]) {
 	sgo.foutput_name = foutput_name;
 	sgo.s_strings = s_strings;
 	sgo.vx = vx;
-	
 	Go_0();
 	cerr << " print cout time "  << endl;
 

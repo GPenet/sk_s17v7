@@ -68,7 +68,6 @@ typedef unsigned __int64  uint64_t;
 #define _ftime64_s ftime
 #endif
 
-
 #ifndef __AVX2__
 #define _blsi_u32(v) ((v | (v - 1)) ^ (v - 1))
 #endif
@@ -77,6 +76,7 @@ typedef unsigned __int64  uint64_t;
 //=======
 #define BIT_SET_27         0777777777
 #define BIT_SET_30         07777777777
+#define BIT_SET_54         0777777777777777777
 #define BIT_SET_64         0xffffffffffffffff
 #define BIT_SET_2X		   0x07ffffff07ffffff	
 #define BIT_SET_B2		   0x07ffffff00000000	

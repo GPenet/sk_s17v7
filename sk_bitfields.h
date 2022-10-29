@@ -169,7 +169,7 @@ struct BF64 {
 	inline void operator|= (const uint64_t &r) { bf.u64 |= r; }
 	inline void operator|= (const BF64 &r) { bf.u64 |= r.bf.u64; }
 
-	inline BF64 operator& (const uint64_t &r) const { BF64 w; w.bf.u64 = bf.u64 & r; return w; }
+	//inline BF64 operator& (const uint64_t &r) const { BF64 w; w.bf.u64 = bf.u64 & r; return w; }
 	inline BF64 operator& (const BF64& r) const { BF64 w; w.bf.u64 = bf.u64 & r.bf.u64; return w; }
 	inline void operator&= (const uint64_t &r) { bf.u64 &= r; }
 	inline void operator&= (const BF64& r) { bf.u64 &= r.bf.u64; }
@@ -258,11 +258,11 @@ public:
 		else if (R <= 0)SetAll_0();
 		else if (R < 64) {
 			bf.u64[0] = 0;
-			bf.u64[0] = (1 << R) - 1;
+			bf.u64[0] = ((uint64_t)1 << R) - 1;
 		}
 		else {
 			bf.u64[0] = 1;
-			bf.u64[0] = (1 << (R - 64)) - 1;
+			bf.u64[0] = ((uint64_t)1 << (R - 64)) - 1;
 		}
 	}
 	inline void Mask(const int theBit) { BF128 w; w.MaskToBit(theBit); *this &= w; }

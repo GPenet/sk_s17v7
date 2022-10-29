@@ -19,6 +19,16 @@ struct BANDMINLEX{// receive a band send back i416 and morphing data
 			for (int i = 0; i < 9; i++)		cols[i] = map[i] = i;
 			for (int i = 0; i < 3; i++)		rows[i] = i;
 		}
+		void Dump() {
+			cout << "perm status i416=" <<i416<< endl; 
+			cout << "rows " << rows[0] << rows[1] << rows[2] << endl;
+			cout << "cols " << cols[0] << cols[1] << cols[2] 
+				<<cols[3] << cols[4] << cols[5] << cols[6]
+				<< cols[7] << cols[8]  << endl;  
+			cout << "digs " << map[0] << map[1] << map[2]
+				<<map[3] << map[4] << map[5] << map[6]
+				<< map[7] << map[8]   << endl;
+		}
 	}*pout;
 	void MorphBox(int imbox, int ibox, int * rx, int * cx);
 	inline void PermCols(int * source, int * dest, int * cc){
