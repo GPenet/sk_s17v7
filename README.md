@@ -6,7 +6,7 @@ The version V6 is written for the search with the distribution 665 in bands and 
 V7 covers all the field for the 17 and the 18 clues search
 pass1 with bands 3 having more than 6 clues
 pass2 with not more than 6 clues in bands and stacks.
-in the 17 clues search, pass2 is split in 2a,2b to avoid 6 clues in band 3
+in the 17 clues search, pass2 is split in 2a,2b to avoid 5 clues in band 3
 
 
 V6 performs significantly better than the previous version. 
