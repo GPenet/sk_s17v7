@@ -9,7 +9,7 @@ pass2 with not more than 6 clues in bands and stacks.
 in the 17 clues search, pass2 is split in 2a,2b to avoid 5 clues in band 3
 
 
-V6 performs significantly better than the previous version. 
+V7 performs significantly better than the previous version. 
 The main changes in V7  have been partially implemented in the 18 search, we have
 
 More UAs/GUAs produced at the start using a revised process to build them.
