@@ -1705,7 +1705,8 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 			if (n1 == 1) {// killer is enough
 				register uint64_t U = g0.tua[0] & A;
 				gd.Add(U);
-				pbuf++;
+				pbuf += gd.nuamax;// lock the storing place
+				//pbuf++;
 				continue;
 			}
 			uint64_t vsize[25];// sorting tw2 by size
