@@ -2001,7 +2001,6 @@ next:	// catch and apply cell in bitfields
 		if (ua_ret7p)goto next;
 		clean_valid_done = 0;
 		p_cpt2g[5]++;
-		tfullcbs[ntbelow[5]] = sn->cbs;
 		tfull[ntbelow[5]++] = sn->all_previous_cells;
 		goto next;
 	}	
@@ -2029,14 +2028,14 @@ next:	// catch and apply cell in bitfields
 	goto next;
 }
 
-
+/*
 
 void T54G2::BuildG2() {//extract, shrink, sort g2
 	Init();
 	BF128 vsize[25][30];
 	memset(vsize, 0, sizeof vsize);
 	uint64_t tw[128 * 30];// can accept 40 uas per i81
-	uint32_t twi[128 * 30], twn[128 * 30]; // i81,size 
+	uint32_t twi[128 * 30], twn[128 * 30]; // i81,size
 	uint32_t ntw = 0;
 	{ // extract still valid
 		register uint64_t F = spb_0_15[7].all_previous_cells,
@@ -2094,12 +2093,12 @@ void T54G2::BuildG2() {//extract, shrink, sort g2
 					}
 				}
 			}
-		}// end i81 
+		}// end i81
 	}// end build tw
 	//cout << " buildg2 ntw=" << ntw << endl;
 
 
-	// sort tw by size 
+	// sort tw by size
 	for (uint32_t i = 0; i < ntw; i++) {
 		uint32_t bloc = i >> 7,ir = i - (bloc << 7);
 		vsize[twn[i]][bloc].setBit(ir);
@@ -2122,7 +2121,7 @@ void T54G2::BuildG2() {//extract, shrink, sort g2
 			}
 		}
 	}
-	// and setup vcl for next steps 
+	// and setup vcl for next steps
 	for (int i = 0; i < NG2BLOCS6; i++) vcl[0][i] = t128[i].v0;
 	uint64_t* tdump = t54g2.t128[0].t;
 	for (int i = 0; i < 10; i++)
@@ -2133,7 +2132,7 @@ void T54G3::BuildG3() {//extract, shrink, sort g2
 	BF128 vsize[25][30];
 	memset(vsize, 0, sizeof vsize);
 	uint64_t tw[128 * 30];// can accept 40 uas per i81
-	uint32_t twi[128 * 30], twn[128 * 30]; // i81,size 
+	uint32_t twi[128 * 30], twn[128 * 30]; // i81,size
 	uint32_t ntw = 0;
 	{ // extract still valid
 		register uint64_t F = spb_0_15[7].all_previous_cells,
@@ -2191,12 +2190,12 @@ void T54G3::BuildG3() {//extract, shrink, sort g2
 					}
 				}
 			}
-		}// end i81 
+		}// end i81
 	}// end build tw
 	//cout << " buildg2 ntw=" << ntw << endl;
 
 
-	// sort tw by size 
+	// sort tw by size
 	for (uint32_t i = 0; i < ntw; i++) {
 		uint32_t bloc = i >> 7, ir = i - (bloc << 7);
 		vsize[twn[i]][bloc].setBit(ir);
@@ -2219,12 +2218,13 @@ void T54G3::BuildG3() {//extract, shrink, sort g2
 			}
 		}
 	}
-	// and setup vcl for next steps 
+	// and setup vcl for next steps
 	for (int i = 0; i < NG3BLOCS6; i++) vcl[0][i] = t128[i].v0;
 	uint64_t* tdump = t54g3.t128[0].t;
 	for (int i = 0; i < 10; i++)
 		cout << Char54out(tdump[i]) << " " << (tdump[i] >> 56) << endl;
 }
+*/
 
 int G17B::IsValid7pbf(SPB03* sn) {
 	if (zh2b[1].IsValid(sn->all_previous_cells)) {
@@ -2556,11 +2556,6 @@ void G17B::GoExpand_7_10() {
 				STD_B3& b3 = genb12.bands3[ib3];
 				b3.Go(cb3);
 				if (clean_valid_done == 2)break;
-				if (locdiag) {
-					cout << " after go" << endl;
-					guah54_2.DumpOne3(76);
-				}
-
 			}
 		}
 	}
@@ -3015,39 +3010,27 @@ void G17B::Go_7_11_17() {//direct call from expand 4/7
 
 void G17B::Go_10_11_18() {// 10 clues limit 11 clues 
 	t54b12.ntm = 0;
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-		genb12.bands3[ib3].guam2done = 0;
-	SPB03* sn = &spb_0_15[8];
-	// this is a valid bands 1+2 checked in expand
-	guah54_2.Build2(tandbelow[3], sn->active_cells);
+	clean_valid_done = 1;
 	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
 		BF128 ww = tbelow10[iv];
 		cb3.ncl = 10;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
-		{// must rebuild tclues 
-			nclues = 0;
-			int cell;
-			register uint64_t U = myb12;
-			while (bitscanforward64(cell, U)) {
-				U ^= (uint64_t)1 << cell;
-				tclues[nclues++] = cell;
-			}
-		}
+		cb3.cbs.Init(myb12, 10);
 		// try direct
-		if (t54b12.NotValid(myb12)) continue;// check more uas b12
-		cb3.cbs = tbelow10cbs[iv];
 		cb3.g2t = guah54_2.GetG2(cb3.bf12);
 		cb3.g3t = guah54_2.GetG3(cb3.bf12);
 		p_cpt2g[7]++;
-		clean_valid_done = 1;
-		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-			STD_B3& b3 = genb12.bands3[ib3];
-			b3.Go(cb3);
-		}
+		// can be here 288 or 828
+		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) 
+			genb12.bands3[ib3].Go(cb3);
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
-		if (cb3.cbs.b[0] >= 8) Ac &= ~(uint64_t)BIT_SET_27; // only band 2
-		else if (cb3.cbs.b[1] >= 8) Ac &= BIT_SET_27; // only band 2
+		{
+			register uint64_t nb1 = cb3.cbs.b[0], nb2 = cb3.cbs.b[1];
+			if (nb1 > 7 || nb2 > 7) continue; 
+			if (nb1 == 7) Ac &= ~(uint64_t)BIT_SET_27;
+			if (nb2 == 7) Ac &= BIT_SET_27;
+		}
 		int cell;
 		while (bitscanforward64(cell, Ac)) {
 			CALLBAND3 cb3n = cb3;
@@ -3055,155 +3038,107 @@ void G17B::Go_10_11_18() {// 10 clues limit 11 clues
 			Ac ^= bit; //clear bit
 			cb3n.bf12 |= bit;
 			myb12 = cb3n.bf12;
-			tclues[10] = cell;
-			nclues = 11;
 			cb3n.ncl = 11;
 			cb3n.cbs.Add(cell);
 			cb3n.g2t = guah54_2.GetG2(myb12);
 			cb3n.g3t = guah54_2.GetG3(myb12);
 			p_cpt2g[7]++;
-			for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-				STD_B3& b3 = genb12.bands3[ib3];
-				b3.Go(cb3n);
+			for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+				genb12.bands3[ib3].Go(cb3n);
+
+		}
+	}
+}
+void G17B::Go_9_11_18() {// 9 clues limit 11 clues 
+	t54b12.ntm = 0;
+	clean_valid_done = 1;
+	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
+		BF128 ww = tbelow10[iv];
+		cb3.ncl = 9;
+		myb12 = cb3.bf12 = ww.bf.u64[0];
+		cb3.cbs.Init(myb12, 9);
+		// try direct
+		cb3.g2t = guah54_2.GetG2(cb3.bf12);
+		cb3.g3t = guah54_2.GetG3(cb3.bf12);
+		p_cpt2g[7]++;
+		for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+			genb12.bands3[ib3].Go(cb3);
+		// try now one more clue in bands 1+2
+		uint64_t Ac = ww.bf.u64[1];
+		int cell;// maxi is 7+2 possible 8+2
+		while (bitscanforward64(cell, Ac)) {
+			CALLBAND3 cb3n = cb3;
+			uint64_t bit = (uint64_t)1 << cell;
+			Ac ^= bit; //clear bit
+			cb3n.bf12 |= bit;
+			myb12 = cb3n.bf12;
+			cb3n.ncl = 10;
+			cb3n.cbs.Add(cell);
+			cb3n.g2t = guah54_2.GetG2(myb12);
+			cb3n.g3t = guah54_2.GetG3(myb12);
+			p_cpt2g[7]++;
+			// could be 288 828
+			for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+				genb12.bands3[ib3].Go(cb3n);
+			// try now a second clue in bands 1+2
+			uint64_t Ac2 = Ac;// others are not active now
+			{
+				register uint64_t nb1 = cb3n.cbs.b[0], nb2 = cb3n.cbs.b[1];
+				if (nb1 > 7 || nb2 > 7) continue;
+				if (nb1 == 7) Ac2 &= ~(uint64_t)BIT_SET_27;
+				if (nb2 == 7) Ac2 &= BIT_SET_27;
+			}
+			int cell2;
+			while (bitscanforward64(cell2, Ac2)) {
+				CALLBAND3 cb3n2 = cb3n;
+				uint64_t bit2 = (uint64_t)1 << cell2;
+				Ac2 ^= bit2; //clear bit
+				cb3n2.bf12 |= bit2;
+				myb12 = cb3n2.bf12;
+				cb3n2.ncl = 11;
+				cb3n2.cbs.Add(cell2);
+				cb3n2.g2t = guah54_2.GetG2(myb12);
+				cb3n2.g3t = guah54_2.GetG3(myb12);
+				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+					genb12.bands3[ib3].Go(cb3);
 			}
 		}
 	}
 
 }
-void G17B::Go_9_11_18() {// 9 clues limit 11 clues 
-	t54b12.ntm = 0;
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-		genb12.bands3[ib3].guam2done = 0;
-	SPB03* sn = &spb_0_15[8];
-	// this is a valid bands 1+2 checked in expand
-	guah54_2.Build2(tandbelow[2], sn->active_cells);
-	for (uint32_t iv = 0; iv < ntbelow[2]; iv++) {
-		BF128 ww = tbelow9[iv];
-		cb3.ncl = 9;
-		myb12 = cb3.bf12 = ww.bf.u64[0];
-		{// must rebuild tclues 
-			nclues = 0;
-			int cell;
-			register uint64_t U = myb12;
-			while (bitscanforward64(cell, U)) {
-				U ^= (uint64_t)1 << cell;
-				tclues[nclues++] = cell;
-			}
-		}
-		// try direct
-		if (t54b12.NotValid(myb12)) continue;// check more uas b12
-		cb3.cbs = tbelow9cbs[iv];
-		cb3.g2t = guah54_2.GetG2(cb3.bf12);
-		cb3.g3t = guah54_2.GetG3(cb3.bf12);
-		p_cpt2g[7]++;
-		clean_valid_done = 1;
-		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-			STD_B3& b3 = genb12.bands3[ib3];
-			b3.Go(cb3);
-		}
-		// try now one more clue in bands 1+2
-		uint64_t Ac = ww.bf.u64[1];
-		if (cb3.cbs.b[0] >= 8) Ac &= ~(uint64_t)BIT_SET_27; // only band 2
-		else if (cb3.cbs.b[1] >= 8) Ac &= BIT_SET_27; // only band 2
-		int cell;
-		while (bitscanforward64(cell, Ac)) {
-			CALLBAND3 cb3n = cb3;
-			uint64_t bit = (uint64_t)1 << cell;
-			Ac ^= bit; //clear bit
-			cb3n.bf12 |= bit;
-			myb12 = cb3n.bf12;
-			tclues[9] = cell;
-			nclues = 10;
-			cb3n.ncl = 10;
-			cb3n.cbs.Add(cell);
-			cb3n.g2t = guah54_2.GetG2(myb12);
-			cb3n.g3t = guah54_2.GetG3(myb12);
-			for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-				STD_B3& b3 = genb12.bands3[ib3];
-				b3.Go(cb3n);
-			}
-			// try now a second clue in bands 1+2
-			uint64_t Ac2 = Ac;// others are not active now
-			if (cb3n.cbs.b[0] >= 8) Ac2 &= ~(uint64_t)BIT_SET_27; // only band 2
-			else if (cb3n.cbs.b[1] >= 8) Ac2 &= BIT_SET_27; // only band 2
-			int cell2;
-			while (bitscanforward64(cell2, Ac2)) {
-				CALLBAND3 cb3n2 = cb3n;
-				uint64_t bit2 = (uint64_t)1 << cell2;
-				Ac2 ^= bit2; //clear bit
-				cb3n2.bf12 |= bit2;
-				myb12 = cb3n2.bf12;
-				tclues[10] = cell2;
-				nclues = 11;
-				cb3n2.ncl = 11;
-				cb3n2.cbs.Add(cell2);
-				cb3n2.g2t = guah54_2.GetG2(myb12);
-				cb3n2.g3t = guah54_2.GetG3(myb12);
-				for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-					STD_B3& b3 = genb12.bands3[ib3];
-					b3.Go(cb3n2);
-				}
-			}
-		}
-	}
-}
 void G17B::Go_8_11_18() {// 8 clues limit 11 clues 
 	//cout << " entry 8 clues for 11 clues" << endl;
 	t54b12.ntm = 0;
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-		genb12.bands3[ib3].guam2done = 0;
-	SPB03* sn = &spb_0_15[8];
-	// this is a valid bands 1+2 checked in expand
-	guah54_2.Build2(tandbelow[1], sn->active_cells);
-	for (uint32_t iv = 0; iv < ntbelow[1]; iv++) {
-		BF128 ww = tbelow8[iv];
+	clean_valid_done = 1;
+	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
+		BF128 ww = tbelow10[iv];
 		cb3.ncl = 8;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
-		{// must rebuild tclues 
-			nclues = 0;
-			int cell;
-			register uint64_t U = myb12;
-			while (bitscanforward64(cell, U)) {
-				U ^= (uint64_t)1 << cell;
-				tclues[nclues++] = cell;
-			}
-		}
+		cb3.cbs.Init(myb12, 8);
 		// try direct
-		if (t54b12.NotValid(myb12)) continue;// check more uas b12
-		cb3.cbs = tbelow8cbs[iv];
 		cb3.g2t = guah54_2.GetG2(cb3.bf12);
 		cb3.g3t = guah54_2.GetG3(cb3.bf12);
 		p_cpt2g[7]++;
-		clean_valid_done = 1;
-		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-			STD_B3& b3 = genb12.bands3[ib3];
-			b3.Go(cb3);
-		}
+		for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+			genb12.bands3[ib3].Go(cb3);
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
-		if (cb3.cbs.b[0] >= 8) Ac &= ~(uint64_t)BIT_SET_27; // only band 2
-		else if (cb3.cbs.b[1] >= 8) Ac &= BIT_SET_27; // only band 2
-		int cell;
+		int cell;// maxi is 6+2 possible 8+2
 		while (bitscanforward64(cell, Ac)) {
 			CALLBAND3 cb3n = cb3;
 			uint64_t bit = (uint64_t)1 << cell;
 			Ac ^= bit; //clear bit
 			cb3n.bf12 |= bit;
 			myb12 = cb3n.bf12;
-			tclues[8] = cell;
-			nclues = 9;
 			cb3n.ncl = 9;
 			cb3n.cbs.Add(cell);
 			cb3n.g2t = guah54_2.GetG2(myb12);
 			cb3n.g3t = guah54_2.GetG3(myb12);
-			for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-				STD_B3& b3 = genb12.bands3[ib3];
-				b3.Go(cb3n);
-			}
+			p_cpt2g[7]++;
+			for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+				genb12.bands3[ib3].Go(cb3n);
 			// try now a second clue in bands 1+2
 			uint64_t Ac2 = Ac;// others are not active now
-			if (cb3n.cbs.b[0] >= 8) Ac2 &= ~(uint64_t)BIT_SET_27; // only band 2
-			else if (cb3n.cbs.b[1] >= 8) Ac2 &= BIT_SET_27; // only band 2
 			int cell2;
 			while (bitscanforward64(cell2, Ac2)) {
 				CALLBAND3 cb3n2 = cb3n;
@@ -3211,20 +3146,21 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 				Ac2 ^= bit2; //clear bit
 				cb3n2.bf12 |= bit2;
 				myb12 = cb3n2.bf12;
-				tclues[9] = cell2;
-				nclues = 10;
 				cb3n2.ncl = 10;
 				cb3n2.cbs.Add(cell2);
 				cb3n2.g2t = guah54_2.GetG2(myb12);
 				cb3n2.g3t = guah54_2.GetG3(myb12);
-				for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-					STD_B3& b3 = genb12.bands3[ib3];
-					b3.Go(cb3n2);
-				}
+				// could be 288 828
+				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+					genb12.bands3[ib3].Go(cb3);
 				// try now a third clue in bands 1+2
 				uint64_t Ac3 = Ac2;// others are not active now
-				if (cb3n2.cbs.b[0] >= 8) Ac3 &= ~(uint64_t)BIT_SET_27; // only band 2
-				else if (cb3n2.cbs.b[1] >= 8) Ac3 &= BIT_SET_27; // only band 2
+				{
+					register uint64_t nb1 = cb3n2.cbs.b[0], nb2 = cb3n2.cbs.b[1];
+					if (nb1 > 7 || nb2 > 7) continue;
+					if (nb1 == 7) Ac3 &= ~(uint64_t)BIT_SET_27;
+					if (nb2 == 7) Ac3 &= BIT_SET_27;
+				}
 				int cell3;
 				while (bitscanforward64(cell3, Ac3)) {
 					CALLBAND3 cb3n3 = cb3n2;
@@ -3232,76 +3168,50 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 					Ac3 ^= bit3; //clear bit
 					cb3n3.bf12 |= bit3;
 					myb12 = cb3n3.bf12;
-					tclues[10] = cell3;
 					cb3n3.ncl = 11;
 					cb3n3.cbs.Add(cell3);
 					cb3n3.g2t = guah54_2.GetG2(myb12);
 					cb3n3.g3t = guah54_2.GetG3(myb12);
-					for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-						STD_B3& b3 = genb12.bands3[ib3];
-						b3.Go(cb3n3);
-					}
+					for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+						genb12.bands3[ib3].Go(cb3);
 				}
 			}
 		}
 	}
+
 }
 void G17B::Go_7_11_18() {// 7 clues limit 11 clues 
 	t54b12.ntm = 0;
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-		genb12.bands3[ib3].guam2done = 0;
-	SPB03* sn = &spb_0_15[8];
-	// this is a valid bands 1+2 checked in expand
-	guah54_2.Build2(tandbelow[1], sn->active_cells);
-	for (uint32_t iv = 0; iv < ntbelow[1]; iv++) {
-		BF128 ww = tbelow8[iv];
+	clean_valid_done = 1;
+	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
+		BF128 ww = tbelow10[iv];
 		cb3.ncl = 7;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
-		{// must rebuild tclues 
-			nclues = 0;
-			int cell;
-			register uint64_t U = myb12;
-			while (bitscanforward64(cell, U)) {
-				U ^= (uint64_t)1 << cell;
-				tclues[nclues++] = cell;
-			}
-		}
+		cb3.cbs.Init(myb12, 7);
 		// try direct
-		if (t54b12.NotValid(myb12)) continue;// check more uas b12
-		cb3.cbs = tbelow8cbs[iv];
 		cb3.g2t = guah54_2.GetG2(cb3.bf12);
 		cb3.g3t = guah54_2.GetG3(cb3.bf12);
 		p_cpt2g[7]++;
-		clean_valid_done = 1;
-		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-			STD_B3& b3 = genb12.bands3[ib3];
-			b3.Go(cb3);
-		}
+		for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+			genb12.bands3[ib3].Go(cb3);
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
-		if (cb3.cbs.b[0] >= 8) Ac &= ~(uint64_t)BIT_SET_27; // only band 2
-		else if (cb3.cbs.b[1] >= 8) Ac &= BIT_SET_27; // only band 2
-		int cell;
+		int cell;// maxi is 5+2 possible 8+2
 		while (bitscanforward64(cell, Ac)) {
 			CALLBAND3 cb3n = cb3;
 			uint64_t bit = (uint64_t)1 << cell;
 			Ac ^= bit; //clear bit
 			cb3n.bf12 |= bit;
 			myb12 = cb3n.bf12;
-			tclues[7] = cell;
-			nclues = 8;
 			cb3n.ncl = 8;
 			cb3n.cbs.Add(cell);
 			cb3n.g2t = guah54_2.GetG2(myb12);
 			cb3n.g3t = guah54_2.GetG3(myb12);
-			for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-				STD_B3& b3 = genb12.bands3[ib3];
-				b3.Go(cb3n);
-			}
+			p_cpt2g[7]++;
+			for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+				genb12.bands3[ib3].Go(cb3n);
 			// try now a second clue in bands 1+2
-			uint64_t Ac2 = Ac;// others are not active now
-			if (cb3n.cbs.b[0] >= 8) Ac2 &= ~(uint64_t)BIT_SET_27; // only band 2
-			else if (cb3n.cbs.b[1] >= 8) Ac2 &= BIT_SET_27; // only band 2
+			uint64_t Ac2 = Ac;
 			int cell2;
 			while (bitscanforward64(cell2, Ac2)) {
 				CALLBAND3 cb3n2 = cb3n;
@@ -3309,20 +3219,15 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 				Ac2 ^= bit2; //clear bit
 				cb3n2.bf12 |= bit2;
 				myb12 = cb3n2.bf12;
-				tclues[8] = cell2;
-				nclues = 9;
 				cb3n2.ncl = 9;
 				cb3n2.cbs.Add(cell2);
 				cb3n2.g2t = guah54_2.GetG2(myb12);
 				cb3n2.g3t = guah54_2.GetG3(myb12);
-				for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-					STD_B3& b3 = genb12.bands3[ib3];
-					b3.Go(cb3n2);
-				}
+				// could be 288 828
+				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+					genb12.bands3[ib3].Go(cb3);
 				// try now a third clue in bands 1+2
-				uint64_t Ac3 = Ac2;// others are not active now
-				if (cb3n2.cbs.b[0] >= 8) Ac3 &= ~(uint64_t)BIT_SET_27; // only band 2
-				else if (cb3n2.cbs.b[1] >= 8) Ac3 &= BIT_SET_27; // only band 2
+				uint64_t Ac3 = Ac2;
 				int cell3;
 				while (bitscanforward64(cell3, Ac3)) {
 					CALLBAND3 cb3n3 = cb3n2;
@@ -3330,20 +3235,20 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 					Ac3 ^= bit3; //clear bit
 					cb3n3.bf12 |= bit3;
 					myb12 = cb3n3.bf12;
-					tclues[9] = cell3;
-					nclues = 10;
-					cb3n3.ncl = 10;
+					cb3n3.ncl = 11;
 					cb3n3.cbs.Add(cell3);
 					cb3n3.g2t = guah54_2.GetG2(myb12);
 					cb3n3.g3t = guah54_2.GetG3(myb12);
-					for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-						STD_B3& b3 = genb12.bands3[ib3];
-						b3.Go(cb3n3);
-					}
+					for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+						genb12.bands3[ib3].Go(cb3);
 					// try now a fourth  clue in bands 1+2
-					uint64_t Ac4 = Ac3; 
-					if (cb3n3.cbs.b[0] >= 8) Ac4 &= ~(uint64_t)BIT_SET_27; // only band 2
-					else if (cb3n3.cbs.b[1] >= 8) Ac4 &= BIT_SET_27; // only band 2
+					uint64_t Ac4 = Ac3;
+					{
+						register uint64_t nb1 = cb3n3.cbs.b[0], nb2 = cb3n3.cbs.b[1];
+						if (nb1 > 7 || nb2 > 7) continue;
+						if (nb1 == 7) Ac4 &= ~(uint64_t)BIT_SET_27;
+						if (nb2 == 7) Ac4 &= BIT_SET_27;
+					}
 					int cell4;
 					while (bitscanforward64(cell4, Ac4)) {
 						CALLBAND3 cb3n4 = cb3n3;
@@ -3351,21 +3256,17 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 						Ac4 ^= bit4; //clear bit
 						cb3n4.bf12 |= bit4;
 						myb12 = cb3n4.bf12;
-						tclues[10] = cell4;
-						nclues = 11;
 						cb3n4.ncl = 11;
 						cb3n4.cbs.Add(cell4);
 						cb3n4.g2t = guah54_2.GetG2(myb12);
 						cb3n4.g3t = guah54_2.GetG3(myb12);
-						for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-							STD_B3& b3 = genb12.bands3[ib3];
-							b3.Go(cb3n4);
-						}
+						for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
+							genb12.bands3[ib3].Go(cb3);
 					}
 				}
 			}
 		}
-	}
+	}	
 }
 
 int G17B::Expand_7_11() {
