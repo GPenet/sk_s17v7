@@ -1395,7 +1395,7 @@ void G17B::StartAfterUasHarvest() {
 	t54b12.Build_ta128(tuasb12.tua, tuasb12.nua);
 	if (op.ton) {
 		if (sgo.bfx[1] & 8)t54b12.DebugA();
-		if (sgo.bfx[3] & 1) guah54.Dumpall2();
+		if (sgo.bfx[3] & 1) { guah54.Dumpall2(); guah54.Dumpall3(); }
 	}
 	Expand_03();
 }
@@ -1648,7 +1648,10 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 		if (g17b.gsock2.On(i81)) {
 			GUA54& g0 = guah54.tg2[i81];
 			GUA54& gd = tg2[i81];
-			if (g0.killer & F)continue; // killed or not valid
+			if (g0.killer & F) {
+				pbuf += gd.nuamax;// lock the storing place
+				continue; // killed or not valid
+			}
 			uint32_t n1 = g0.nua;
 			if (n1 == 1) {// killer is enough
 				register uint64_t U = g0.tua[0] & A;
@@ -1694,7 +1697,10 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 		if (g17b.gsock3.On(i81)) {
 			GUA54& g0 = guah54.tg3[i81];
 			GUA54& gd = tg3[i81];
-			if (g0.killer & F)continue; // killed or not valid
+			if (g0.killer & F) {
+				pbuf += gd.nuamax;// lock the storing place
+				continue; // killed or not valid
+			}
 			uint32_t n1 = g0.nua;
 			if (n1 == 1) {// killer is enough
 				register uint64_t U = g0.tua[0] & A;
@@ -2495,6 +2501,10 @@ void G17B::GoExpand_7_10() {
 	if (sgo.bfx[2] & 1) return;// debugging phase1
 
 	guah54_2.Build2(myandall, sn->active_cells);
+	if (locdiag) {
+		guah54.DumpOne3(76);
+		guah54_2.DumpOne3(76);
+	}
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 		genb12.bands3[ib3].BuildGuam2(myandall);
 
@@ -2510,6 +2520,7 @@ void G17B::GoExpand_7_10() {
 		myb12 = cb3.bf12 = tfull[0];
 		cb3.cbs.Init(myb12, 10);
 		cb3.g2t = guah54_2.GetG2(cb3.bf12);
+
 		cb3.g3t = guah54_2.GetG3(cb3.bf12);
 		clean_valid_done = 0;
 		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
@@ -2525,24 +2536,31 @@ void G17B::GoExpand_7_10() {
 			myb12 = cb3.bf12 = tfull[iv];
 			if (t54b12.NotValid(myb12)) continue;
 			cb3.cbs.Init(myb12, 10);
-			cb3.g2t = guah54_2.GetG2(cb3.bf12);
-			cb3.g3t = guah54_2.GetG3(cb3.bf12);
 			p_cpt2g[7]++;
 			if (locdiag) {
 				cout << Char54out(myb12) << " [7] " << p_cpt2g[7] << endl;
-				cb3.Dump();
+				guah54_2.DumpOne3(76);
 				if (p_cpt2g[7] == sgo.vx[8]) {
 					cout << "this is the expected path to go b3" << endl;
-					guah54_2.Dumpall2();
-					guah54_2.Dumpall3();
+					cb3.Dump();
+					//guah54_2.Dumpall2();
+					//guah54_2.Dumpall3();
 				}
 
 			}
+			cb3.g2t = guah54_2.GetG2(cb3.bf12);
+			cb3.g3t = guah54_2.GetG3(cb3.bf12);
+			if (locdiag)guah54_2.DumpOne3(76);
 			clean_valid_done = 0;
 			for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 				STD_B3& b3 = genb12.bands3[ib3];
 				b3.Go(cb3);
 				if (clean_valid_done == 2)break;
+				if (locdiag) {
+					cout << " after go" << endl;
+					guah54_2.DumpOne3(76);
+				}
+
 			}
 		}
 	}
@@ -3868,6 +3886,13 @@ uint32_t G17B::IsValidB3(uint32_t bf) {
 								aigstop = 1;	return 1;
 							}
 						}
+						if ((sgo.bfx[3] & 2) ) {
+							cout << Char54out(U) << "\t";
+							cout << Char27out(ua) << " debugging check gua3 [7]" << p_cpt2g[7]
+								<< "   [8]" << p_cpt2g[8]<<" i81="<<i81 << endl;
+							guah54_2.DumpOne3(i81);
+						}
+
 						guah54.Add3(U, i81); guah54_2.Add3(U, i81);
 						cb3.g3t.setBit(i81);
 						p_cpt2g[21]++;
@@ -3923,8 +3948,10 @@ void STD_B3::Go(CALLBAND3& cb3) {
 	//cout << band << " b3 to process" << endl;
 	scritb3.SetStackf(cb3.bf12);// stackf; nmisss; critstack if nmiss=0
 	if (scritb3.Stackx())return;// never > nb3 in stack
-	scritb3.AssignCritical();// can assign 2 pairs in critical stacks
+	if (locdiag)scritb3.Status(" before assign critical  ");
 
+	scritb3.AssignCritical();// can assign 2 pairs in critical stacks
+	if (locdiag)scritb3.Status(" after assign critical  ");
 	if (!guam2done) BuildGuam2(g17b.myandall);
 
 	// now get still valid uas band 3 not gua2s gua3s
@@ -4046,9 +4073,8 @@ void G17B::GoB3Miss0() {// no out field here assigned expected
 		if (U)t3_2[nt3_2++] = U;
 	}
 	p_cpt2g[10]++;
-	/*
-	if (0) {
-		cout << Char54out(myb12) << endl;
+	
+	if (op.ton > 1)if (p_cpt2g[7] == op.f7) {
 		cout << myband3->band << " b3 after cleanone nt3=" << nt3 << endl;
 		scritb3.Status(" after clean one ");
 		cout << "final table" << endl;
@@ -4057,7 +4083,7 @@ void G17B::GoB3Miss0() {// no out field here assigned expected
 			cout << Char27out(U) << " i=" << i << endl;
 		}
 	}
-	*/
+	
 	GoB3End(scritb3.GetToAss());
 }
 void G17B::GoB3Miss1() {// if outfield must have one out 
