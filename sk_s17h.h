@@ -356,9 +356,9 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 	}
 
 }t54b12;
-
+/*
 struct T54G2 {//
-	struct G2VECT {//  128 guas2 and vectors  
+	struct G2VECT {//  128 guas2 and vectors
 		BF128 v0, vc[54], v81[81];
 		//vectors 128 {base, cells, i81s}
 		uint64_t t[128];// ua54 + i81
@@ -366,12 +366,12 @@ struct T54G2 {//
 			v0.SetAll_0();
 			memset(vc, 255, sizeof vc);
 			memset(v81, 255, sizeof v81);
-		}	
+		}
 
 	};
 #define NG2BLOCS6 30
-	G2VECT t128[NG2BLOCS6];// max start 20*128=2560 uas 
-	BF128 vcl[7][NG2BLOCS6];//6 clues  
+	G2VECT t128[NG2BLOCS6];// max start 20*128=2560 uas
+	BF128 vcl[7][NG2BLOCS6];//6 clues
 
 	uint32_t n128, nblocs, nt128[NG2BLOCS6];
 	BF128 g2;
@@ -430,7 +430,7 @@ struct T54G2 {//
 	}
 }t54g2;
 struct T54G3 {//
-	struct G3VECT {//  128 guas2 and vectors 
+	struct G3VECT {//  128 guas2 and vectors
 		BF128 v0, vc[54], v81[81];
 		uint64_t t[128];// ua54 + i81
 		void Init() {
@@ -442,8 +442,8 @@ struct T54G3 {//
 
 #define NG3BLOCS6 15
 	// initial status after harvest plus fresh guas
-	G3VECT t128[NG3BLOCS6];// max start 15*128=1920 uas 
-	BF128 vcl[7][NG3BLOCS6];//6 clues  
+	G3VECT t128[NG3BLOCS6];// max start 15*128=1920 uas
+	BF128 vcl[7][NG3BLOCS6];//6 clues
 	uint32_t n128, nblocs, nt128[NG3BLOCS6];
 	BF128 g3;
 	void Init() {
@@ -499,6 +499,7 @@ struct T54G3 {//
 
 	}
 }t54g3;
+*/
 
 struct GUA54 {
 	uint64_t* tua, killer;
@@ -577,55 +578,6 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 		}
 	}
 }guah54, guah54_2;
-
-struct CHUNK1B {//storing 64 uas and vectors band 3s
-	uint64_t v0, vc[27], nt;
-	uint32_t tua[64];
-	inline void Init() {
-		nt = 0, v0 = 0;
-		memset(vc, 255, sizeof vc);
-	}
-	inline void Add(uint32_t v) {//add a new ua
-		if (nt >= 64) return;// safety should never be
-
-		{//__ check redundancy
-			register uint32_t vn = ~v;
-			for (uint64_t i = 0; i < nt; i++)
-				if (!(tua[i] & vn))return; // == or subset
-		}
-
-		uint64_t bit = (uint64_t)1 << nt;
-		v &= BIT_SET_27;//no extra bit
-		tua[nt++] = v;
-		v0 |= bit;
-		uint32_t cc27;// build cells vectors
-		register  uint32_t Rw = v;
-		while (bitscanforward(cc27, Rw)) {
-			Rw ^= 1 << cc27;// clear bit
-			vc[cc27] ^= bit;
-		}
-	}
-
-
-	inline uint64_t ApplyXY(uint32_t* tcells, uint32_t ntcells) {
-		if (!nt) return 0;
-		uint64_t w = v0;
-		for (uint32_t i = 0; i < ntcells; i++)
-			w &= vc[tcells[i]];
-		return w;
-	}
-	void Debug(int all = 1) {
-		for (uint32_t i = 0; i < nt; i++) {
-			cout << Char27out(tua[i]) << " i=" << i << endl;
-		}
-		if (!all) return;
-		cout << Char64out(v0) << " v0" << endl;
-		for (int i = 0; i < 27; i++)
-			if ((vc[i] & v0) != v0)
-				cout << Char64out(vc[i] & v0) << " cell=" << i << endl;
-	}
-}b3direct;
-
 
 // standard first band (or base any band band)
 struct STD_B416 {
@@ -947,32 +899,19 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	BF128 gsock2, gsock3;
 	
 	//============================ b12 no more uas to test
-	uint64_t ua_ret7p, myb12, myb12f,myandall,
-		myac, myacf,
-		myb12add, myacadd, 
+	uint64_t ua_ret7p, myb12, myandall,	myac,
 		anduab12, clean_valid_done;
 
-	uint32_t tclues[40],tb3[512],*tcluesxy; 
-	int nclues_step, nclues,ntb3;
-	//BF128 bands_active_pairs, bands_active_triplets,
-	//	valid_vect;
+	uint32_t tclues[20]; 
+	int ncluesx;
 	//============  go band3
 	int nclgo, nmiss;
 	int  ncluesb3, mincluesb3;
-	uint64_t tuaddb12[50];
-	uint32_t tadd[50], ntadd, ntuaddb12;// add b1 b2
 	uint32_t anduab3, stopexpandb3;// b3 expand
 
 
 	STD_B3* myband3;
-	uint32_t fstk, andmiss1, noutmiss1, wactive0;
-	uint32_t free1, free2, free3;
-	uint32_t tua128_b3[1000], ntua128_b3;
-	BF128 wg46;
-	//uint32_t cur_ib;
-	uint32_t tcluesb12[20], ncluesb3x;
-	uint32_t t3[1000], nt3,
-		t3_2[1000], nt3_2,
+	uint32_t t3[1000], nt3,		t3_2[1000], nt3_2,
 		uasb3_1[1000], uasb3_2[1000], uas_in[1000],
 		nuasb3_1, nuasb3_2, nuas_in, b3_andout;
 	inline void AddT3If(uint32_t u) {
@@ -981,13 +920,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 			if (!(nu & t3[i])) return; // subset or eqal
 		t3[nt3++] = u;
 	}
-
-	inline void AddB3_2_to_B3_1() {
-		memcpy(&uasb3_1[nuasb3_1], uasb3_2, nuasb3_2 * 4);
-		nuasb3_1 += nuasb3_2;
-	}
-	
-	
 	
 	
 	//=====================process for a new band 2 / set of bands 3
@@ -1013,11 +945,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Guas2CollectG3_5d();
 	void Expand_03();
 	void Expand_46();
-	void Expand_47();
 	void Expand_79();// 18 clues pass2
-
-	//int SetupExpand_7p();
-	//void Init7p_guas();
 
 	uint32_t IsValidB3(uint32_t bf);
 	inline int GetNextCell(SPB03* s);
@@ -1032,38 +960,26 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	int IsValid_myb12();
 
-
-
-
 	int Expand_7_10();
 	void GoExpand_7_10();
 	void Go_9_10();
 	void Go_8_10();
 	void Go_7_10();
 
-	int Expand_8_11_18();
 	void Go_10_11_18();
 	void Go_9_11_18();
 	void Go_8_11_18();
 	void Go_7_11_18();
 
 
-	int Expand_8_11_17();// must be 65 or 56
 	void Go_10_11_17();
 	void Go_9_11_17();
 	void Go_8_11_17();
 	void Go_7_11_17();
 
-	void GoExpand_8_11();
-
 
 	int Expand_7_11();
 	void GoExpand_7_11();
-
-
-	int Expand_7_11_18();
-
-	void Expand_7_12x();
 
 	void GoB3CleanOne();
 	void GoB3Miss0();

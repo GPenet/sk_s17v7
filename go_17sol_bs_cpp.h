@@ -1656,7 +1656,8 @@ void GUAH54::Build2(uint64_t filter, uint64_t active) {
 			if (n1 == 1) {// killer is enough
 				register uint64_t U = g0.tua[0] & A;
 				gd.Add(U);
-				pbuf++;
+				pbuf += gd.nuamax;// lock the storing place
+				//pbuf++;
 				continue;
 			}
 			uint64_t vsize[25];// sorting tw2 by size
@@ -1981,15 +1982,7 @@ void G17B::Expand_79() {
 	*s = spb_0_15[7];	// duplicate 6 for new vector
 	s->possible_cells = twu[0];
 	s->v = tuv128.v0;// initial nothing done
-	{// be sure to start with the right table of cells    
-		int cell;
-		nclues = 0;
-		register uint64_t U = s->all_previous_cells;//  
-		while (bitscanforward64(cell, U)) {
-			U ^= (uint64_t)1 << cell;
-			tclues[nclues++] = cell;
-		}
-	}
+
 
 	//_______ start search clues 7_9
 next:	// catch and apply cell in bitfields
@@ -2473,7 +2466,7 @@ void G17B::GoExpand_7_10() {
 	if(op.t18 || op.p2) { GoExpand_7_11(); return;  } 
 	SPB03 * sn= &spb_0_15[7];
 	t54b12.ntm = 0;
-	nclues = 6;// see why needed
+	//nclues = 6;// see why needed
 	int ire = Expand_7_10();
 	int locdiag = 0;
 	if (op.ton > 1) {
@@ -3363,7 +3356,7 @@ next:	// catch and apply cell in bitfields
 void G17B::GoExpand_7_11() {
 
 	SPB03* sn = &spb_0_15[7];
-	nclues = 6;// see why needed
+	//nclues = 6;// see why needed
 	t54b12.ntm = 0;
 	int ire= Expand_7_11();
 	int locdiag = 0;

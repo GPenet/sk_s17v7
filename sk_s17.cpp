@@ -55,7 +55,6 @@ BF128 tbelow7[10], tbelow8[100], tbelow9[500], tbelow10[2000], tbelow11[10000];
 uint32_t ntbelow[6], ntfull;//7,8,9,10,11,full clues
 uint64_t tandbelow[6]; // same as count
 uint64_t tfull[50000];
-CBS tbelow7cbs[10], tbelow8cbs[100], tbelow9cbs[500], tbelow10cbs[2000], tbelow11cbs[10000], tfullcbs[50000];
 
 uint64_t p_cptg[40], p_cpt1g[20], p_cpt2g[100];
 uint64_t p_cpt[40], p_cpt1[20];

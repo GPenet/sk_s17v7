@@ -151,10 +151,6 @@ void Go_c17_10( ) {
 				}
 			}
 		}
-		//if (ze[0] == '1')
-		//	fout1 << ze << endl;
-		//continue;;
-
 		ze[81] = 0;
 		if (op.ton)
 			cout << Char2Xout(g17b.p17diag.bf.u64[0]) << " b12 pattern for the 17" << endl;
