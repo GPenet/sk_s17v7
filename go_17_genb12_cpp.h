@@ -232,7 +232,7 @@ next:// erase previous fill and look for next
 		it16_2 = pband2.i416;
 		ib2check = i2t16 = t416_to_n6[it16_2];
 		if (i2t16 < i1t16)goto next;// not canonical
-		if (op.p2)memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
+		if (op.p2b)memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
 		else {
 			memcpy(&gcheck[27], zs0, 27 * sizeof gcheck[0]);
 			if (Band2Check())goto next;// do nothing if p2b
@@ -334,7 +334,7 @@ next:// erase previous fill and look for next
 		int it16_3 = pband3.i416;
 		ib3check=i3t16 = t416_to_n6[it16_3];
 		if (i3t16 < i1t16)goto next;// not canonical
-		if (!op.p2) {
+		if (op.p2b) {
 			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
 		}
 		else if (i3t16 > i2t16)goto next;// not canonical (must be in this case

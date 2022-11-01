@@ -94,7 +94,7 @@ void Go_c17_10( ) {
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char * ze = finput.ze;
 	int * zs0 = genb12.grid0, npuz = 0;
-	if (op.t18) return;
+	//if (op.t18) return;
 	//if (op.p1) return;
 	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
 	while (finput.GetLigne()) {
@@ -105,21 +105,24 @@ void Go_c17_10( ) {
 		g17b.aigstop= 0;
 		if (npuz <= op.skip) continue;
 		if (npuz > op.last) break;
-		//if (npuz >5) return;
-		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< op.ton << endl;
-		long tdeb = GetTimeMillis();
-		//================================ to avoid the 665 case
-		int ncb3 = 0;
-		for (int i = 0; i < 27; i++) 
+		int ncb3 = 0,nclues=0;
+		for (int i = 0; i < 27; i++)
+			if (ze[i + 82] - '.')nclues++;
+		for (int i = 0; i < 27; i++)
 			if (ze[i + 136] - '.')ncb3++;
+		if (op.t18 && nclues == 18 && ncb3 < 7) continue;
 		op.p2b = 0;
 		if (ncb3 == 5) {// change band3 <-> band2
+			if (op.t18)continue;
 			op.p2b = 1;
 			for (int i = 0; i < 27; i++) {
 				char temp = ze[i + 27];	ze[i + 27] = ze[i + 54];	ze[i + 54] = temp;
 				temp = ze[i + 109];	ze[i + 109] = ze[i + 136];	ze[i + 136] = temp;
 			}
 		}
+
+		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< op.ton << endl;
+		//================================ to avoid the 665 case
 
 		if (op.ton)		cout << ze << " to process  n="  << npuz << endl;
 
