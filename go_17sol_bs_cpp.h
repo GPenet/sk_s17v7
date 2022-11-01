@@ -2780,7 +2780,10 @@ void G17B::Go_10_11_17() {// 10 clues limit 11 clues
 			// 656,566 in p2a 566 in p2b
 			if (nb1 == 6) Ac &= ~(uint64_t)BIT_SET_27;
 			if (nb2 == 6) Ac &= BIT_SET_27;
-			if (op.p2b && nb2 == 5) Ac &= BIT_SET_27;		
+			if (op.p2b) {
+				if (nb2 > 5) continue;
+				if (nb2 == 5)  Ac &= BIT_SET_27;
+			}
 		}
 		int cell;
 		while (bitscanforward64(cell, Ac)) {
@@ -2828,7 +2831,10 @@ void G17B::Go_9_11_17() {// 9 clues limit 11 clues
 				// 656,566 in p2a 566 in p2b
 				if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
 				if (nb2 == 6) Ac2 &= BIT_SET_27;
-				if (op.p2b && nb2 == 5) Ac2 &= BIT_SET_27;
+				if (op.p2b) {
+					if (nb2 > 5) continue;
+					if (nb2 == 5)  Ac2 &= BIT_SET_27;
+				}
 			}
 			int cell2;
 			while (bitscanforward64(cell2, Ac2)) {
@@ -2878,7 +2884,10 @@ void G17B::Go_8_11_17() {// 8 clues limit 11 clues
 				// 656,566 in p2a 566 in p2b
 				if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
 				if (nb2 == 6) Ac2 &= BIT_SET_27;
-				if (op.p2b && nb2 == 5) Ac2 &= BIT_SET_27;
+				if (op.p2b) {
+					if (nb2 > 5) continue;
+					if (nb2 == 5)  Ac2 &= BIT_SET_27;
+				}
 			}
 			int cell2;
 			while (bitscanforward64(cell2, Ac2)) {
@@ -2897,7 +2906,10 @@ void G17B::Go_8_11_17() {// 8 clues limit 11 clues
 					// 656,566 in p2a 566 in p2b
 					if (nb1 == 6) Ac3 &= ~(uint64_t)BIT_SET_27;
 					if (nb2 == 6) Ac3 &= BIT_SET_27;
-					if (op.p2b && nb2 == 5) Ac3 &= BIT_SET_27;
+					if (op.p2b) {
+						if (nb2 > 5) continue;
+						if (nb2 == 5)  Ac3 &= BIT_SET_27;
+					}
 				}
 				int cell3;
 				while (bitscanforward64(cell3, Ac3)) {
@@ -2942,7 +2954,10 @@ void G17B::Go_7_11_17() {//direct call from expand 4/7
 				// 656,566 in p2a 566 in p2b
 				if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
 				if (nb2 == 6) Ac2 &= BIT_SET_27;
-				if (op.p2b && nb2 == 5) Ac2 &= BIT_SET_27;
+				if (op.p2b) {
+					if (nb2 > 5) continue;
+					if (nb2 == 5)  Ac2 &= BIT_SET_27;
+				}
 			}
 			int cell2;
 			while (bitscanforward64(cell2, Ac2)) {
@@ -2960,7 +2975,10 @@ void G17B::Go_7_11_17() {//direct call from expand 4/7
 					// 656,566 in p2a 566 in p2b
 					if (nb1 == 6) Ac3 &= ~(uint64_t)BIT_SET_27;
 					if (nb2 == 6) Ac3 &= BIT_SET_27;
-					if (op.p2b && nb2 == 5) Ac3 &= BIT_SET_27;
+					if (op.p2b) {
+						if (nb2 > 5) continue;
+						if (nb2 == 5)  Ac3 &= BIT_SET_27;
+					}
 				}
 				int cell3;
 				while (bitscanforward64(cell3, Ac3)) {
@@ -2978,7 +2996,10 @@ void G17B::Go_7_11_17() {//direct call from expand 4/7
 						// 656,566 in p2a 566 in p2b
 						if (nb1 == 6) Ac4 &= ~(uint64_t)BIT_SET_27;
 						if (nb2 == 6) Ac4 &= BIT_SET_27;
-						if (op.p2b && nb2 == 5) Ac4 &= BIT_SET_27;
+						if (op.p2b) {
+							if (nb2 > 5) continue;
+							if (nb2 == 5)  Ac4 &= BIT_SET_27;
+						}
 					}
 					int cell4;
 					while (bitscanforward64(cell4, Ac4)) {
@@ -3318,7 +3339,10 @@ next:	// catch and apply cell in bitfields
 				if (nb1 > 6 || nb2 > 6) goto next;
 				if (nb1 == 6) P &= ~(uint64_t)BIT_SET_27;
 				if (nb2 == 6) P &= BIT_SET_27;
-				if (op.p2b && nb2 == 5)  P &= BIT_SET_27;
+				if (op.p2b) {
+					if ( nb2 > 5) goto next;
+					if ( nb2 == 5)  P &= BIT_SET_27;
+				}
 			}
 			if (P) {	sn->possible_cells = P; s++;	}
 			goto next;
