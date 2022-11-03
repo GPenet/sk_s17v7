@@ -169,14 +169,16 @@ int GEN_BANDES_12::Band3Check() {
 	return 0;
 }
 int GEN_BANDES_12::F17Novalid1_2() {
-	int lim = (op.p1) ? 5 : 6;
-	if(t16_min_clues[myband1.i416]==6)
-		if (t16_min_clues[myband2.i416] >= lim) {
-			p_cpt2g[9] ++;
-			//cout << " bands 1+2 with no valid solution "
-			//	<< myband1.i416 << " " << myband2.i416 << " " << endl;
-			return 1;
-		}
+	if (!op.t18) {
+		int lim = (op.p1) ? 5 : 6;
+		if (t16_min_clues[myband1.i416] == 6)
+			if (t16_min_clues[myband2.i416] >= lim) {
+				p_cpt2g[9] ++;
+				//cout << " bands 1+2 with no valid solution "
+				//	<< myband1.i416 << " " << myband2.i416 << " " << endl;
+				return 1;
+			}
+	}
 
 	if (op.b2) {
 		if( t416_to_n6[it16_2] != op.b2) return 1;
@@ -334,21 +336,18 @@ next:// erase previous fill and look for next
 		int it16_3 = pband3.i416;
 		ib3check=i3t16 = t416_to_n6[it16_3];
 		if (i3t16 < i1t16)goto next;// not canonical
-		if (op.b2 && op.ton) {
-			for (int i = 0; i < 27; i++)cout << zs0[i] + 1;
-			cout <<"seen" <<i2t16<<" "<<i3t16<<endl;
-		}
-		if (!op.p2b) {
-			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
-		}
-		else if (i3t16 > i2t16)goto next;// not canonical (must be in this case
-		//==============================  b1=b2=b3 use minlex check (simplest code, not common)
+		//if (op.b2 && op.ton) {
+			//for (int i = 0; i < 27; i++)cout << zs0[i] + 1;
+			//cout <<"seen" <<i2t16<<" "<<i3t16<<endl;
+		//}
 		if (!op.p2b) {// p2a
+			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
 			pcheck3 = pband3;
 			memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
 			if (Band3Check())goto next;
 		}
 		else {// p2b exchanging band 2 band 3
+			if (i3t16 > i2t16)goto next;
 			memcpy(&gcheck[27], zs0, 27 * sizeof gcheck[0]);
 			pcheck3 = pband2;
 			pcheck2 = pband3;

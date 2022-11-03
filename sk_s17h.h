@@ -316,13 +316,46 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 		}
 	}
 	int Build_tc128();// after 6 clues
-	int Build_tc128_7();//after 7 clues 
 	inline int IsNotRedundant(uint64_t u) {
 		register uint64_t nu = ~u;
 		for (uint32_t i = 0; i < ntc128[0]; i++)
 			if (!(tc128[0].t[i] & nu)) return 0;
 		return 1;
 	}
+
+#define UADNBLOCS 10
+	// status after 9 clues (D)
+	TUVECT td128[UADNBLOCS];// max start 10*128=1280 uas 
+	uint32_t nd128, ndblocs, ntd128[UADNBLOCS];
+	void InitD() {
+		memset(ntd128, 0, sizeof ntd128);
+		nd128 = ndblocs = 0;
+		for (int i = 0; i < UADNBLOCS; i++)td128[i].Init();
+	}
+	inline void AddD(uint64_t u) {
+		if (nd128 >= UADNBLOCS * 128) return;
+		register uint32_t bloc = nd128 >> 7,
+			ir = nd128 - ( bloc<<7);
+		nd128++; ndblocs = bloc; ntd128[bloc]++;
+		td128[bloc].v0.setBit(ir);
+		BF128* myvc = td128[bloc].vc;
+		register uint64_t R = u;
+		td128[bloc].t[ir] = R;
+		register uint32_t cell;
+		while (bitscanforward64(cell, R)) {
+			R ^= (uint64_t)1 << cell; //clear bit
+			myvc[cell].clearBit(ir);
+		}
+	}
+	int Build_td128(); 
+	inline int IsNotRedundantD(uint64_t u) {
+		register uint64_t nu = ~u;
+		for (uint32_t i = 0; i < ntd128[0]; i++)
+			if (!(td128[0].t[i] & nu)) return 0;
+		return 1;
+	}
+
+
 
 	// more in a chunk expand
 	uint64_t tm[200], ntm;
@@ -353,6 +386,10 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 	void DebugC() {
 		cout << " debugC nc128=" << nc128 << endl;
 		tc128[0].Dump();
+	}
+	void DebugD() {
+		cout << " debugD nd128=" << nd128 << endl;
+		td128[0].Dump();
 	}
 
 }t54b12;
@@ -545,6 +582,7 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 
 	void Build();
 	void Build2(uint64_t filter, uint64_t active);
+	void Build9(uint64_t filter, uint64_t active);
 	BF128 GetG2(uint64_t bf);
 	BF128 GetG3(uint64_t bf);
 	int  Check2(uint64_t bf, int i81)	{
@@ -577,7 +615,7 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 			tg3[i].Debug(0);
 		}
 	}
-}guah54, guah54_2;
+}guah54, guah54_2, guah54_9;
 
 // standard first band (or base any band band)
 struct STD_B416 {
@@ -631,8 +669,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			cout << Char27out(bf3) 
 				<< " " << Count() << endl;
 		}
-	}tguam[384],tguam2[300];
-	uint32_t ntguam,ntguam2,guam2done;
+	}tguam[384],tguam2[300], tguam9[300];
+	uint32_t ntguam,ntguam2, ntguam9, guam2done;
 	//_______________________
 
 	void InitBand3(int i16, char * ze, BANDMINLEX::PERM & p);
@@ -945,7 +983,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Guas2CollectG3_5d();
 	void Expand_03();
 	void Expand_46();
-	void Expand_79();// 18 clues pass2
 
 	uint32_t IsValidB3(uint32_t bf);
 	inline int GetNextCell(SPB03* s);
@@ -956,7 +993,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	// option no table of clues, no live count per band stack
 
 	int IsValid7pbf(SPB03* sn);
-	inline int GetNextCell_b(SPB03* s);
 
 	int IsValid_myb12();
 
@@ -970,16 +1006,24 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Go_9_11_18();
 	void Go_8_11_18();
 	void Go_7_11_18();
-
-
 	void Go_10_11_17();
 	void Go_9_11_17();
 	void Go_8_11_17();
-	void Go_7_11_17();
-
-
 	int Expand_7_11();
 	void GoExpand_7_11();
+
+
+	void Go_11_12();
+	void Go_10_12();
+	void Go_9_12();
+	void Go_8_12();
+
+
+	void Expand_7_9();// 18 clues pass2
+	void Expand_10_12();// 18 clues pass2
+	void GoExpand_7_12();
+	void GoExpand_10_12(BF128 ww);
+
 
 	void GoB3CleanOne();
 	void GoB3Miss0();
