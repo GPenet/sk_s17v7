@@ -94,6 +94,7 @@ struct CBS {// clues band stack
 		register uint64_t U = bf54;
 		b[0] =(uint16_t) _popcnt64(U & BIT_SET_27);
 		b[1] = n - b[0];
+		b[2]=0;
 		register uint64_t S = stack1_54;
 		s[0]=(uint16_t) _popcnt64(U & S);
 		S <<= 3;
@@ -114,7 +115,23 @@ struct CBS {// clues band stack
 		if (b[1] == 6) return bf & BIT_SET_27;
 		return bf;
 	}
-
+	inline int StackMore6() {
+		if (s[0] > 6 || s[1] > 6 || s[2] > 6) return 1;
+		return 0;
+	}
+	inline uint64_t NextActive() {// called in expand 10_12
+		if (b[0] > 6 || b[1] > 6) return 0;
+		if(b[0]==6) return ~(uint64_t)BIT_SET_27;
+		if(b[1]==6) return  BIT_SET_27;
+		return ~0;
+	}
+	inline uint64_t NextActiveStack() {// called in expand 10_12
+		if (s[0] > 6 || s[1] > 6 || s[2] > 6) return 0;
+		if (s[0] == 6) return ~stack1_54;
+		if (s[1] == 6) return ~(stack1_54 <<3);
+		if (s[2] == 6) return ~(stack1_54 << 6);
+		return ~0;
+	}
 	inline int IsFilt11_17(int p2b) {// 566 656 no stack>6
 		if (b[0] > 6 || b[1] > 6)return 1;
 		if (s[0] > 6 || s[1] > 6 || s[2] > 6)return 1;
@@ -132,12 +149,23 @@ struct CBS {// clues band stack
 		if (s[0] > 6 || s[1] > 6 || s[2] > 6)return 1;
 		return 0;
 	}
+	void Status() {
+		cout << " bx " << b[0] << b[1] << b[2]
+			<< " sx " << s[0] << s[1] << s[2];
+
+	}
 };
 struct SPB03 {// spots to first 7 clues
 	BF128 v;
 	uint64_t  possible_cells, all_previous_cells, active_cells;
 	CBS cbs;
 	uint32_t ncl;
+	void Init9(BF128 w, CBS & c){
+		all_previous_cells= w.bf.u64[0];
+		active_cells = w.bf.u64[1];
+		ncl = 9;
+		cbs = c;
+	}
 	void Dump(uint64_t x) {
 		cout << "spb03 status ncl=" << ncl << " " << x << endl;
 		cout << Char54out(all_previous_cells) << " assigned" << endl;
@@ -938,6 +966,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	
 	//============================ b12 no more uas to test
 	uint64_t ua_ret7p, myb12, myandall,	myac,
+		myb12_9,myac_9,
 		anduab12, clean_valid_done;
 
 	uint32_t tclues[20]; 
@@ -1011,6 +1040,12 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Go_8_11_17();
 	int Expand_7_11();
 	void GoExpand_7_11();
+
+
+	inline int GetNextCellD(SPB03* s);
+	inline void GetNextUaD(SPB03* sn);
+	inline void GetNextUaAddD(SPB03* sn);
+	inline int GetLastAndUaD(SPB03* sn, int diag = 0);
 
 
 	void Go_11_12();
