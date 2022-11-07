@@ -4,10 +4,12 @@
 struct OPCOMMAND {// decoding command line option for this rpocess
 	// processing options 
 	int opcode;
-	int t18,p1,p2,p2b; //17 of 18 clues, pass or 2 (2a or 2b)
+	int t18,p1,p2,p2b,//17 of 18 clues, pass or 2 (2a or 2b)
+		p2c,//asking for list of attached ED grids (coded as t18 p2b)
+		b2slice; // runing a slice of bands 2 in 18 mode 
 	int b1;//band 1 in process 
 	// debugging options
-	int b2 ;//bands usually b2 not given
+	int b2,b2_is ;//bands usually b2 not given
 	char* b2start;
 	int skip, last;
 	int ton;//test on and test level
@@ -24,8 +26,13 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (sgo.bfx[0] & 6) {// pass 1 2a 2b
 			p2 = 1;
 			if (sgo.bfx[0] & 4) p2b = 1;
+			if (p2b && t18) { p2b = 0; p2c = 1; }
 		}
 		else p1 = 1;
+		if(t18 && (sgo.bfx[0] & 8)) {// slice of bands 
+			b2slice = 1; b2_is= sgo.vx[4];
+		}
+
 		if (known)if (sgo.bfx[0] & 8) known = 2;
 		b1 = sgo.vx[0];
 		skip = sgo.vx[2];
@@ -60,9 +67,15 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if(p1)cout << "\t\tpass1 via -b0-.x." << endl;
 			if (p2)cout << "\t\tpass2 via -b0-.x." << endl;
 			if (p2b)cout << "\t\tpass2b via -b0-..x." << endl;
+			if (p2c) cout << " file1 contains attached solution grids" << endl;
 			cout << sgo.vx[0] << " b1  -v0- band 0_415" << endl;
 			cout << sgo.vx[2] << " skip  -v2- skip first nnn restart after batch failure" << endl;
 			cout << sgo.vx[3] << " last  -v3- last entry number for this batch must be > vx[2]" << endl;
+			if (b2slice) {
+				cout << "running a slice of bands 2 index from="
+					<< b2_is << " to=" << b2 << endl;
+			}
+			
 			cout << "debugging commands___________________" << endl;
 			if (known) {
 				cout << "processing solution grids with known" << endl;
@@ -698,7 +711,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 				<< " " << Count() << endl;
 		}
 	}tguam[384],tguam2[300], tguam9[300];
-	uint32_t ntguam,ntguam2, ntguam9, guam2done;
+	uint32_t ntguam,ntguam2, ntguam9, guam2done, guam9done;
 	//_______________________
 
 	void InitBand3(int i16, char * ze, BANDMINLEX::PERM & p);
@@ -710,7 +723,17 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 				if(n<300)tguam2[n++] = tguam[i];
 		ntguam2 = (int)n;
 		guam2done = 1;
+		guam9done = 0;
 	}
+	inline void BuildGuam9(uint64_t known) {
+		register uint64_t F = known, n = 0;
+		for (uint32_t i = 0; i < ntguam2; i++)
+			if (!(F & tguam[i].bf12))
+				if (n < 300)tguam9[n++] = tguam2[i];
+		ntguam9 = (int)n;
+		guam9done = 1;
+	}
+
 	void Pack() {// keep only the best  
 		GUAM  tt[384];
 		BF128 vsize[14][3];
@@ -966,7 +989,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	
 	//============================ b12 no more uas to test
 	uint64_t ua_ret7p, myb12, myandall,	myac,
-		myb12_9,myac_9,
+		myb12_9,myac_9, myandall_9,
 		anduab12, clean_valid_done;
 
 	uint32_t tclues[20]; 

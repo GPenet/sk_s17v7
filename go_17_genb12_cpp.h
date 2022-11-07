@@ -179,8 +179,12 @@ int GEN_BANDES_12::F17Novalid1_2() {
 				return 1;
 			}
 	}
-
-	if (op.b2) {
+	if (op.b2slice) {
+		int ix = t416_to_n6[it16_2];
+		if (ix < op.b2_is) return 1;
+		if (ix > op.b2) return 1;
+	}
+	else if (op.b2) {
 		if( t416_to_n6[it16_2] != op.b2) return 1;
 		if (op.b2start) {
 			char* wc = op.b2start;
@@ -362,7 +366,15 @@ next:// erase previous fill and look for next
 back:
 	if (--ii >= 0) goto next;
 	if (m10 != 1)return;
-	if (nband3)		g17b.Start();// call the process for that entry
+	if (nband3) {
+		if (op.p2c){// send in fout the list of attached solution grids 
+			for (int i = 0; i < nband3; i++)
+				fout1 << myband1.band << myband2.band
+				<< bands3[i].band 
+				<< ";"<< i1t16<<";"<<i2t16 << endl;
+		}
+		else g17b.Start();// call the process for that entry
+	}
 }
 void GEN_BANDES_12::Find_band3B_pass1(int m10) {
 	//BANDMINLEX::PERM pout;
