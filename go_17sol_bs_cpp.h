@@ -1593,8 +1593,7 @@ int T54B12::Build_td128() {
 	}
 	BF128 tvw[UACNBLOCS];
 	uint32_t lastbloc = t54b12.ncblocs;
-	tvw[0] = spb_0_15[11].v;
-	for (uint32_t i = 1; i <= lastbloc; i++) {
+	for (uint32_t i = 0; i <= lastbloc; i++) {
 		TUVECT& vv = tc128[i];
 		BF128 v = vv.v0, * vc = vv.vc;
 		for (uint32_t ic = 0; ic < 3; ic++)
@@ -2029,7 +2028,8 @@ void G17B::Expand_46() {
 		if (op.f3) {
 			if (p_cpt2g[3] == op.f3) {
 				cout << "call 4_6 good path" << endl;
-				if (op.ton > 2) {	t54b12.DebugB(); locdiag = 1;	}
+				if (op.ton > 2) { t54b12.DebugB(); }
+				locdiag = 1;			
 			}
 			else {
 				if (p_cpt2g[3] > op.f3) { cout << "stop" << endl;	aigstop = 1; return; }
@@ -2057,11 +2057,11 @@ next:	// catch and apply cell in bitfields
 	if (sn->ncl == 6) {// 6 cells
 		p_cpt2g[4]++;
 		if (t54b12.Build_tc128()) goto next;
-		if (op.known > 1) {
+		if (op.known ) {
 			if (!((~pk54) & sn->all_previous_cells)) {
 				cout << Char54out(sn->all_previous_cells) << " expected 6" << endl;
 				GoExpand_7_10();
-				aigstop = 1;
+				//aigstop = 1;
 				goto next;
 			}
 			else goto next;
@@ -2069,18 +2069,18 @@ next:	// catch and apply cell in bitfields
 		if (locdiag) {
 			if (op.f4) {
 				if (p_cpt2g[4] == op.f4) {
-					cout << "[4] good path" << p_cpt2g[4] << endl;
+					cout << Char54out(sn->all_previous_cells) << "[4] good path" << p_cpt2g[4] << endl;
 					if (op.ton > 2)  t54b12.DebugC();
 				}
 				else {
-					cout << "[4] " << p_cpt2g[4] << endl;
+					cout << Char54out(sn->all_previous_cells) << "[4] " << p_cpt2g[4] << endl;
 					if (p_cpt2g[4] > op.f4) { cout << "stop" << endl;	aigstop = 1; return; }
 					if (!(op.upto4)) return;
 
 				}
 			}
 			else {
-				cout << " go 7_10/11 [4] " << p_cpt2g[4] << endl;
+				cout << Char54out(sn->all_previous_cells) << " go 7_10/11 [4] " << p_cpt2g[4] << endl;
 			}
 		}
 
@@ -3799,6 +3799,7 @@ void G17B::Go_8_12() {
 void G17B::Expand_7_9() {
 	memset(ntbelow, 0, sizeof ntbelow);//7 8 9 10 11 full
 	memset(tandbelow, 255, sizeof tandbelow);//7 8 9 10 11 full
+	tand_7_9 = ~0;
 	nt_7_9 = 0;
 	SPB03* sl = &spb_0_15[8], * s = sl, * sn;
 	T54B12::TUVECT& tuv128 = t54b12.tc128[0];
@@ -3939,97 +3940,131 @@ void G17B::GoExpand_7_12() {
 	SPB03* sn = &spb_0_15[7];
 	t54b12.ntm = 0;
 	p_cpt2g[70]++;
+	int locdiag = 0;
+	if (op.f4) {
+		if (p_cpt2g[4] == op.f4) {
+			cout<< Char54out(sn->all_previous_cells) << "[4] good path expand 7_12 [4]" << p_cpt2g[4]
+				<< " -v8- [70] "<< p_cpt2g[70] << endl;
+			locdiag = 1;
+		}
+		else {
+			cout << Char54out(sn->all_previous_cells) << "[4] " << p_cpt2g[4] << endl;
+			if (p_cpt2g[4] > op.f4) { cout << "stop" << endl;	aigstop = 1; return; }
+			if (!(op.upto4)) return;
+		}
+	}
 	Expand_7_9();
-	if (!ntbelow[1]) return;
+
 	if (ntbelow[0]) {
 		cout << "unexpected 7 clues pass2 stop [4]" << p_cpt2g[4] << endl;
 		aigstop = 1;		return;
 	}
 	p_cpt2g[71]++;
 	if (p_cpt2g[72] < nt_7_9)p_cpt2g[72] = nt_7_9;
-	if (p_cpt2g[71] > 10) return;
-	cout << "test 7_12 [71]" << p_cpt2g[71] << endl;
-	cout << " nt_7_9=" << nt_7_9 << "\t\t ";
-	DumpPotential(0);
-
 
 	if (sgo.bfx[2] & 2) 		return;// debugging phase1
-	myandall = tandbelow[1] & tandbelow[2];
+
+	myandall = tandbelow[1] & tandbelow[2]& tand_7_9;
 	guah54_2.Build2(myandall, sn->active_cells);
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 		genb12.bands3[ib3].BuildGuam2(myandall);
 
+	if (locdiag && op.ton) {
+		cout << "test 7_12 [71]" << p_cpt2g[71];
+		cout << " nt_7_9=" << nt_7_9 << "\t\t ";
+		DumpPotential(0);
+		//cout << Char54out(myandall) << " myandall " << endl;
+		//cout << Char54out(sn->active_cells) << " active " << endl;
+		//cout << "guah54_2 status" << endl;
+		//guah54_2.Dumpall2(); guah54_2.Dumpall3();
+	}
+
 	if (ntbelow[1]) Go_8_12();
 	if (ntbelow[2]) Go_9_12();
-
-	if (p_cpt2g[71] > 1) {aigstop = 1; return;}
-	//t54b12.DebugC();
-	//cout << Char54out(spb_0_15[7].all_previous_cells) << " bf 6 clues " << endl;
-
 	for (uint32_t i1 = 0; i1 < nt_7_9; i1++)  
 		GoExpand_10_12(t_7_9[i1]);
 }
 void G17B::GoExpand_10_12(BF128 ww){
-	p_cpt2g[79]++;
+	//p_cpt2g[79]++;
 	//if (p_cpt2g[79] > 10) return;
 	myb12_9 = ww.bf.u64[0];
 	myac_9 = ww.bf.u64[1];
-	//cout << Char54out(myb12_9) << " entry build td "  << endl;
-	//cout << Char54out(myac_9) << " active cells " << endl;
+	int locdiag = 0;
+	if (op.known) {
+		if (!((~pk54) & myb12_9)) {
+			cout << Char54out(myb12_9) << " expected 9" << endl;
+			locdiag = 1;
+		}
+	}
 	CBS cbs;
 	if (t54b12.Build_td128()) return;
 	cbs.Init(myb12_9, 9);
-	//cout << "bands "<<cbs.b[0] << cbs.b[1] << " stacks" << cbs.s[0] << cbs.s[1] << cbs.s[2] 
-	//   << " nd128=" << t54b12.nd128 << endl;
-	//t54b12.DebugD();
+	if (locdiag) {
+		//t54b12.DebugC();
+		cout << Char54out(myb12_9) << " myb12_9 "  << endl;
+		cout << Char54out(myac_9) << " myac_9 " << endl;
+		t54b12.DebugD();
+	}
 	spb_0_15[12].Init9(ww, cbs);
 	// clear processed 7,8,9 init the count for next expansion step
 	memset(ntbelow, 0, sizeof ntbelow);//7 8 9 10 11 full
 	memset(tandbelow, 255, sizeof tandbelow);//7 8 9 10 11 full
 	if (t54b12.nd128 < 128)t54b12.nd128 = 128;// force adds outside
 	Expand_10_12();
-	cout << Char54out(myb12_9) << " known 9 clues [79]= " << p_cpt2g[79]<<" ";
-	DumpPotential(0);
 	p_cpt2g[73] += ntbelow[5];
+	if (locdiag) {
+		cout << Char54out(myb12_9) << "  known 9 clues [79]= " << p_cpt2g[79] << " ";
+		DumpPotential(0);
+
+	}
 	if (p_cpt2g[74] < ntbelow[5]) p_cpt2g[74] = ntbelow[5];
 
 	if ((!ntbelow[5]) && (!ntbelow[4]) && (!ntbelow[3])) return;
-	if (p_cpt2g[79] > 1) return;
+	//if (p_cpt2g[79] > 1) return;
 
-	myandall_9 = tandbelow[3] & tandbelow[4] & tandbelow[9];
+	myandall_9 = tandbelow[3] & tandbelow[4] & tandbelow[5];
 	guah54_9.Build9(myandall_9, myac_9);
-	cout << Char54out(myb12_9) << " entry build td "  << endl;
-	cout << Char54out(myac_9) << " active cells " << endl;
-	guah54_9.Dumpall2(); guah54_9.Dumpall3();
+	if (locdiag) {
+		//cout << Char54out(myandall_9) << " myandall_9 " <<endl;
+		//cout << Char54out(myac_9) << " myac_9 " << endl;
+		for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
+			uint64_t U = tbelow10[iv].bf.u64[0];
+			cout << Char54out(U) << " 10 " << iv << endl;
+			if (!((~pk54) & U))
+				cout << Char54out(U) << " expected 10" << endl;
+		}
+		for (uint32_t iv = 0; iv < ntbelow[4]; iv++) {
+			uint64_t U = tbelow11[iv].bf.u64[0];
+			cout << Char54out(U) << " 11 " << iv << endl;
+			if (!((~pk54) & U))
+				cout << Char54out(U) << " expected 11" << endl;
+		}
+
+		for (uint32_t iv = 0; iv < ntbelow[5]; iv++) {
+			uint64_t U = tfull[iv];
+			cout << Char54out(U) << " " << iv << endl;
+			if (!((~pk54) & U))
+				cout << Char54out(U) << " expected 12" << endl;
+		}
+		//cout << "guah54_2 status" << endl;
+		//guah54_2.Dumpall2(); guah54_2.Dumpall3();
+		//cout << "guah54_9 status" << endl;
+		//guah54_9.Dumpall2(); guah54_9.Dumpall3();
+	}
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 		genb12.bands3[ib3].BuildGuam9(myandall);
 
-
-	return;
-	int locdiag = 0;
-	if (op.ton > 1) {
-		if (p_cpt2g[3] == op.f3) {
-			cout << Char54out(ww.bf.u64[0]) << " 9clues [4]" << p_cpt2g[4] << " 9clues [70]" << p_cpt2g[70] << endl;
-			DumpPotential(0);
-			if (p_cpt2g[4] == op.f4) {
-				cout << "this is the expected path" << endl;
-				DumpPotential(2);
-				locdiag = op.ton;
-			}
-		}
-	}
-
-	p_cpt2g[6]++;
+	// missing here process 10 11
 
 
 
 	if (ntbelow[5] == 1) {// get active g2 g3 from guah54_2 direct
 		p_cpt2g[7]++;
-		cb3.ncl = 11;
+		cb3.ncl = 12;
 		myb12 = cb3.bf12 = tfull[0];
-		cb3.cbs.Init(myb12, 11);
-		cb3.g2t = guah54_2.GetG2(cb3.bf12);
-		cb3.g3t = guah54_2.GetG3(cb3.bf12);
+		cb3.cbs.Init(myb12, 12);
+		cb3.g2t = guah54_9.GetG2(cb3.bf12);
+		cb3.g3t = guah54_9.GetG3(cb3.bf12);
 		clean_valid_done = 0;
 		for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 			genb12.bands3[ib3].Go(cb3);
@@ -4039,20 +4074,20 @@ void G17B::GoExpand_10_12(BF128 ww){
 	}
 	else {
 		for (uint32_t iv = 0; iv < ntbelow[5]; iv++) {
-			cb3.ncl = 11;
+			cb3.ncl = 12;
 			myb12 = cb3.bf12 = tfull[iv];
 			if (t54b12.NotValid(myb12)) continue;// uas b12 added
-			cb3.cbs.Init(myb12, 11);
-			cb3.g2t = guah54_2.GetG2(cb3.bf12);
-			cb3.g3t = guah54_2.GetG3(cb3.bf12);
+			cb3.cbs.Init(myb12, 12);
+			cb3.g2t = guah54_9.GetG2(cb3.bf12);
+			cb3.g3t = guah54_9.GetG3(cb3.bf12);
 			p_cpt2g[7]++;
 			if (locdiag) {
 				cout << Char54out(myb12) << " [7] " << p_cpt2g[7] << endl;
 				cb3.Dump();
 				if (p_cpt2g[7] == op.f7) {
 					cout << "this is the expected path to go b3" << endl;
-					guah54_2.Dumpall2();
-					guah54_2.Dumpall3();
+					//guah54_2.Dumpall2();
+					//guah54_2.Dumpall3();
 				}
 
 			}
@@ -5112,9 +5147,9 @@ void G17B::Out17(uint32_t bfb3) {
 
 	for (int i = 0, bit = 1; i < 27; i++, bit <<= 1)if (bfb3 & bit)
 		ws[i+54]= grid0[i+54] + '1';
-	cout << ws << "\t\t one sol   "  << endl;
 	if (op.ton ) {
-		cout << "[3] " << p_cpt2g[3] << " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl;
+		cout << ws << "\t\t one sol   "  << "[3] " << p_cpt2g[3] 
+			<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl;
 		if (op.ton > 1)if (p_cpt2g[7] == op.f7) {
 			cout << "nt3_2=" << nt3_2 << endl;
 			for (uint32_t i = 0; i < nt3_2; i++)

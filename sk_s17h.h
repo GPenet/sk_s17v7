@@ -4,9 +4,10 @@
 struct OPCOMMAND {// decoding command line option for this rpocess
 	// processing options 
 	int opcode;
-	int t18,p1,p2,p2b,//17 of 18 clues, pass or 2 (2a or 2b)
+	int t18, p1, p2, p2b,//17 of 18 clues, pass or 2 (2a or 2b)
 		p2c,//asking for list of attached ED grids (coded as t18 p2b)
-		b2slice; // runing a slice of bands 2 in 18 mode 
+		b2slice, // runing a slice of bands 2 in 18 mode 
+		b3low; // running band 1 pass1 for slices in pass2
 	int b1;//band 1 in process 
 	// debugging options
 	int b2,b2_is ;//bands usually b2 not given
@@ -30,13 +31,15 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		}
 		else p1 = 1;
 		if(t18 && (sgo.bfx[0] & 8)) {// slice of bands 
-			b2slice = 1; b2_is= sgo.vx[4];
+			b2slice = 1; 
 		}
+		if (p1 && (sgo.bfx[0] & 16)) op.b3low = 1;
 
 		if (known)if (sgo.bfx[0] & 8) known = 2;
 		b1 = sgo.vx[0];
 		skip = sgo.vx[2];
 		last = sgo.vx[3];
+		b2_is = sgo.vx[4];
 		b2 = sgo.vx[5];
 		if (sgo.s_strings[0])	if(strlen(sgo.s_strings[0]))
 			b2start = sgo.s_strings[0];
@@ -75,7 +78,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 				cout << "running a slice of bands 2 index from="
 					<< b2_is << " to=" << b2 << endl;
 			}
-			
+			if (b3low)
+				cout << " pass1 with limit in band 3 index <= band1 index " << endl;
 			cout << "debugging commands___________________" << endl;
 			if (known) {
 				cout << "processing solution grids with known" << endl;
@@ -379,13 +383,13 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 			ir = nd128 - ( bloc<<7);
 		nd128++; ndblocs = bloc; ntd128[bloc]++;
 		td128[bloc].v0.setBit(ir);
-		BF128* myvc = td128[bloc].vc;
+		BF128* myvd = td128[bloc].vc;
 		register uint64_t R = u;
 		td128[bloc].t[ir] = R;
 		register uint32_t cell;
 		while (bitscanforward64(cell, R)) {
 			R ^= (uint64_t)1 << cell; //clear bit
-			myvc[cell].clearBit(ir);
+			myvd[cell].clearBit(ir);
 		}
 	}
 	int Build_td128(); 

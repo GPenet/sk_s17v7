@@ -89,8 +89,8 @@ void Go_c17_09() {// p2 process locate
 //========================= known s17 file 10/19
 void Go_c17_10( ) {
 	//op.SetUp(10,0);
-	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
-	op.SetUp(10,1);
+	cout << "Go_10() search 17/18 using a file having known 17 656 " << endl;
+	op.SetUp(10,1);// setup with known
 	cout << "back setup " << endl;
 
 	zh_g.modevalid = 1;
@@ -99,9 +99,13 @@ void Go_c17_10( ) {
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char * ze = finput.ze;
 	int * zs0 = genb12.grid0, npuz = 0;
+	char* ze2 = &ze[82];
 	//if (op.t18) return;
 	//if (op.p1) return;
-	cout << "Go_10() search 17 using a file having known 17 656 " << endl;
+	//cout << "Go_10() search 17/18 using a file having known 17 656 " << endl;
+
+	//op.ton = 1;
+
 	while (finput.GetLigne()) {
 		if(strlen(ze)<160) continue;// skip blank lines
 		npuz++;
@@ -110,26 +114,66 @@ void Go_c17_10( ) {
 		g17b.aigstop= 0;
 		if (npuz <= op.skip) continue;
 		if (npuz > op.last) break;
-		int ncb3 = 0,nclues=0;
-		for (int i = 0; i < 27; i++)
-			if (ze[i + 82] - '.')nclues++;
-		for (int i = 0; i < 27; i++)
-			if (ze[i + 136] - '.')ncb3++;
-		if (op.t18 && nclues == 18 && ncb3 < 7) continue;
-		op.p2b = 0;
-		if (ncb3 == 5) {// change band3 <-> band2
-			if (op.t18)continue;
-			op.p2b = 1;
-			for (int i = 0; i < 27; i++) {
-				char temp = ze[i + 27];	ze[i + 27] = ze[i + 54];	ze[i + 54] = temp;
-				temp = ze[i + 109];	ze[i + 109] = ze[i + 136];	ze[i + 136] = temp;
+		CBS cbs;
+		g17b.p17diag.SetAll_0();
+		int  nclues = 0;
+		memset(&cbs, 0, sizeof cbs);
+		for (int i = 0; i < 81; i++) if (ze2[i] != '.') {
+			g17b.p17diag.Set_c(i);
+			cbs.Add(i);
+			nclues++;
+		}
+
+		if (op.ton)cout << ze << " to process  n=" << npuz
+			<< " bands " << cbs.b[0] << cbs.b[1] << cbs.b[2]
+			<< " stacks " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
+		if (op.t18 && nclues == 17) {
+			if (op.ton)cout << " see later 17 clues for a 18" << endl;
+			continue;
+		}
+		if (op.p2 && (cbs.s[0] > 6 || cbs.s[1] > 6 || cbs.s[2] > 6)) {
+			if (op.ton)cout << " pass2 stack > 6 clues" << endl;
+				continue;
+		}
+		if (op.t18) {
+			if (op.p2 && (cbs.b[0] > 6 || cbs.b[1] > 6 || cbs.b[2] > 6)) {
+				if (op.ton)cout << "t18  pass2 not 666 666" << endl;
+					continue;
 			}
+			if (!op.p2) {
+				if (cbs.b[2] < 7) {
+					if (op.ton)cout << "t18  pass1 not >=7 in b3" << endl;
+						continue;
+				}
+				if (cbs.b[2] < cbs.s[0] || cbs.b[2] < cbs.s[1] || cbs.b[2] < cbs.s[2] ) {
+					if (op.ton)cout << "t18  stack too high" << endl;
+						continue;
+				}
+			}
+		}
+		if ((!op.t18) && op.p2) {
+			op.p2b = 0;
+			//================================ to avoid the 665 case
+			if (cbs.b[2] == 5) {// change band3 <-> band2
+				op.p2b = 1;
+				for (int i = 0; i < 27; i++) {
+					char temp = ze[i + 27];	ze[i + 27] = ze[i + 54];	ze[i + 54] = temp;
+					temp = ze[i + 109];	ze[i + 109] = ze[i + 136];	ze[i + 136] = temp;
+				}
+				uint32_t w = g17b.p17diag.bf.u32[1];
+				g17b.p17diag.bf.u32[1]= g17b.p17diag.bf.u32[2];
+				g17b.p17diag.bf.u32[2]=w;
+				
+			}
+
+
 		}
 
 		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< op.ton << endl;
-		//================================ to avoid the 665 case
+		if (op.ton)		cout << ze << " to process  n="  << npuz 
+			<< " bands "<< cbs.b[0] << cbs.b[1] << cbs.b[2] 
+			<< " stacks " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
 
-		if (op.ton)		cout << ze << " to process  n="  << npuz << endl;
 
 		// =======================morph entry 
 		for (int i = 0; i < 81; i++)zs0[i] = ze[i] - '1';
@@ -144,21 +188,7 @@ void Go_c17_10( ) {
 		int ib3 = perm_ret.i416, ib3a = t416_to_n6[ib3];
 		genb12.bands3[0].InitBand3(ib3, &ze[54], perm_ret);
 		genb12.nband3 = 1;
-		char * ze2 = &ze[82];
-		g17b.p17diag.SetAll_0();
-		for (int i = 0; i < 81; i++) if (ze2[i] != '.')
-			g17b.p17diag.Set_c(i);
-		{// forget if stack > band 3
-			int nb3 = _popcnt32(g17b.p17diag.bf.u32[2]);
-			for (int ibs = 3; ibs < 6; ibs++) {
-				BF128 w = g17b.p17diag & band3xBM[ibs];
-				int nbs = w.Count();
-				if (w.Count() > nb3) {
-					cout << "stop not a morph to process here" << endl;
-					return;
-				}
-			}
-		}
+
 		ze[81] = 0;
 		if (op.ton)
 			cout << Char2Xout(g17b.p17diag.bf.u64[0]) << " b12 pattern for the 17" << endl;

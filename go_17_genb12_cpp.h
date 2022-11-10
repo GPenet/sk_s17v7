@@ -456,6 +456,10 @@ next_first:
 			if (G17ComparedOrderedBand(&grid0[54], b23_a[0]) == 1) goto next;
 		}
 	}
+	if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
+		if(i3t16<op.b2_is)goto next;// to avoid redundancy assumed already done
+		if (i3t16 > i1t16) goto next;
+	}
 	bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
 	goto next;
 back:
