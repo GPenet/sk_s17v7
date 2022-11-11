@@ -76,7 +76,7 @@ void STD_B3::InitBand3(int i16, char* ze, BANDMINLEX::PERM& p) {
 	InitBand2_3(i16, ze, p);
 	//memset(&guas, 0, sizeof guas);
 	memset(&g, 0, sizeof g);
-	ntguam = 0;
+	ntguam = poutdone=0;
 	// setup minirows bit fields
 	for (int i = 0; i < 9; i++) {
 		minirows_bf[i] = 0;
@@ -88,9 +88,6 @@ void STD_B3::InitBand3(int i16, char* ze, BANDMINLEX::PERM& p) {
 	//	<< " " << minirows_bf[1] << dec << endl;
 
 }
-
-
-
 
 void STD_B416::PrintStatus() {
 	cout << "band status i=" << i416 << "\tstart=" << dband << endl << "map ";

@@ -7,7 +7,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	int t18, p1, p2, p2b,//17 of 18 clues, pass or 2 (2a or 2b)
 		p2c,//asking for list of attached ED grids (coded as t18 p2b)
 		b2slice, // runing a slice of bands 2 in 18 mode 
-		b3low; // running band 1 pass1 for slices in pass2
+		b3low, // running band 1 pass1 for slices in pass2
+		out_one; // limit output to one per band 3
 	int b1;//band 1 in process 
 	// debugging options
 	int b2,b2_is ;//bands usually b2 not given
@@ -33,9 +34,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if(t18 && (sgo.bfx[0] & 8)) {// slice of bands 
 			b2slice = 1; 
 		}
-		if (p1 && (sgo.bfx[0] & 16)) op.b3low = 1;
+		if (p1 && (sgo.bfx[0] & 16))b3low = 1;
 
-		if (known)if (sgo.bfx[0] & 8) known = 2;
 		b1 = sgo.vx[0];
 		skip = sgo.vx[2];
 		last = sgo.vx[3];
@@ -44,24 +44,17 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (sgo.s_strings[0])	if(strlen(sgo.s_strings[0]))
 			b2start = sgo.s_strings[0];
 		ton= sgo.vx[1];
-		f3 = sgo.vx[6];
-		if (sgo.bfx[1] & 1)upto3 = 1;
-		f4 = sgo.vx[7];
-		if (sgo.bfx[1] & 2)upto4 = 1;
-		f7 = sgo.vx[8];
+
+		f3 = sgo.vx[6];		f4 = sgo.vx[7];		f7 = sgo.vx[8];
+
+		if (sgo.bfx[1] & 1)upto3 = 1;		if (sgo.bfx[1] & 2)upto4 = 1;
 		if (sgo.bfx[1] & 4)dv12 = 1;
 		if (sgo.bfx[1] & 8)dumpa = 1;
 
-/*
--b1- 1 mode up to 3	2 mode upto 4		4 cout adds 12 		8 debug A
+		if (sgo.bfx[2] & 1) out_one = 1;
+		if (known)if (sgo.bfx[2] & 2) known = 2;
 
-	int it16_start = sgo.vx[0];
-	g17b.debug17_check =   g17b.aigstop=0;
-	g17b.diag = g17b.debug17 = sgo.vx[1];
-	genb12.skip = sgo.vx[2];
-	genb12.last = sgo.vx[3];
-*/
-
+		// sgo.bfx[3] is for partial process 
 
 		if (p) {
 			cout << "standard processing commands_______________" << endl;
@@ -80,10 +73,11 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			}
 			if (b3low)
 				cout << " pass1 with limit in band 3 index <= band1 index " << endl;
+			if (out_one) cout << " max one out per band 3 sgo.bfx[2] & 1 " << endl;
 			cout << "debugging commands___________________" << endl;
 			if (known) {
 				cout << "processing solution grids with known" << endl;
-				if (known > 1)cout << "\tfilter on path active" << endl; 
+				if (known > 1)cout << "\tfilter on path active  sgo.bfx[2] & 2" << endl; 
 			}
 			cout << sgo.vx[5] << " b2 -v5- filter band 2 index" << endl;
 			if (b2start)	cout << b2start << " filter band 2 start" << endl;
@@ -94,12 +88,10 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (f7)cout << f7 << "  f7  -v8- diag filter go full [7]" << endl;
 			if (dv12)cout << "  -b1-..x  dump add in valid b12" << endl;
 			if (dumpa)cout << "  -b1-...x  dump uas b12 at the start" << endl;
-			if (sgo.bfx[1])cout << "upto debugging  through -b1-"
-				<< Char9out(sgo.bfx[1]) << endl;
-			if (sgo.bfx[2])cout << "partial process through -b2-"
-				<< Char9out(sgo.bfx[2]) << endl;
-			if (sgo.bfx[3])cout << "add b3 diag through -b3-"
-				<< Char9out(sgo.bfx[3]) << endl;
+			if (upto3)cout << "upto debugging [3]  sgo.bfx[1] & 1 " << endl;
+			if (upto4)cout << "upto debugging [4]  sgo.bfx[1] & 2 " << endl;
+			if (dv12)cout << " print fresh adds sgo.bfx[1] & 4 " << endl;
+			if (dumpa)cout << " print initial uas 12 sgo.bfx[1] & 8 " << endl;
 
 		}
 	}
@@ -715,7 +707,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 				<< " " << Count() << endl;
 		}
 	}tguam[384],tguam2[300], tguam9[300];
-	uint32_t ntguam,ntguam2, ntguam9, guam2done, guam9done;
+	uint32_t ntguam,ntguam2, ntguam9, guam2done, guam9done,
+		poutdone;
 	//_______________________
 
 	void InitBand3(int i16, char * ze, BANDMINLEX::PERM & p);

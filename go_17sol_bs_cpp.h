@@ -2601,7 +2601,7 @@ void G17B::GoExpand_7_10() {
 
 	myandall = tandbelow[0] & tandbelow[1] & tandbelow[2] & tandbelow[3] & tandbelow[4] & tandbelow[5];
 
-	if (sgo.bfx[2] & 1) return;// debugging phase1
+	if (sgo.bfx[3] & 1) return;// debugging phase1
 
 	guah54_2.Build2(myandall, sn->active_cells);
 	if (locdiag) {
@@ -3426,7 +3426,7 @@ void G17B::GoExpand_7_11() {
 
 	myandall = tandbelow[0]& tandbelow[1]& tandbelow[2]& tandbelow[3]& tandbelow[4]& tandbelow[5];
 
-	if (sgo.bfx[2] & 2) 		return;// debugging phase1
+	if (sgo.bfx[3] & 2) 		return;// debugging phase1
 
 	guah54_2.Build2(myandall, sn->active_cells);
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) 
@@ -3962,7 +3962,7 @@ void G17B::GoExpand_7_12() {
 	p_cpt2g[71]++;
 	if (p_cpt2g[72] < nt_7_9)p_cpt2g[72] = nt_7_9;
 
-	if (sgo.bfx[2] & 2) 		return;// debugging phase1
+	if (sgo.bfx[3] & 2) 		return;// debugging phase1
 
 	myandall = tandbelow[1] & tandbelow[2]& tand_7_9;
 	guah54_2.Build2(myandall, sn->active_cells);
@@ -4001,9 +4001,9 @@ void G17B::GoExpand_10_12(BF128 ww){
 	cbs.Init(myb12_9, 9);
 	if (locdiag) {
 		//t54b12.DebugC();
-		cout << Char54out(myb12_9) << " myb12_9 "  << endl;
-		cout << Char54out(myac_9) << " myac_9 " << endl;
-		t54b12.DebugD();
+		//cout << Char54out(myb12_9) << " myb12_9 "  << endl;
+		//cout << Char54out(myac_9) << " myac_9 " << endl;
+		//t54b12.DebugD();
 	}
 	spb_0_15[12].Init9(ww, cbs);
 	// clear processed 7,8,9 init the count for next expansion step
@@ -4013,8 +4013,8 @@ void G17B::GoExpand_10_12(BF128 ww){
 	Expand_10_12();
 	p_cpt2g[73] += ntbelow[5];
 	if (locdiag) {
-		cout << Char54out(myb12_9) << "  known 9 clues [79]= " << p_cpt2g[79] << " ";
-		DumpPotential(0);
+		//cout << Char54out(myb12_9) << "  known 9 clues [79]= " << p_cpt2g[79] << " ";
+		//DumpPotential(0);
 
 	}
 	if (p_cpt2g[74] < ntbelow[5]) p_cpt2g[74] = ntbelow[5];
@@ -4024,7 +4024,7 @@ void G17B::GoExpand_10_12(BF128 ww){
 
 	myandall_9 = tandbelow[3] & tandbelow[4] & tandbelow[5];
 	guah54_9.Build9(myandall_9, myac_9);
-	if (locdiag) {
+	if (locdiag && op.ton) {
 		//cout << Char54out(myandall_9) << " myandall_9 " <<endl;
 		//cout << Char54out(myac_9) << " myac_9 " << endl;
 		for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
@@ -4081,7 +4081,7 @@ void G17B::GoExpand_10_12(BF128 ww){
 			cb3.g2t = guah54_9.GetG2(cb3.bf12);
 			cb3.g3t = guah54_9.GetG3(cb3.bf12);
 			p_cpt2g[7]++;
-			if (locdiag) {
+			if (locdiag && op.ton) {
 				cout << Char54out(myb12) << " [7] " << p_cpt2g[7] << endl;
 				cb3.Dump();
 				if (p_cpt2g[7] == op.f7) {
@@ -4204,7 +4204,13 @@ struct CRITB3 {
 			}
 			else {
 				stackf.bf.u16[stack]++;
-				if (stackf.bf.u16[stack] >= nb3)critstack |= bitstack;
+				if (stackf.bf.u16[stack] >= nb3) {
+					critstack |= bitstack;
+					// limit the stack to bit field
+					register int mask =~( 07007007 << (3 * stack));
+					mask |= critbf;
+					active  &= mask;
+				}
 			}
 			return 0;;
 		}
@@ -4214,20 +4220,27 @@ struct CRITB3 {
 			if (!nmiss)active &= critbf;
 			return 0;
 		}
-		if ((minix[2] & bitmini) && (pairs27 & bit27)) {
-			// 2 clues if not common clue one more clue
-			if (critstack & bitstack)return 1;// not possible
-			critbf ^= bit27;	minix[2] ^= bitmini;
-			nmiss--;
-			if (!nmiss) {
-				critstack = 7;
-				active &= critbf;// no more outfield
+		if (minix[2] & bitmini){
+			if (pairs27 & bit27) {// 2 clues not common clue one more clue
+				if (critstack & bitstack)return 1;// not possible
+				critbf ^= bit27;	minix[2] ^= bitmini;
+				nmiss--;
+				if (!nmiss) {
+					critstack = 7;
+					active &= critbf;// no more outfield
+				}
+				else {
+					stackf.bf.u16[stack]++;
+					if (stackf.bf.u16[stack] == nb3) {
+						critstack |= bitstack;
+						// limit the stack to bit field
+						register int mask = ~(07007007 << (3 * stack));
+						mask |= critbf;
+						active &= mask;
+					}
+				}
+				return 0;
 			}
-			else {
-				stackf.bf.u16[stack]++;
-				if (stackf.bf.u16[stack] == nb3)critstack |= bitstack;
-			}
-			return 0;
 		}
 		register int mask = ~(7 << (3 * imini));// clear minirow
 		critbf &= mask;
@@ -4470,7 +4483,7 @@ uint32_t G17B::IsValidB3(uint32_t bf) {
 
 void STD_B3::Go(CALLBAND3& cb3) {
 	p_cpt2g[8]++;
-	if (sgo.bfx[2] & 4) return;// debugging phase1 new band 3
+	if (sgo.bfx[3] & 4) return;// debugging phase1 new band 3
 	int locdiag = 0;
 	if (p_cpt2g[7] == op.f7) {
 		cout << "go b3 locdiag=1 [8]" << p_cpt2g[8] << endl;
@@ -4771,8 +4784,8 @@ void  G17B::GoB3End(int ntoass) {
 }
 
 void G17B::GoB3Expand(int ntoass) {
-	//int locdiag = 0;
-	//if (op.ton > 1)if (p_cpt2g[7] == sgo.vx[8]) locdiag = op.ton;
+	int locdiag = 0;
+	if (op.ton )if (p_cpt2g[7] == op.f7) locdiag = op.ton;
 	uint64_t limspot = ntoass - 1, limm1 = limspot - 1;
 	//if (locdiag)cout << "b3direct lims " << limspot << " " << limm1
 	//	<< " clean_valid_done=" << clean_valid_done << endl;
@@ -4870,7 +4883,10 @@ next:
 			}
 			else { Out17(F);	goto next; }// this is a valid 17
 		}
-		//if (locdiag)cout << Char27out(andw) << "exit aig=0" << endl;
+		if (locdiag) {
+			cout << Char27out(andw) << "exit aig=0" << endl;
+			sn->critb3.Status(" last expand ");
+		}
 		register int cell;
 		while (bitscanforward(cell, andw)) {
 			CRITB3 critb3 = sn->critb3;
@@ -5134,6 +5150,13 @@ void ZHOU::Guess17(int index) {
 
 
 void G17B::Out17(uint32_t bfb3) {
+	if (_popcnt32(bfb3) > 18) {
+		cout <<Char27out(bfb3) << " more than 18 [3] " << p_cpt2g[3]
+			<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl; 
+		aigstop = 1;
+		return;
+	}
+	if (op.out_one) if (myband3->poutdone++) return;	
 	char ws[82];
 	strcpy(ws, empty_puzzle);
 	{// cells in bands 1+2		
