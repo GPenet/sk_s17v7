@@ -3085,8 +3085,8 @@ void G17B::Go_10_11_18() {// 10 clues limit 11 clues
 void G17B::Go_9_11_18() {// 9 clues limit 11 clues 
 	t54b12.ntm = 0;
 	clean_valid_done = 1;
-	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
-		BF128 ww = tbelow10[iv];
+	for (uint32_t iv = 0; iv < ntbelow[2]; iv++) {
+		BF128 ww = tbelow9[iv];
 		cb3.ncl = 9;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
 		cb3.cbs.Init(myb12, 9);
@@ -3133,7 +3133,7 @@ void G17B::Go_9_11_18() {// 9 clues limit 11 clues
 				cb3n2.g2t = guah54_2.GetG2(myb12);
 				cb3n2.g3t = guah54_2.GetG3(myb12);
 				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-					genb12.bands3[ib3].Go(cb3);
+					genb12.bands3[ib3].Go(cb3n2);
 			}
 		}
 	}
@@ -3143,8 +3143,8 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 	//cout << " entry 8 clues for 11 clues" << endl;
 	t54b12.ntm = 0;
 	clean_valid_done = 1;
-	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
-		BF128 ww = tbelow10[iv];
+	for (uint32_t iv = 0; iv < ntbelow[1]; iv++) {
+		BF128 ww = tbelow8[iv];
 		cb3.ncl = 8;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
 		cb3.cbs.Init(myb12, 8);
@@ -3185,7 +3185,7 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 				cb3n2.g3t = guah54_2.GetG3(myb12);
 				// could be 288 828
 				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-					genb12.bands3[ib3].Go(cb3);
+					genb12.bands3[ib3].Go(cb3n2);
 				// try now a third clue in bands 1+2
 				uint64_t Ac3 = Ac2;// others are not active now
 				{
@@ -3206,7 +3206,7 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 					cb3n3.g2t = guah54_2.GetG2(myb12);
 					cb3n3.g3t = guah54_2.GetG3(myb12);
 					for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-						genb12.bands3[ib3].Go(cb3);
+						genb12.bands3[ib3].Go(cb3n3);
 				}
 			}
 		}
@@ -3216,8 +3216,8 @@ void G17B::Go_8_11_18() {// 8 clues limit 11 clues
 void G17B::Go_7_11_18() {// 7 clues limit 11 clues 
 	t54b12.ntm = 0;
 	clean_valid_done = 1;
-	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
-		BF128 ww = tbelow10[iv];
+	for (uint32_t iv = 0; iv < ntbelow[0]; iv++) {
+		BF128 ww = tbelow7[iv];
 		cb3.ncl = 7;
 		myb12 = cb3.bf12 = ww.bf.u64[0];
 		cb3.cbs.Init(myb12, 7);
@@ -3258,7 +3258,7 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 				cb3n2.g3t = guah54_2.GetG3(myb12);
 				// could be 288 828
 				for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-					genb12.bands3[ib3].Go(cb3);
+					genb12.bands3[ib3].Go(cb3n2);
 				// try now a third clue in bands 1+2
 				uint64_t Ac3 = Ac2;
 				int cell3;
@@ -3273,7 +3273,7 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 					cb3n3.g2t = guah54_2.GetG2(myb12);
 					cb3n3.g3t = guah54_2.GetG3(myb12);
 					for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-						genb12.bands3[ib3].Go(cb3);
+						genb12.bands3[ib3].Go(cb3n3);
 					// try now a fourth  clue in bands 1+2
 					uint64_t Ac4 = Ac3;
 					{
@@ -3294,7 +3294,7 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 						cb3n4.g2t = guah54_2.GetG2(myb12);
 						cb3n4.g3t = guah54_2.GetG3(myb12);
 						for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
-							genb12.bands3[ib3].Go(cb3);
+							genb12.bands3[ib3].Go(cb3n4);
 					}
 				}
 			}
@@ -3435,8 +3435,11 @@ void G17B::GoExpand_7_11() {
 	if (op.t18) {
 		if (ntbelow[0])  Go_7_11_18(); // do 7 clues then more
 		if (ntbelow[1])  Go_8_11_18(); // do 8 clues then more
+		if (locdiag) cout <<" diag call 9" <<endl;
 		if (ntbelow[2])  Go_9_11_18(); // do 9 clues then more
-		if (ntbelow[3])  Go_10_11_18(); // do 9 clues then more
+		if (locdiag) cout << " diag call 10" << endl;
+		if (ntbelow[3])  Go_10_11_18(); // do 10 clues then more
+		if (locdiag) cout << " diag end call 10" << endl;
 	}
 	else {
 		if (ntbelow[0]) {
@@ -5150,9 +5153,12 @@ void ZHOU::Guess17(int index) {
 
 
 void G17B::Out17(uint32_t bfb3) {
-	if (_popcnt32(bfb3) > 18) {
+	if ((_popcnt32(bfb3) + _popcnt64(myb12)) > 18) {
+		cout << Char54out(myb12) << "\t";
 		cout <<Char27out(bfb3) << " more than 18 [3] " << p_cpt2g[3]
-			<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl; 
+			<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl;
+
+		DumpPotential();
 		aigstop = 1;
 		return;
 	}
