@@ -57,6 +57,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		// sgo.bfx[3] is for partial process 
 
 		if (p) {
+			cout << Char9out(sgo.bfx[0]) << " sgo.bfx[0 " << endl;
 			cout << "standard processing commands_______________" << endl;
 			if(t18) cout <<"\t\tsearch 18 clues via -b0-x."<<endl;
 			else cout << "\t\tsearch 17 clues via -b0-x." << endl;

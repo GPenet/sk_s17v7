@@ -5164,7 +5164,7 @@ void G17B::Out17(uint32_t bfb3) {
 		return;
 	}
 	if (op.out_one) if (myband3->poutdone++) return;	
-	char ws[82];
+	char ws[128];
 	strcpy(ws, empty_puzzle);
 	{// cells in bands 1+2		
 		int cell;
@@ -5187,7 +5187,21 @@ void G17B::Out17(uint32_t bfb3) {
 		}
 	}
 
-	fout1 << ws << ";" << genb12.nb12 / 64 << ";" << genb12.i1t16 << ";" << genb12.i2t16 << endl;
+
+
+	sprintf(&ws[81], ";%5d;%3d;%3d;%3d\n",(int)( genb12.nb12 / 64), genb12.i1t16, genb12.i2t16, t416_to_n6[myband3->i416]);     
+	fout1 << ws << endl;
+	/*
+	fout1 << ws << ";";
+	fout1.width(10);
+	fout1 << genb12.nb12 / 64 << ";";
+	fout1.width(5);
+	fout1 << genb12.i1t16 << ";";
+	fout1.width(5);
+	fout1 << genb12.i2t16 << ";";
+	fout1.width(5);
+	fout1 << t416_to_n6[myband3->i416] << endl;
+	*/
 	a_17_found_here++;
 
 }

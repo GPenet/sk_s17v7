@@ -179,6 +179,7 @@ int GEN_BANDES_12::F17Novalid1_2() {
 				return 1;
 			}
 	}
+	if (op.t18 && op.b3low) return 0;
 	if (op.b2slice) {
 		int ix = t416_to_n6[it16_2];
 		if (ix < op.b2_is) return 1;
@@ -458,7 +459,7 @@ next_first:
 	}
 	if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
 		if(i3t16<op.b2_is)goto next;// to avoid redundancy assumed already done
-		if (i3t16 > i1t16) goto next;
+		if (i3t16 > op.b2) goto next;
 	}
 	bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
 	goto next;
