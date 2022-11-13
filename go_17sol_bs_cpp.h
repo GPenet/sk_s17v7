@@ -180,7 +180,8 @@ void G17B::StartInitDebug() {
 
 }
 void G17B::StartPrint() {
-	cout << myband2.band << " go band2 id=" << myband2.i416 << " nb12=" << genb12.nb12
+	cout << myband2.band << " go band2 id=" << myband2.i416 
+		<< "index="<< t416_to_n6[myband2.i416] << " nb12=" << genb12.nb12
 		<< " nb3=" << genb12.nband3 << " p_cpt2g[0]=" << p_cpt2g[0] << endl;
 	cout << Char64out(gsock2.bf.u64[0]);
 	cout << Char27out(gsock2.bf.u32[2]) << " all guas2 "
@@ -2052,7 +2053,6 @@ next:	// catch and apply cell in bitfields
 	sn = s + 1; *sn = *s; sn->ncl++;
 	//sn->cbs.Add(cell);
 	sn->all_previous_cells |= bit;
-	if (locdiag)cout << Char54out(sn->all_previous_cells) << endl;
 	sn->v &= tu128.vc[cell];
 	if (sn->ncl == 6) {// 6 cells
 		p_cpt2g[4]++;
@@ -4246,8 +4246,9 @@ struct CRITB3 {
 			}
 		}
 		register int mask = ~(7 << (3 * imini));// clear minirow
-		critbf &= mask;
-		if (!nmiss)active &= critbf;
+		critbf &= mask;		
+		if( !nmiss )active &= critbf;
+		else if(critstack & bitstack)active &= mask;
 		if (minix[1] & bitmini) minix[1] ^= bitmini; // one clue expected 		
 		else if (minix[2] & bitmini)minix[2] ^= bitmini;//common cell in 2 pairs 
 		else if (minix[0] & bitmini)minix[0] ^= bitmini;// triplet
