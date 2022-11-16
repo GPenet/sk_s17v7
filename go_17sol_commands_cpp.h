@@ -270,12 +270,13 @@ void Go_c17_12() {// check diagonal status in a 665
 	char * ze = finput.ze;
 	int  zs0 [81],zs0d[81],
 		npuz = 0;
-	cout << "Go_c17_12() band analysis " << endl;
+	cout << "Go_c17_12() band analysis option=" <<sgo.vx[2] << endl;
 	while (finput.GetLigne()) {
+		if (strlen(ze) < 81)continue;
 		// =======================morph entry to have min n6 count in first
 		for (int i = 0; i < 81; i++) {
 			zs0[i] = ze[i] - '1';
-			zs0d[i]=ze[C_transpose_d[i]] - '1';
+			zs0d[i] = ze[C_transpose_d[i]] - '1';
 		}
 		BANDMINLEX::PERM perm_ret;
 		bandminlex.Getmin(zs0, &perm_ret);
@@ -290,11 +291,48 @@ void Go_c17_12() {// check diagonal status in a 665
 		int ib2d = perm_ret.i416, ib2ad = t416_to_n6[ib2d];
 		bandminlex.Getmin(&zs0d[54], &perm_ret);
 		int ib3d = perm_ret.i416, ib3ad = t416_to_n6[ib3d];
-		cout << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
-			<<";\t" << ib1a << ";" << ib2a << ";" << ib3a
-			<< ";\t" << ib1d << ";" << ib2d << ";" << ib3d
-			<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
-			<< endl;
+
+		if (0) {
+			cout << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
+				<< ";\t" << ib1a << ";" << ib2a << ";" << ib3a
+				<< ";\t" << ib1d << ";" << ib2d << ";" << ib3d
+				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
+				<< endl;
+		}
+		switch (sgo.vx[2]) {
+		case 1:// extract 18 (8 in [87]
+			if (strlen(ze) < 88)break;
+			if (ze[87] == '8')
+				fout1 << ze << endl;
+			break;
+		
+		case 2:// extract 18 (8 in [87]) plus info
+			if (strlen(ze) < 88)break;
+			if (ze[87] == '8')
+				fout1 << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
+				<< ";\t" << ib1a << ";" << ib2a << ";" << ib3a
+				<< ";\t" << ib1d << ";" << ib2d << ";" << ib3d
+				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
+				<< endl;
+			break;
+		case 3: {// sol+18 to analyze
+			if (strlen(ze) < 162)break;
+			if (!sgo.vx[3])sgo.vx[3] = 82;
+			char* ze2 = &ze[sgo.vx[3]];
+			CBS cbs;
+			int  nclues = 0;
+			memset(&cbs, 0, sizeof cbs);
+			for (int i = 0; i < 81; i++) if (ze2[i] != '.') {
+				cbs.Add(i);
+			}
+			if(cbs.b[0] ==6 && cbs.b[1] ==6 &&  cbs.s[0]==6 && cbs.s[1]==6)
+			fout1 << ze2 << ";\t"  << ib1a << ";" << ib2a << ";" << ib3a
+				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
+				<< "; bands; " << cbs.b[0] << cbs.b[1] << cbs.b[2]
+				<< "; stacks; " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
+
+		}
+		}
 	}
 
 }

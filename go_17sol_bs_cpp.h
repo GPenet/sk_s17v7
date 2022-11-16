@@ -3945,14 +3945,13 @@ void G17B::GoExpand_7_12() {
 	p_cpt2g[70]++;
 	int locdiag = 0;
 	if (op.f4) {
-		if (p_cpt2g[4] == op.f4) {
-			cout<< Char54out(sn->all_previous_cells) << "[4] good path expand 7_12 [4]" << p_cpt2g[4]
-				<< " -v8- [70] "<< p_cpt2g[70] << endl;
+		if (p_cpt2g[70] == op.f4) {
+			cout<< Char54out(sn->all_previous_cells) << "[4] good path expand 7_12 -v8- [70] "<< p_cpt2g[70] << endl;
 			locdiag = 1;
 		}
 		else {
-			cout << Char54out(sn->all_previous_cells) << "[4] " << p_cpt2g[4] << endl;
-			if (p_cpt2g[4] > op.f4) { cout << "stop" << endl;	aigstop = 1; return; }
+			cout << Char54out(sn->all_previous_cells) << "[70] " << p_cpt2g[70] << endl;
+			if (p_cpt2g[70] > op.f4) { cout << "stop" << endl;	aigstop = 1; return; }
 			if (!(op.upto4)) return;
 		}
 	}
@@ -3995,7 +3994,7 @@ void G17B::GoExpand_10_12(BF128 ww){
 	int locdiag = 0;
 	if (op.known) {
 		if (!((~pk54) & myb12_9)) {
-			cout << Char54out(myb12_9) << " expected 9" << endl;
+			cout << Char54out(myb12_9) << " expected 9 [70]"<< p_cpt2g[70] << endl;
 			locdiag = 1;
 		}
 	}
@@ -4015,11 +4014,7 @@ void G17B::GoExpand_10_12(BF128 ww){
 	if (t54b12.nd128 < 128)t54b12.nd128 = 128;// force adds outside
 	Expand_10_12();
 	p_cpt2g[73] += ntbelow[5];
-	if (locdiag) {
-		//cout << Char54out(myb12_9) << "  known 9 clues [79]= " << p_cpt2g[79] << " ";
-		//DumpPotential(0);
-
-	}
+	if (locdiag) 		DumpPotential(0);
 	if (p_cpt2g[74] < ntbelow[5]) p_cpt2g[74] = ntbelow[5];
 
 	if ((!ntbelow[5]) && (!ntbelow[4]) && (!ntbelow[3])) return;
@@ -4047,7 +4042,7 @@ void G17B::GoExpand_10_12(BF128 ww){
 			uint64_t U = tfull[iv];
 			cout << Char54out(U) << " " << iv << endl;
 			if (!((~pk54) & U))
-				cout << Char54out(U) << " expected 12" << endl;
+				cout << Char54out(U) << " expected 12 iv="<<iv << endl;
 		}
 		//cout << "guah54_2 status" << endl;
 		//guah54_2.Dumpall2(); guah54_2.Dumpall3();
@@ -4199,7 +4194,7 @@ struct CRITB3 {
 		assigned |= bit27;
 		if (!(bit27 & critbf)) {// clue added outfield
 			if (!nmiss)return 1;// not possible
-			//if (critstack & bitstack)return 1;// not possible ?? why not ??
+			if (critstack & bitstack)return 1;// not possible  
 			nmiss--;
 			if (!nmiss) {
 				critstack = 7;
@@ -4254,13 +4249,19 @@ struct CRITB3 {
 		else if (minix[0] & bitmini)minix[0] ^= bitmini;// triplet
 		return 0;
 	}
-	inline int AddAssign(uint32_t bfa) {// back 1 if not possible
+	inline int AddAssign(uint32_t bfa, int debug=0) {// back 1 if not possible
 		if (assigned & bfa)return 1; //should never be
+		if(debug)Status(" entry add assign ");
 		active &= ~bfa; // minimum is to kill new assign
 		register int i27, X = bfa;
 		while (bitscanforward(i27, X)) {
+			if (debug) {
+				cout << "i27 =" << i27 << " ";
+				Status(" assign i27 ");
+			}
 			X ^= 1 << i27;// clear bit
 			if (Addone(i27))return 1;
+			if (debug) cout << " back addone" << endl;
 		}
 		return 0;
 	}
@@ -4591,6 +4592,11 @@ void STD_B3::Go(CALLBAND3& cb3) {
 }
 
 void G17B::GoB3CleanOne() {// assign all singles in uas
+	int locdiag = 0;
+	if (p_cpt2g[7] == op.f7) {
+		cout << "cleanone in diag"  << endl;
+		locdiag = 1;
+	}
 	while (1) {
 		int is1 = 0;
 		for (int i = 0; i < (int)nt3; i++) {
@@ -4598,7 +4604,7 @@ void G17B::GoB3CleanOne() {// assign all singles in uas
 			if (_popcnt32(U) == 1)  is1 |= U;			
 		}
 		if (is1) {
-			//cout << Char27out(is1) << " is1" << endl;
+			if(locdiag)cout << Char27out(is1) << " is1" << endl;
 			if (scritb3.AddAssign(is1)) return ;// conflict
 			register uint32_t AC = scritb3.active,	F = scritb3.assigned;
 			int n = nt3; nt3 = 0;
@@ -4613,7 +4619,10 @@ void G17B::GoB3CleanOne() {// assign all singles in uas
 		else break;
 	}
 	memcpy(&grid0[54], myband3->band0, sizeof genb12.bands3[0].band0);
+	if (locdiag) {
+		scritb3.Status(" end of cleanone ");
 
+	}
 	if (_popcnt32(scritb3.assigned) == scritb3.nb3) {// finished 
 		if ((nt3_2 = nt3)) return; // not valid if still uas
 		GoB3End(0);
@@ -4691,7 +4700,7 @@ void G17B::GoB3Miss1() {// if outfield must have one out
 		scritb3.Status("debug miss1");
 	}
 	// now all critical can assign bf2
-	scritb3.critstack = 7;
+	//scritb3.critstack = 7;// keep it for later in conflict with add one
 	scritb3.AssignCritical();
 	scritb3.active |= t3_2[nt3_2 - 1];// outfield lost to reenter 
 	if (locdiag)scritb3.Status("debug miss1 after assign critical");
@@ -4705,17 +4714,25 @@ void G17B::GoB3Miss1() {// if outfield must have one out
 			if (!(U & F)) {
 				if (!(U &= AC)) return; // dead branch
 				if (_popcnt32(U) == 1)  is1 |= U;
-				//cout << Char27out(U) << " loop nt3_2=" << nt3_2 << endl;
+				if (locdiag)cout << Char27out(U) << " loop nt3_2=" << nt3_2 << endl;
 				t3_2[nt3_2++] = U;
 			}
 		}
 
 		if (is1) {
-			//cout << Char27out(is1) << " is1" << endl;
-			if (scritb3.AddAssign(is1)) return;// conflict
+			if (locdiag)cout << Char27out(is1) << " is1" << endl;
+			if (scritb3.AddAssign(is1,locdiag)) return;// conflict
+			if (locdiag) {
+				cout << " loop is1" << endl;
+				scritb3.Status(" before loop ");
+			}
 		}
 		else break;
 	}
+	if (locdiag)scritb3.Status("debug miss1 after assign singles");
+
+
+
 	if (_popcnt32(scritb3.assigned) == scritb3.nb3) {
 		if (!clean_valid_done) {
 			clean_valid_done = 1;
@@ -5189,7 +5206,7 @@ void G17B::Out17(uint32_t bfb3) {
 
 
 
-	sprintf(&ws[81], ";%5d;%3d;%3d;%3d\n",(int)( genb12.nb12 / 64), genb12.i1t16, genb12.i2t16, t416_to_n6[myband3->i416]);     
+	sprintf(&ws[81], ";%5d;%3d;%3d;%3d",(int)( genb12.nb12 / 64), genb12.i1t16, genb12.i2t16, t416_to_n6[myband3->i416]);     
 	fout1 << ws << endl;
 	/*
 	fout1 << ws << ";";
