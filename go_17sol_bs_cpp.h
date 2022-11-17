@@ -3593,6 +3593,15 @@ void G17B::Go_11_12() {
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
 		Ac &= (cb3.cbs.NextActive() & cb3.cbs.NextActiveStack());
+		int locdiag = 0;
+		if (op.known) {
+			if (!((~pk54) & myb12)) {
+				cout << Char54out(myb12) << " expected 12 go 11 12 iv=" << iv << endl;
+				cout << Char54out(Ac) << " active 666 ";
+				cb3.cbs.Status();
+				locdiag = 1;
+			}
+		}
 		int cell;
 		while (bitscanforward64(cell, Ac)) {
 			CALLBAND3 cb3n = cb3;
@@ -4052,8 +4061,8 @@ void G17B::GoExpand_10_12(BF128 ww){
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 		genb12.bands3[ib3].BuildGuam9(myandall);
 
-	// missing here process 10 11
-
+	if (ntbelow[4])Go_11_12();
+	if (ntbelow[3])Go_10_12();
 
 
 	if (ntbelow[5] == 1) {// get active g2 g3 from guah54_2 direct
