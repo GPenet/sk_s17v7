@@ -315,7 +315,7 @@ void Go_c17_12() {// check diagonal status in a 665
 				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
 				<< endl;
 			break;
-		case 3: {// sol+18 to analyze
+		case 3: {// sol+18 to analyze get pass2
 			if (strlen(ze) < 162)break;
 			if (!sgo.vx[3])sgo.vx[3] = 82;
 			char* ze2 = &ze[sgo.vx[3]];
@@ -327,6 +327,30 @@ void Go_c17_12() {// check diagonal status in a 665
 			}
 			if(cbs.b[0] ==6 && cbs.b[1] ==6 &&  cbs.s[0]==6 && cbs.s[1]==6)
 			fout1 << ze2 << ";\t"  << ib1a << ";" << ib2a << ";" << ib3a
+				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
+				<< "; bands; " << cbs.b[0] << cbs.b[1] << cbs.b[2]
+				<< "; stacks; " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
+
+		}
+		case 4: {// sol+18 to analyze get pass1
+			if (strlen(ze) < 162)break;
+			if (!sgo.vx[3])sgo.vx[3] = 82;
+			char* ze2 = &ze[sgo.vx[3]];
+			CBS cbs;
+			int  nclues = 0;
+			memset(&cbs, 0, sizeof cbs);
+			for (int i = 0; i < 81; i++) if (ze2[i] != '.') {
+				cbs.Add(i);
+			}
+
+			if (cbs.b[0] == 6 && cbs.b[1] == 6 && cbs.s[0] == 6 && cbs.s[1] == 6)
+				break;// pass2
+			uint16_t x=cbs.s[0];
+			for (int i = 1; i < 3; i++) if (x < cbs.s[i])x = cbs.s[i];
+			if (cbs.b[2] < cbs.b[0]) break;
+			if (cbs.b[2] < cbs.b[1]) break;
+			if (cbs.b[2] < x) break;
+			fout1 << ze2 << ";\t" << ib1a << ";" << ib2a << ";" << ib3a
 				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
 				<< "; bands; " << cbs.b[0] << cbs.b[1] << cbs.b[2]
 				<< "; stacks; " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;

@@ -6,16 +6,17 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	int opcode;
 	int t18, p1, p2, p2b,//17 of 18 clues, pass or 2 (2a or 2b)
 		p2c,//asking for list of attached ED grids (coded as t18 p2b)
-		b2slice, // runing a slice of bands 2 in 18 mode 
-		b3low, // running band 1 pass1 for slices in pass2
-		out_one; // limit output to one per band 3
+		b2slice, // runing a slice of bands 2 in 18 mode bfx[0] & 8
+		b3low, // running band 1 pass1 for slices in pass2 bfx[0] & 16
+		out_one,// limit output to one per band 3 .bfx[2] & 1
+		out_entry, //output of the entry file for test DLL .bfx[2] & 2
+	    known; // 1 if known process 2 if known filter active .bfx[2] & 4
+	// bfx[2] & 8 special use b2_is as limit b3
 	int b1;//band 1 in process 
-	// debugging options
-	int b2,b2_is ;//bands usually b2 not given
+	int b2,b2_is ;//bands b2  forced
 	char* b2start;
 	int skip, last;
 	int ton;//test on and test level
-	int known; // 1 if known process 2 if known filter active 
 	uint64_t f3, f4, f7; // filters p_cpt2g [3] [4) [7]
 	int upto3, upto4; // active below f3 below f4
 	int dv12, dv3;// print fresh uas bands 1 2 band 3
@@ -52,7 +53,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (sgo.bfx[1] & 8)dumpa = 1;
 
 		if (sgo.bfx[2] & 1) out_one = 1;
-		if (known)if (sgo.bfx[2] & 2) known = 2;
+		if (sgo.bfx[2] & 2) out_entry = 1;
+		if (known)if (sgo.bfx[2] & 4) known = 2;
 
 		// sgo.bfx[3] is for partial process 
 
@@ -75,6 +77,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (b3low)
 				cout << " pass1 with limit in band 3 index <= band1 index " << endl;
 			if (out_one) cout << " max one out per band 3 sgo.bfx[2] & 1 " << endl;
+			if (out_entry)  cout << " file1 contains attached solution grids" << endl;
 			cout << "debugging commands___________________" << endl;
 			if (known) {
 				cout << "processing solution grids with known" << endl;
@@ -276,6 +279,10 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 				else return;
 		}
 	};
+	// working area for "build"
+	uint64_t tw[UA12SIZE]; // to check redundancy
+	BF128 vsize[25][UA12BLOCS];
+	BF128 tvw[UA12BLOCS];
 
 	// initial status after harvest plus fresh uas B12
 	TUVECT ta128[UA12BLOCS];// max start 20*128=2560 uas 
@@ -431,150 +438,6 @@ struct T54B12 {//   uas bands 1+2 in 54 mode
 	}
 
 }t54b12;
-/*
-struct T54G2 {//
-	struct G2VECT {//  128 guas2 and vectors
-		BF128 v0, vc[54], v81[81];
-		//vectors 128 {base, cells, i81s}
-		uint64_t t[128];// ua54 + i81
-		void Init() {
-			v0.SetAll_0();
-			memset(vc, 255, sizeof vc);
-			memset(v81, 255, sizeof v81);
-		}
-
-	};
-#define NG2BLOCS6 30
-	G2VECT t128[NG2BLOCS6];// max start 20*128=2560 uas
-	BF128 vcl[7][NG2BLOCS6];//6 clues
-
-	uint32_t n128, nblocs, nt128[NG2BLOCS6];
-	BF128 g2;
-	void Init() {
-		memset(nt128, 0, sizeof nt128);
-		n128 = nblocs = 0;
-		for (int i = 0; i < NG2BLOCS6; i++)t128[i].Init();
-	}
-	inline void Add(uint64_t u) {
-		if (n128 >= NG2BLOCS6 * 128) return;
-		register uint32_t bloc = n128 >> 7, ir = n128 - (bloc << 7);
-		n128++; nblocs = bloc; nt128[bloc]++;
-		register G2VECT& myb = t128[bloc];
-		myb.v0.setBit(ir);
-		BF128* myvc = myb.vc,*myvi=myb.v81;
-		register uint64_t R = u;
-		myb.t[ir] = R;
-		myvi[R>>56].clearBit(ir);
-		R &= BIT_SET_54;// clear i81
-		uint32_t cell;
-		while (bitscanforward64(cell, R)) {
-			R ^= (uint64_t)1 << cell; //clear bit
-			myvc[cell].clearBit(ir);
-		}
-	}
-	void BuildG2();
-	inline void NewVcl(int ncl, int clue) {
-		register int i1 = ncl - 7;
-		register BF128* V1 = vcl[i1], * V2 = vcl[i1 + 1];
-		for (uint32_t i = 0; i <= nblocs; i++)
-			V2[i] = V1[i] & t128[i].vc[clue];
-	}
-	void GetActive(int nclues) {
-		BF128* V2 = vcl[nclues - 6];
-		g2.SetAll_0();
-		for (uint32_t ib = 0; ib < nblocs; ib++) {
-			BF128 w128 = V2[ib];
-			if (w128.isNotEmpty()) {
-				G2VECT& gv = t128[ib];
-				int x;
-				while ((x = w128.getFirst128()) >= 0) {
-					register uint64_t U = gv.t[x],
-						i81=U>>56;
-					// Apply i81 here and downstream
-					w128 &= gv.v81[i81];
-					for (uint32_t ib2 = ib+1; ib2 < nblocs; ib2++)
-						V2[ib2]&= t128[ib2].v81[i81];
-					g2.setBit((int)i81);
-				}
-			}
-		}
-	}
-
-	void Add54b3(uint64_t u) {
-
-	}
-}t54g2;
-struct T54G3 {//
-	struct G3VECT {//  128 guas2 and vectors
-		BF128 v0, vc[54], v81[81];
-		uint64_t t[128];// ua54 + i81
-		void Init() {
-			v0.SetAll_0();
-			memset(vc, 255, sizeof vc);
-			memset(v81, 255, sizeof v81);
-		}
-	};
-
-#define NG3BLOCS6 15
-	// initial status after harvest plus fresh guas
-	G3VECT t128[NG3BLOCS6];// max start 15*128=1920 uas
-	BF128 vcl[7][NG3BLOCS6];//6 clues
-	uint32_t n128, nblocs, nt128[NG3BLOCS6];
-	BF128 g3;
-	void Init() {
-		memset(nt128, 0, sizeof nt128);
-		n128 = nblocs = 0;
-		for (int i = 0; i < NG3BLOCS6; i++)t128[i].Init();
-	}
-	inline void Add(uint64_t u) {
-		if (n128 >= NG3BLOCS6 * 128) return;
-		register uint32_t bloc = n128 >> 7, ir = n128 - (bloc << 7);
-		n128++; nblocs = bloc; nt128[bloc]++;
-		register G3VECT& myb = t128[bloc];
-		myb.v0.setBit(ir);
-		BF128* myvc = myb.vc, * myvi = myb.v81;
-		register uint64_t R = u;
-		myb.t[ir] = R;
-		myvi[R >> 56].clearBit(ir);
-		R &= BIT_SET_54;// clear i81
-		uint32_t cell;
-		while (bitscanforward64(cell, R)) {
-			R ^= (uint64_t)1 << cell; //clear bit
-			myvc[cell].clearBit(ir);
-		}
-	}
-	void BuildG3();
-	inline void NewVcl(int ncl, int clue) {
-		register int i1 = ncl - 7;
-		register BF128* V1 = vcl[i1], * V2 = vcl[i1 + 1];
-		for (uint32_t i = 0; i <= nblocs; i++)
-			V2[i] = V1[i] & t128[i].vc[clue];
-	}
-	void GetActive(int nclues) {
-		BF128* V2 = vcl[nclues - 6];
-		g3.SetAll_0();
-		for (uint32_t ib = 0; ib < nblocs; ib++) {
-			BF128 w128 = V2[ib];
-			if (w128.isNotEmpty()) {
-				G3VECT& gv = t128[ib];
-				int x;
-				while ((x = w128.getFirst128()) >= 0) {
-					register uint64_t U = gv.t[x],
-						i81 = U >> 56;
-					// Apply i81 here and downstream
-					w128 &= gv.v81[i81];
-					for (uint32_t ib2 = ib + 1; ib2 < nblocs; ib2++)
-						V2[ib2] &= t128[ib2].v81[i81];
-					g3.setBit((int)i81);
-				}
-			}
-		}
-	}
-	void Add54b3(uint64_t u) {
-
-	}
-}t54g3;
-*/
 
 struct GUA54 {
 	uint64_t* tua, killer;
@@ -1077,6 +940,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	void Expand_7_9();// 18 clues pass2
 	void Expand_10_12();// 18 clues pass2
+	void Go9Redundancy();
 	void GoExpand_7_12();
 	void GoExpand_10_12(BF128 ww);
 

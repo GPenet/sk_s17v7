@@ -368,7 +368,7 @@ back:
 	if (--ii >= 0) goto next;
 	if (m10 != 1)return;
 	if (nband3) {
-		if (op.p2c){// send in fout the list of attached solution grids 
+		if (op.out_entry){// send in fout the list of attached solution grids 
 			for (int i = 0; i < nband3; i++)
 				fout1 << myband1.band << myband2.band
 				<< bands3[i].band 
@@ -424,7 +424,9 @@ next_first:
 		it16_3 = pband3.i416;
 
 		i3t16 = t416_to_n6[it16_3];
-
+		if (sgo.bfx[2] & 8) {// special filter for tests 
+			if (i3t16 > op.b2_is) goto next;
+		}
 	}
 	//========================== morphs on b1b2 base test
 	if (n_auto_b1b2) {// still direct automorphism b1b2
@@ -466,5 +468,15 @@ next_first:
 back:
 	if (--ii >= 0) goto next;
 	if (m10 != 1)return;
-	if (nband3)		g17b.Start();// call the process for that entry
+	if (nband3) {
+		if (op.out_entry) {// send in fout the list of attached solution grids 
+			for (int i = 0; i < nband3; i++)
+				fout1 << myband1.band << myband2.band
+				<< bands3[i].band
+				<< ";" << i1t16 << ";" << i2t16 << ";" 
+				<< t416_to_n6[bands3[i].i416] << endl;
+		}
+		else g17b.Start();// call the process for that entry
+	}
+
 }

@@ -1,6 +1,7 @@
 
 
 G17B::G17B() {
+	memset(this, 0, sizeof(*this));
 	gang27 = gang[0];
 	aigstop = 0;
 	// Init SGUAs tables load permanent data
@@ -739,7 +740,7 @@ void G17B::UasCollect4box() {
 	}
 	//___________________ box 2356
 		{
-		uint64_t stack = units3xBM[5].u64[3], b4 = BIT_SET_2X & (~stack);
+		uint64_t stack = units3xBM[5].u64[0], b4 = BIT_SET_2X & (~stack);
 		//extuas.GetSort(b4);
 		extuas.GetSortB(tuasb12.tua, tuasb12.nua, b4);
 		//extuas.Dump();
@@ -1405,15 +1406,14 @@ void T54B12::Build_ta128(uint64_t* t, uint32_t n) {
 		}
 	}	
 	InitA();
-	BF128 vsize[25][30];
 	uint32_t nbl64 = (n + 63) >> 6, x;
 	memset(vsize, 0, sizeof vsize);
 	for (uint32_t i = 0; i < n; i++) {
 		int bloc = i >> 7, ir = i - (bloc << 7);
 		uint64_t cc = t[i] >> 59;
+		if (cc > 24) continue;//safety
 		vsize[cc][bloc].setBit(ir);
 	}
-	uint64_t tw[UA12SIZE]; // to check redundancy
 	uint32_t ntw = 0;
 	for (int i1 = 4; i1 < 25; i1++) {
 		uint64_t* tb64 = vsize[i1]->bf.u64;
@@ -1438,7 +1438,6 @@ void T54B12::Build_ta128(uint64_t* t, uint32_t n) {
 		}
 	}
 	if (op.ton > 1)cout << "build ta128 ntw=" << ntw << " nold" << n << endl;
-	//if(ntw!=n)ta128[0].Dump();
 }
 int T54B12::Build_tb128() {
 	int tc[3], ntc = 0;
@@ -1451,8 +1450,6 @@ int T54B12::Build_tb128() {
 		}
 	}
 
-
-	BF128 tvw[20];
 	uint32_t lastbloc = t54b12.nablocs;
 	tvw[0] = spb_0_15[3].v;
 	for (uint32_t i = 1; i <= lastbloc; i++) {
@@ -1464,10 +1461,7 @@ int T54B12::Build_tb128() {
 	}
 
 	// apply active on still valid uas and flag by size
-	BF128 vsize[19][UABNBLOCS];
 	memset(vsize, 0, sizeof vsize);
-	//uint32_t nbl64 = (n + 63) >> 6, x;
-	uint64_t tw[128 * UABNBLOCS];
 	uint32_t ntw = 0;
 	{
 		register uint64_t Ac = spb_0_15[3].active_cells;
@@ -1522,7 +1516,6 @@ int T54B12::Build_tc128() {
 		}
 	}
 
-	BF128 tvw[20];
 	uint32_t lastbloc = t54b12.nbblocs;
 	tvw[0] = spb_0_15[7].v;
 	for (uint32_t i = 1; i <= lastbloc; i++) {
@@ -1534,9 +1527,7 @@ int T54B12::Build_tc128() {
 	}
 
 	// apply active on still valid uas and flag by size
-	BF128 vsize[19][UACNBLOCS];
 	memset(vsize, 0, sizeof vsize);
-	uint64_t tw[128 * UACNBLOCS];
 	uint32_t ntw = 0;
 	{
 		register uint64_t Ac = spb_0_15[7].active_cells;
@@ -1592,7 +1583,6 @@ int T54B12::Build_td128() {
 			tc[ntc++] = cell;
 		}
 	}
-	BF128 tvw[UACNBLOCS];
 	uint32_t lastbloc = t54b12.ncblocs;
 	for (uint32_t i = 0; i <= lastbloc; i++) {
 		TUVECT& vv = tc128[i];
@@ -1603,9 +1593,7 @@ int T54B12::Build_td128() {
 	}
 
 	// apply active on still valid uas and flag by size
-	BF128 vsize[19][UADNBLOCS];
 	memset(vsize, 0, sizeof vsize);
-	uint64_t tw[128 * UADNBLOCS];
 	uint32_t ntw = 0;
 	{
 		register uint64_t Ac = g17b.myac_9;
@@ -3433,7 +3421,9 @@ void G17B::GoExpand_7_11() {
 		genb12.bands3[ib3].BuildGuam2(myandall);
 
 	if (op.t18) {
+		if (locdiag) cout << " diag call 7" << endl;
 		if (ntbelow[0])  Go_7_11_18(); // do 7 clues then more
+		if (locdiag) cout << " diag call 8" << endl;
 		if (ntbelow[1])  Go_8_11_18(); // do 8 clues then more
 		if (locdiag) cout <<" diag call 9" <<endl;
 		if (ntbelow[2])  Go_9_11_18(); // do 9 clues then more
@@ -3947,6 +3937,10 @@ next:	// catch and apply cell in bitfields
 	if (sn->possible_cells) s++;  // switch to next spot
 	goto next;
 }
+
+void G17B::Go9Redundancy() {
+}
+
 
 void G17B::GoExpand_7_12() {
 	SPB03* sn = &spb_0_15[7];
