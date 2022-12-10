@@ -64,6 +64,10 @@ struct MINLEXUSINGBANDS{
 	int IsLexMinDirect(int * grid, int  i1b1, 	BANDMINLEX::PERM *tpp, int ntpp, int diag = 0);
 };
 
+struct AUTOMORPH {
+	uint16_t i415;
+	uint8_t r[3], c[9], m[9],x;// rows columns map filler
+};
 extern int perm_0_8_size3[84][3];
 extern int perm_0_8_size4[126][4];
 extern int t16_min_clues[416];
@@ -84,6 +88,7 @@ extern BANDMINLEX bandminlex;
 extern MINLEXUSINGBANDS minlexusingbands;
 extern int MinLexUsingBandsCompB23(int * zcomp, int b23[6][9], int diag);
 extern int tgen_band_cat[24][5];
+extern AUTOMORPH automorphs[519];
 
 
 // tua64 functions follow

@@ -48,6 +48,7 @@ ofstream  fout1, fout2;
 G17B g17b;
 GEN_BANDES_12 genb12;
 STD_B416 myband1, myband2;
+//myband1b,myband2b,myband3b;// entry buillder pass1b
 
 
 //tables of potential bands 1+2
@@ -80,7 +81,7 @@ void Go_0() {
 		fout1.open(zn);
 	}
 	if (sgo.command >= 10
-		&& sgo.command <20 ) {// input file expected
+		&& sgo.command <20 && sgo.command != 15){// input file expected
 		if (!sgo.finput_name) {
 			cerr << "missing input file name" << sgo.finput_name << endl; return;
 		}

@@ -480,3 +480,99 @@ back:
 	}
 
 }
+void GEN_BANDES_12::Find_band3B_pass1B(int m10) {
+	register int* crcb, bit;
+	nband3 = 0;
+	int* rd = rowdb3, * cd = cold, * bd = boxdb3; // to updates rows cols boxes
+	char* zs = zsol;
+	int* zs0 = &grid0[54];
+	memcpy(boxdb3, &boxd[3], sizeof boxdb3);
+	memcpy(rowdb3, &rowd[3], sizeof rowdb3);
+	// now loop over the 24 cells not yet assigned in the band to fill the band use relative cell 
+	int ii = -1, free[24];
+	uint32_t d;
+nextii:
+	ii++;
+	{
+		crcb = tgen_band_cat[ii];//cell_row_col_box one of the 24 cells to fill
+		register int fr = cd[crcb[2]] & bd[crcb[3]] & rd[crcb[1]];
+		if (!fr)goto back;
+		free[ii] = fr;
+	}
+	goto next_first;
+
+next:// erase previous fill and look for next
+	crcb = tgen_band_cat[ii];
+	d = zs0[crcb[0]];
+	bit = 1 << d;
+	rd[crcb[1]] ^= bit; cd[crcb[2]] ^= bit; bd[crcb[3]] ^= bit;
+	if (!free[ii])goto back;
+	{
+	next_first:
+		crcb = tgen_band_cat[ii];// be sure to have the good one
+		bitscanforward(d, free[ii]);
+		bit = 1 << d;
+		free[ii] ^= bit;
+		zs[crcb[0] + 54] = (char)(d + '1');
+		zs0[crcb[0]] = d;
+		rd[crcb[1]] ^= bit; cd[crcb[2]] ^= bit; bd[crcb[3]] ^= bit;
+		if (ii < 23) goto nextii;
+		// this is a valid band, check if canonical 
+		int ir = bandminlex.Getmin(zs0, &pband3, 0);
+		if (ir < 0) {//would be bug  did not come in enumeration
+			cerr << "gen band 3 invalid return Getmin" << endl;
+			return;
+		}
+		int it16_3 = pband3.i416;
+		ib3check = i3t16 = t416_to_n6[it16_3];
+		if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
+			if (i3t16 < op.b2_is)goto next; 
+			if (i3t16 > op.b2) goto next;
+		}
+		// here select as close as possible  of an ED solution grid
+		if (i3t16 == i1t16) {// keep it without any check 
+			bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
+			goto next;
+		}
+		if (i3t16 < i1t16) {// check the solution grid morphed to ED
+			// to canonical morph band 1 o canonical
+			//myband1b.InitG12(it16_3);
+			//pband3 is the bridge form b3 to ED b3
+			//n_auto_b1b = bandminlex.GetAutoMorphs(it16_3, t_auto_b1b);
+			// small redundancy expected, keep it
+			bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
+			goto next;// not canonical 
+		}
+		if (!op.p2b) {// p2a
+			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
+			pcheck3 = pband3;
+			memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
+			if (Band3Check())goto next;
+		}
+		else {// p2b exchanging band 2 band 3
+			if (i3t16 > i2t16)goto next;
+			memcpy(&gcheck[27], zs0, 27 * sizeof gcheck[0]);
+			pcheck3 = pband2;
+			pcheck2 = pband3;
+			ib2check = i3t16;
+			ib3check = i2t16;
+			if (Band2Check())goto next;// band 3 must be a valid "band2"
+			if (Band3Check())goto next;// then band 2 a valid band3
+		}
+		bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
+		goto next;
+	}
+back:
+	if (--ii >= 0) goto next;
+	if (m10 != 1)return;
+	if (nband3) {
+		if (op.out_entry) {// send in fout the list of attached solution grids 
+			for (int i = 0; i < nband3; i++)
+				fout1 << myband1.band << myband2.band
+				<< bands3[i].band
+				<< ";" << i1t16 << ";" << i2t16 << ";"
+				<< t416_to_n6[bands3[i].i416] << endl;
+		}
+		else g17b.Start();// call the process for that entry
+	}
+}

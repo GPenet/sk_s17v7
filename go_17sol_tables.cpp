@@ -1663,7 +1663,8 @@ int gangster_pairs_in_box[27][2] = {// assumed a per column 27 int given band
 	{ 3, 6 }, { 3, 7 }, { 3, 8 }, { 4, 6 }, { 4, 7 }, { 4, 8 }, { 5, 6 }, { 5, 7 }, { 5, 8 }
 };
 
-
+AUTOMORPH automorphs[519] = { {0,{0,1,2},{0,2,1,3,5,4,6,8,7} ,{0,2,1,3,5,4,6,8,7}},
+{0,{0,1,2},{0,2,1,3,5,4,6,8,7} ,{0,2,1,3,5,4,6,8,7}} };
 
 
 int GetI416_L16(char * ze){
@@ -2122,7 +2123,7 @@ int BANDMINLEX::GetAutoMorphs(int ei416, PERM * tpout){// find automorphism for 
 			rrx = tperm6[ipr];
 			for (int ipc = 0; ipc < 6; ipc++){
 				if (!(ib | ipr | ipc))continue; // skip start morph 
-				ccx = tperm6[ipc], ccx2[3], ccx3[3];
+				ccx = tperm6[ipc];
 				// map box1 morphed to band
 				for (int i = 0; i < 3; i++){
 					int *minir_new = &band[9 * rrx[i] + 3 * ib],
@@ -2168,6 +2169,26 @@ int BANDMINLEX::GetAutoMorphs(int ei416, PERM * tpout){// find automorphism for 
 }
 extern int t416_to_n6[416];
 extern int tn6_to_416[416];
+
+void BuildAutoMorph() {
+	int n = 0;
+	BANDMINLEX::PERM t_auto_b1[128];
+	for (int i = 0; i < 416; i++) {
+		int nr=bandminlex.GetAutoMorphs(i, t_auto_b1);
+		for (int j = 0; j < nr; j++) {
+			BANDMINLEX::PERM tw = t_auto_b1[j];
+			cout<<++n<<"\t" << i << "\trows " << tw.rows[0] << tw.rows[1] << tw.rows[2]
+				<< "\tcols ";
+			for (int k = 0; k < 9; k++) cout << tw.cols[k];
+			cout << "\tmap ";
+			for (int k = 0; k < 9; k++) cout << tw.map[k];
+			cout << endl;
+
+		}
+	}
+
+}
+
 
 //============================ min lexical for a solution grid using bands
 MINLEXUSINGBANDS minlexusingbands;

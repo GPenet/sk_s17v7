@@ -13,11 +13,17 @@ const char * libs_c17_00_cpt2g[100] = {
 	"6 active 6 clues",
 	"7 set b12 ",
 	"8 go b3",
-	"9 min too high",
+	"9 min ok g2 g3",
 	"10 miss0 ",
 	"11 miss1 ",
-	"12 missmore", 
-	"13 missmore big","14 ","15","16 ","17 ","18 ","19 ",
+	"12 miss2", 
+	"13 miss3",
+	"14 missmore",
+	"15  ",
+	"16 ",
+	"17 entry crit",
+	"18 crit active ",
+	"19 entry subcritical",
 	"20 addg2", 
 	"21 addg3","22 ","23 ","24 ","25 ","26  ","27  ","28  ","29  ",	
 	"30 nb3 min",
@@ -40,7 +46,7 @@ const char * libs_c17_00_cpt2g[100] = {
 	"56 size 9",
 	"57 size 10",
 	"58 size 11",
-	"59 ",
+	"59 max D ",
 	"60 max 12 clues",
 	"61 max 11 clues",
 	"62 max 10 clues","63 ","64 ","65 ",	"66 ","67 ","68 ","69 ",
@@ -86,19 +92,46 @@ void Go_c17_00( ) {// p2 process
 void Go_c17_09() {// p2 process locate 
 
 }
+struct CLBS {// clues band stack
+	uint16_t b[3];
+	uint16_t s[3];
+	inline void Init(uint64_t bf54, uint16_t n) {
+		register uint64_t U = bf54;
+		b[0] = (uint16_t)_popcnt64(U & BIT_SET_27);
+		b[1] = n - b[0];
+		b[2] = 0;
+		register uint64_t S = stack1_54;
+		s[0] = (uint16_t)_popcnt64(U & S);
+		S <<= 3;
+		s[1] = (uint16_t)_popcnt64(U & S);
+		s[2] = n - s[0] - s[1];
+	}
+	inline void Add(uint32_t cell) {
+		b[cell / 27]++;
+		s[C_stack[cell]]++;
+	}
+	
+	void Status() {
+		cout << " bx " << b[0] << b[1] << b[2]
+			<< " sx " << s[0] << s[1] << s[2];
+
+	}
+};
+
+
 //========================= known s17 file 10/19
-void Go_c17_10( ) {
+void Go_c17_10() {
 	//op.SetUp(10,0);
 	cout << "Go_10() search 17/18 using a file having known 17 656 " << endl;
-	op.SetUp(10,1);// setup with known
+	op.SetUp(10, 1);// setup with known
 	cout << "back setup " << endl;
 
 	zh_g.modevalid = 1;
 	zh_g2.grid0 = genb12.grid0;
 	zh_g2.zsol = zh_g2.stdfirstsol;
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
-	char * ze = finput.ze;
-	int * zs0 = genb12.grid0, npuz = 0;
+	char* ze = finput.ze;
+	int* zs0 = genb12.grid0, npuz = 0;
 	char* ze2 = &ze[82];
 	//if (op.t18) return;
 	//if (op.p1) return;
@@ -107,14 +140,14 @@ void Go_c17_10( ) {
 	//op.ton = 1;
 
 	while (finput.GetLigne()) {
-		if(strlen(ze)<160) continue;// skip blank lines
+		if (strlen(ze) < 160) continue;// skip blank lines
 		npuz++;
 		g17b.npuz = npuz;
 		g17b.a_17_found_here = 0;
-		g17b.aigstop= 0;
+		g17b.aigstop = 0;
 		if (npuz <= op.skip) continue;
 		if (npuz > op.last) break;
-		CBS cbs;
+		CLBS cbs;
 		g17b.p17diag.SetAll_0();
 		int  nclues = 0;
 		memset(&cbs, 0, sizeof cbs);
@@ -133,21 +166,21 @@ void Go_c17_10( ) {
 		}
 		if (op.p2 && (cbs.s[0] > 6 || cbs.s[1] > 6 || cbs.s[2] > 6)) {
 			if (op.ton)cout << " pass2 stack > 6 clues" << endl;
-				continue;
+			continue;
 		}
 		if (op.t18) {
 			if (op.p2 && (cbs.b[0] > 6 || cbs.b[1] > 6 || cbs.b[2] > 6)) {
 				if (op.ton)cout << "t18  pass2 not 666 666" << endl;
-					continue;
+				continue;
 			}
 			if (!op.p2) {
 				if (cbs.b[2] < 7) {
 					if (op.ton)cout << "t18  pass1 not >=7 in b3" << endl;
-						continue;
+					continue;
 				}
-				if (cbs.b[2] < cbs.s[0] || cbs.b[2] < cbs.s[1] || cbs.b[2] < cbs.s[2] ) {
+				if (cbs.b[2] < cbs.s[0] || cbs.b[2] < cbs.s[1] || cbs.b[2] < cbs.s[2]) {
 					if (op.ton)cout << "t18  stack too high" << endl;
-						continue;
+					continue;
 				}
 			}
 		}
@@ -161,17 +194,17 @@ void Go_c17_10( ) {
 					temp = ze[i + 109];	ze[i + 109] = ze[i + 136];	ze[i + 136] = temp;
 				}
 				uint32_t w = g17b.p17diag.bf.u32[1];
-				g17b.p17diag.bf.u32[1]= g17b.p17diag.bf.u32[2];
-				g17b.p17diag.bf.u32[2]=w;
-				
+				g17b.p17diag.bf.u32[1] = g17b.p17diag.bf.u32[2];
+				g17b.p17diag.bf.u32[2] = w;
+
 			}
 
 
 		}
 
-		cout << "\n\nto process  n="<<dec << npuz <<" debug="<< op.ton << endl;
-		if (op.ton)		cout << ze << " to process  n="  << npuz 
-			<< " bands "<< cbs.b[0] << cbs.b[1] << cbs.b[2] 
+		cout << "\n\nto process  n=" << dec << npuz << " debug=" << op.ton << endl;
+		if (op.ton)		cout << ze << " to process  n=" << npuz
+			<< " bands " << cbs.b[0] << cbs.b[1] << cbs.b[2]
 			<< " stacks " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
 
 
@@ -193,14 +226,14 @@ void Go_c17_10( ) {
 		if (op.ton)
 			cout << Char2Xout(g17b.p17diag.bf.u64[0]) << " b12 pattern for the 17" << endl;
 		register uint64_t U = g17b.p17diag.bf.u64[0];
-		g17b.pk54= (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);
+		g17b.pk54 = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);
 		genb12.ValidInitGang();
 		g17b.npuz = npuz;
-		if(sgo.bfx[2] & 1)g17b.StartKnown();
+		if (sgo.bfx[2] & 1)g17b.StartKnown();
 		else	g17b.Start();
 		//g17b.a_17_found_here = 1;
 		if (!g17b.a_17_found_here) {
-			cout << "puz="<<npuz << " failed to find the searched 17" << endl;
+			cout << "puz=" << npuz << " failed to find the searched 17" << endl;
 			cerr << "puz=" << npuz << " failed to find the searched 17" << endl;
 			break;
 		}
@@ -264,13 +297,12 @@ void Go_c17_11() {// extract cout xx5 file1 xx6
 
 }
 
-
 void Go_c17_12() {// check diagonal status in a 665
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
-	char * ze = finput.ze;
-	int  zs0 [81],zs0d[81],
+	char* ze = finput.ze;
+	int  zs0[81], zs0d[81],
 		npuz = 0;
-	cout << "Go_c17_12() band analysis option=" <<sgo.vx[2] << endl;
+	cout << "Go_c17_12() band analysis option=" << sgo.vx[2] << endl;
 	while (finput.GetLigne()) {
 		if (strlen(ze) < 81)continue;
 		// =======================morph entry to have min n6 count in first
@@ -305,7 +337,7 @@ void Go_c17_12() {// check diagonal status in a 665
 			if (ze[87] == '8')
 				fout1 << ze << endl;
 			break;
-		
+
 		case 2:// extract 18 (8 in [87]) plus info
 			if (strlen(ze) < 88)break;
 			if (ze[87] == '8')
@@ -319,14 +351,14 @@ void Go_c17_12() {// check diagonal status in a 665
 			if (strlen(ze) < 162)break;
 			if (!sgo.vx[3])sgo.vx[3] = 82;
 			char* ze2 = &ze[sgo.vx[3]];
-			CBS cbs;
+			CLBS cbs;
 			int  nclues = 0;
 			memset(&cbs, 0, sizeof cbs);
 			for (int i = 0; i < 81; i++) if (ze2[i] != '.') {
 				cbs.Add(i);
 			}
-			if(cbs.b[0] ==6 && cbs.b[1] ==6 &&  cbs.s[0]==6 && cbs.s[1]==6)
-			fout1 << ze2 << ";\t"  << ib1a << ";" << ib2a << ";" << ib3a
+			if (cbs.b[0] == 6 && cbs.b[1] == 6 && cbs.s[0] == 6 && cbs.s[1] == 6)
+				fout1 << ze2 << ";\t" << ib1a << ";" << ib2a << ";" << ib3a
 				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
 				<< "; bands; " << cbs.b[0] << cbs.b[1] << cbs.b[2]
 				<< "; stacks; " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
@@ -336,7 +368,7 @@ void Go_c17_12() {// check diagonal status in a 665
 			if (strlen(ze) < 162)break;
 			if (!sgo.vx[3])sgo.vx[3] = 82;
 			char* ze2 = &ze[sgo.vx[3]];
-			CBS cbs;
+			CLBS cbs;
 			int  nclues = 0;
 			memset(&cbs, 0, sizeof cbs);
 			for (int i = 0; i < 81; i++) if (ze2[i] != '.') {
@@ -345,7 +377,7 @@ void Go_c17_12() {// check diagonal status in a 665
 
 			if (cbs.b[0] == 6 && cbs.b[1] == 6 && cbs.s[0] == 6 && cbs.s[1] == 6)
 				break;// pass2
-			uint16_t x=cbs.s[0];
+			uint16_t x = cbs.s[0];
 			for (int i = 1; i < 3; i++) if (x < cbs.s[i])x = cbs.s[i];
 			if (cbs.b[2] < cbs.b[0]) break;
 			if (cbs.b[2] < cbs.b[1]) break;
@@ -395,10 +427,14 @@ void Go_c17_80() {// enumeration test
 		<< "\t" << p_cptg[1] << endl;
 }
 
-
+void BuildAutoMorph(); // in go_17sol_tables.cpp
 
 //====== 15  extraction des 17 6 6 5
 void Go_c17_15() {
+	cout << "process 15" << endl;
+	BuildAutoMorph();
+	return;
+
 	char * ze = finput.ze;
 
 	while (finput.GetLigne()) {
