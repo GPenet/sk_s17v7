@@ -2200,10 +2200,6 @@ next10:
 			myb12 = cb3.bf12 = sp10.all_previous_cells | bit2;
 			clean_valid_done = 0;
 			p_cpt2g[7]++;
-			if ((sgo.bfx[3] & 1) && p_cpt2g[4] == op.f4) {
-				//cout << Char54out(myb12) << " " << p_cpt2g[3] << "\t" << p_cpt2g[4] << "\t" << p_cpt2g[7] << endl;
-				if(op.f7< p_cpt2g[7])continue;;// debugging phase1
-			}
 			//cout << "test b3" << endl;
 			cb3.ncl = 11;
 			cb3.cbs.Init(myb12, 11);
@@ -4066,42 +4062,32 @@ int G17B::IsValid_myb12() {
 	return 0;
 }
 uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
-	//if (0 && (sgo.bfx[3] & 1)) {
-		//cout << Char54out(myb12) << "\t";
-		//cout << Char27out(bf) << " [3] " << p_cpt2g[3] << " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl;
-	//}
-	if  (debug) {
-		cout << Char54out(myb12) << "\t";
-		cout << Char27out(bf) << "isvalid b3 ?"<< "nt3more="<<nt3more << endl;
-	}
 	if (nt3more) {
 		for (uint32_t i = 0; i < nt3more; i++)if (bf == t3more[i]) return t3more[i];
 	}
-	if (0) {
-		cout << "call zhou" << endl;
-		zhou[0].CallCheckB3(bf, debug);
-		cout << "endzhou" << endl;
-		return 1;
+	if (debug) {
+		cout <<Char27out(bf) << "IsValidB3 debugging mode " << endl;
 	}
-
-	if (zhou[0].CallCheckB3( bf,0)) {
+	int nret;
+	if ((nret=zhou[0].CallCheckB3( bf,debug))) {
 		anduab3 = BIT_SET_27;
-		if (debug) 
-		{
-			cout << "\t\t\t\t   add b3 nadd=" << zhgxn.nua << endl; 
-			if (zhgxn.nua) {
-				cout << Char2Xout(zhgxn.tua[0].bf.u64[0]) << " | ";
-				cout << Char27out(zhgxn.tua[0].bf.u32[2]) << " first fresh" << endl;
-			}
-			//return 1;
-		}
-
-		for (uint32_t iadd = 0; iadd < zhgxn.nua; iadd++) {
+		for (int iadd = 0; iadd < nret; iadd++) {
 			BF128 w = zhgxn.tua[iadd];
 			int cc = _popcnt32(w.bf.u32[2]);
 			if (!cc) {
-				cout << " bug no b3 IsValidB3 [7]" << p_cpt2g[7]
-					<< "   [8]" << p_cpt2g[8] << endl;
+				cout << Char2Xout(w.bf.u64[0]) << " ";
+				cout << Char27out(w.bf.u32[2]) << " iadd=" << iadd << endl;
+
+				cout << Char54out(myb12) << " ";
+				cout<<Char27out(bf) << " bug no b3 IsValidB3 [7]" << p_cpt2g[7]
+					<< "   [8]" << p_cpt2g[8]<< "nr="<<nret << endl;
+				zhou[0].CallCheckB3(bf, 1);
+				cout << " back count =" << zhgxn.nua << endl;
+				for (uint32_t i = 0; i < zhgxn.nua; i++) {
+					BF128 ww = zhgxn.tua[i];
+					cout << Char2Xout(ww.bf.u64[0]) << " ";
+					cout <<Char27out(ww.bf.u32[2])<<" i="<<i<<endl;
+				}
 				aigstop = 1;	return 1;
 			}
 			register uint32_t ua = w.bf.u32[2];
@@ -4196,6 +4182,7 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 
 void STD_B3::Go(CALLBAND3& cb3) {
 	p_cpt2g[8]++;
+	//if (op.f7 < p_cpt2g[8]) { g17b.aigstop = 1; return; }
 	if (g17b.clean_valid_done == 2) return;
 	if (g17b.aigstop) return;
 	CRITB3 scritb3;
@@ -4288,8 +4275,12 @@ void STD_B3::Go(CALLBAND3& cb3) {
 	g17b.CheckCritical(cb3, crh);
 }
 inline void G17B::CheckCritical(CALLBAND3& cb3, CRITHANDLER& crh) {
+
 	critical_done = 0;
 	CRITB3& mcr = crh.mycritb3;
+	if (p_cpt2g[7] == op.f7)
+		cout << "\t\t\t\t\t GoCommonB3 mcr.nmiss=" << mcr.nmiss << " [8] " << p_cpt2g[8] 
+		<<" start clean_valid_done="<< clean_valid_done << endl;
 	if (mcr.nmiss > 3 || mcr.mincount < 5) GoCommonB3(crh);
 	if (!clean_valid_done) {// stop if not a valid band 1+2
 		clean_valid_done = 1;
@@ -4306,8 +4297,8 @@ inline void G17B::CheckCritical(CALLBAND3& cb3, CRITHANDLER& crh) {
 		register uint64_t U = w.bf.u64[0];
 		uint64_t cc0 = _popcnt64(U);
 		U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
-		cout << Char54out(U) << " \t";
-		cout << Char27out(ua) << " added " << cc0 << " " << cc << endl;
+		//cout << Char54out(U) << " \t";
+		//cout << Char27out(ua) << " added " << cc0 << " " << cc << endl;
 
 
 		if (cc == 2) {
@@ -4366,7 +4357,16 @@ inline void G17B::CheckCritical(CALLBAND3& cb3, CRITHANDLER& crh) {
 void G17B::GoCommonB3(CRITHANDLER& crh) {
 	g17b.pbufuas3 = crh.Lock();
 	CRITB3& mcr = crh.mycritb3;
-	cout << "\t\t\t\t\t GoCommonB3 mcr.nmiss=" << mcr.nmiss << " [8] "<< p_cpt2g[8] << endl;
+	nt3more = 0;
+	if(mcr.nmiss>1 || p_cpt2g[7]==op.f7)
+	cout <<Char54out(myb12) << "\t\t GoCommonB3 mcr.nmiss=" << mcr.nmiss << " [7] " << p_cpt2g[7] 
+		<< " [8] " << p_cpt2g[8] << endl;
+	if (p_cpt2g[7] == op.f7) {
+		crh.Dump();
+		mcr.Status(" op.f7");
+		Dumpt3o();
+	}
+
 	if (!mcr.nmiss) {
 		if (!nt3o) { p_cpt2g[10]++; GoB3Critical(crh); }
 		return;
@@ -4392,7 +4392,8 @@ void G17B::GoCommonB3(CRITHANDLER& crh) {
 
 }
 
-int CRITHANDLER::CleanOne(CRITHANDLER& hout) {// assign all singles in uas
+int CRITHANDLER::CleanOne(CRITHANDLER& hout, int debug) {// assign all singles in uas
+
 	//Build  reduced table in hout
 	{
 		register uint32_t AC = mycritb3.critbf, F = mycritb3.assigned;
@@ -4406,9 +4407,13 @@ int CRITHANDLER::CleanOne(CRITHANDLER& hout) {// assign all singles in uas
 			}
 		}
 	}
-	return hout.CleanGo();
+	if (debug) {
+		hout.Dump();
+		//return 0;
+	}
+	return hout.CleanGo(debug);
 }
-int CRITHANDLER::CleanGo() {// assign all singles in uas
+int CRITHANDLER::CleanGo(int debug ) {// assign all singles in uas
 	while (1) {
 		int is1 = 0;
 		for (int i = 0; i < (int)nuas; i++) {
@@ -4417,16 +4422,18 @@ int CRITHANDLER::CleanGo() {// assign all singles in uas
 		}
 
 		if (is1) {
-			//cout << Char27out(is1) << "is1 p_cpt2g[8]= " << p_cpt2g[8] << endl;
+			if(debug)cout << Char27out(is1) << "is1 p_cpt2g[8]= " << p_cpt2g[8] << endl;
 			if (mycritb3.AddAssign(is1, 0)){
-				//cout << "Cleango conflict or dead" << endl;
+				if (debug)cout << " add assign Cleango conflict or dead" << endl;
 				return 1;// conflict
 			}
-			//mycritb3.Status(" after add assign ");
+			if(debug)mycritb3.Status(" after add assign ");
 			register uint32_t  F = mycritb3.assigned;
 			register uint32_t AC = mycritb3.active;
-			//cout << Char27out(F) << "F" << endl;
-			//cout << Char27out(AC) << "AC" << endl;
+			if (debug) {
+				cout << Char27out(F) << "F" << endl;
+				cout << Char27out(AC) << "AC" << endl;
+			}
 
 			int n = nuas; nuas = 0;
 			for (int i = 0; i < n; i++) {
@@ -4437,6 +4444,7 @@ int CRITHANDLER::CleanGo() {// assign all singles in uas
 					tuas[nuas++] = U;
 				}
 			}
+			if (debug) cout << "loop nuas=" << nuas << endl;
 		}
 		else return 0;
 	}
@@ -4502,14 +4510,16 @@ int G17B::SortT3o(uint32_t active) {// order t3o on size
 
 void G17B::GoB3Miss1(CRITHANDLER& crh) {
 	//int backmiss1 = ~0;
-	int locdiag = 0;// 2 * (p_cpt2g[8] == 933);
+	int locdiag =  2 * (p_cpt2g[8] ==sgo.vx[9]);
 	if (op.ton > 1)if (p_cpt2g[7] == op.f7) {
 		locdiag = op.ton;
 	}
 	if (locdiag>1) {
 		cout << Char54out(myb12) << " and ";
 		cout << Char27out(t3ando)
-			<< " and gob3miss1 nb3= " << crh.mycritb3.nb3<<" cleandone="<< clean_valid_done << endl;
+			<< " and gob3miss1 nb3= " << crh.mycritb3.nb3<<" cleandone="<< clean_valid_done
+			<< " criticaldone=" << critical_done 
+			<< " next uabuf= "<< pbufuas3-bufuas3 << endl;
 		//crh.mycritb3.Status("entry miss1 ");
 	}
 	if (!t3ando) {
@@ -4542,14 +4552,25 @@ void G17B::GoB3Miss1(CRITHANDLER& crh) {
 	// now t3ando is the outfiekd to use and critical
 	CRITHANDLER crhn = crh;
 	crhn.mycritb3.AssignCritical();
-	//crhn.mycritb3.Status(" miss1 go ");
+	if (locdiag) {
+		crhn.mycritb3.Status(" miss1 after assign critical ");
+		//return;
+	}
+	//crhn.Lock();
 	CRITHANDLER crhn2 = crhn;
 	if (crhn.mycritb3.assigned) {// try to assign more
-		//cout << " try to assign more" << endl;
+		if (locdiag) {
+			cout << " try to assign more next uabuf= " << pbufuas3 - bufuas3 << endl;
+			//crhn2.Init(pbufuas3);
+			//crhn2.mycritb3.nmiss = 0;// needed in cleanone
+			//crhn.CleanOne(crhn2, 1);
+			//return;
+		}
 		crhn2.Init(pbufuas3);
 		crhn2.mycritb3.nmiss=0;// needed in cleanone
+		//return;
 		if (crhn.CleanOne(crhn2)) {
-			//cout << "conflict or dead" << endl;
+			if (locdiag)cout << " miss1 cleanone conflict or dead" << endl;
 			return;// conflict or dead
 		}
 		crhn2.mycritb3.nmiss=1;// needed later
@@ -4562,39 +4583,43 @@ void G17B::GoB3Miss1(CRITHANDLER& crh) {
 		//aigstop = 1;
 	}
 	int ntoass = crhn2.mycritb3.GetToAss();
-	if (ntoass < 0)return; //safety
-	int wass= crhn2.mycritb3.assigned,	nb3= crhn2.mycritb3.nb3;
+	if (ntoass <= 0)return; //safety
+	int wass = crhn2.mycritb3.assigned; 
 	uint32_t res;
 	if (locdiag) {
 		cout << Char27out(t3ando) << " t3ando miss1 go for  ntoass= " 
 			<< ntoass << endl;
+		cout << Char27out(wass) << "wass" << endl;
 	}
-	if (!ntoass ) {// ready to go
-		if (!clean_valid_done) {
-			clean_valid_done = 1;
-			if (IsValid_myb12()) { clean_valid_done = 2; return; }
-		}
+
+	if (ntoass==1 ) {// ready to go
+		if (crhn2.nuas)return; // must be empty
 		while (bitscanforward(res, t3ando)) {
+
 			int bit = 1 << res; t3ando ^= bit;
-			if (IsValidB3(bit | wass)) {
-				t3ando = anduab3;
+			if (IsValidB3(bit | wass), (p_cpt2g[8] == 24700)) {
+				t3ando &= anduab3;
 			}
+			else 		Out17(bit | wass);
 		}
+		if (locdiag)cout << "back ntoass=1" << endl;
 		return;
 	}
-	if (ntoass == 1) {// must  hit  all remaining outfield uas
+	if (ntoass == 2) {// must  hit  all remaining infield / outfield uas
 		if (crhn2.nuas)return; // must be empty
 		if (locdiag) {
 			cout << " processing last clue in miss1 clean_valid_done "
 				<< clean_valid_done << " nt3o ="<<nt3o << endl;
 		}
-		uint32_t wa = GetAndT3o()&~crhn.mycritb3.assigned, tw[30],nw=0;
+		uint32_t wa = crhn2.GetAnd(), tw[30], nw = 0;
 		if (locdiag)cout << Char27out(wa) << " wa" << endl;
 		if (!wa) return;
+		/*
 		if (!clean_valid_done) {
 			clean_valid_done = 1;
 			if (IsValid_myb12()) { clean_valid_done = 2; return; }
 		}
+		*/
 		while (bitscanforward(res, wa)) {
 			register uint32_t bit = 1 << res;
 			wa ^= bit; 
@@ -4604,7 +4629,8 @@ void G17B::GoB3Miss1(CRITHANDLER& crh) {
 			int bit = 1 << res; t3ando ^= bit;
 			for(uint32_t i=0;i<nw;i++)
 			if (IsValidB3(tw[i]|bit | wass))  
-				t3ando = t3outseen;			 
+				t3ando = t3outseen;	
+			else 		Out17(tw[i] | bit | wass);
 		}
 		return; 
 	}
@@ -4869,7 +4895,7 @@ void G17B::GoB3Expand(int ntoass) {
 }; //obsolete to kill
 
 void G17B::GoB3Expand(int ntoass, CRITB3 & ecritb3) {
-	int locdiag = 2 * (p_cpt2g[8] == 933);
+	int locdiag =0;// = 2 * (p_cpt2g[8] == 933);
 	if (op.ton )if (p_cpt2g[7] == op.f7) locdiag = op.ton;
 	uint64_t limspot = ntoass - 1, limm1 = limspot - 1;
 	if (locdiag) {

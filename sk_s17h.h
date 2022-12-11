@@ -813,8 +813,8 @@ struct CRITHANDLER {
 	CRITB3 mycritb3;
 	uint32_t* tuas, nuas;
 	void Init(uint32_t* t) { tuas = t; nuas = 0; }
-	int CleanOne(CRITHANDLER& hout);
-	int CleanGo();
+	int CleanOne(CRITHANDLER& hout,int debug=0);
+	int CleanGo(int debug = 0);
 	void SortShrink(int shrink = 1);
 	inline void Add(uint32_t u) { tuas[nuas++] = u; }
 	inline void AddIf(uint32_t u) {
@@ -825,6 +825,7 @@ struct CRITHANDLER {
 	}
 	uint32_t* Lock() { return &tuas[nuas]; }
 	inline uint32_t GetAnd() {
+		if (!nuas) return 0;
 		uint32_t wa = BIT_SET_27;
 		for (uint32_t i = 0; i < nuas; i++)wa &= tuas[i];
 		return wa;
