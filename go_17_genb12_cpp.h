@@ -377,7 +377,7 @@ back:
 		else g17b.Start();// call the process for that entry
 	}
 }
-void GEN_BANDES_12::Find_band3B_pass1(int m10) {
+void GEN_BANDES_12::Find_band3B_pass1B(int m10) {
 	//BANDMINLEX::PERM pout;
 	register int* crcb, bit;
 	nband3 = 0;
@@ -480,7 +480,7 @@ back:
 	}
 
 }
-void GEN_BANDES_12::Find_band3B_pass1B(int m10) {
+void GEN_BANDES_12::Find_band3B_pass1(int m10) {
 	register int* crcb, bit;
 	nband3 = 0;
 	int* rd = rowdb3, * cd = cold, * bd = boxdb3; // to updates rows cols boxes
@@ -525,40 +525,23 @@ next:// erase previous fill and look for next
 		}
 		int it16_3 = pband3.i416;
 		ib3check = i3t16 = t416_to_n6[it16_3];
-		if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
-			if (i3t16 < op.b2_is)goto next; 
-			if (i3t16 > op.b2) goto next;
-		}
+		//if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
+			//if (i3t16 < op.b2_is)goto next; 
+			//if (i3t16 > op.b2) goto next;
+		//}
 		// here select as close as possible  of an ED solution grid
-		if (i3t16 == i1t16) {// keep it without any check 
-			bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
-			goto next;
-		}
-		if (i3t16 < i1t16) {// check the solution grid morphed to ED
+		if (i3t16 <= i1t16) {// check the solution grid morphed to ED
 			// to canonical morph band 1 o canonical
 			//myband1b.InitG12(it16_3);
 			//pband3 is the bridge form b3 to ED b3
 			//n_auto_b1b = bandminlex.GetAutoMorphs(it16_3, t_auto_b1b);
 			// small redundancy expected, keep it
 			bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
-			goto next;// not canonical 
+			goto next;  
 		}
-		if (!op.p2b) {// p2a
-			if (i3t16 < i2t16)goto next;// not canonical (must be in this case
-			pcheck3 = pband3;
-			memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
-			if (Band3Check())goto next;
-		}
-		else {// p2b exchanging band 2 band 3
-			if (i3t16 > i2t16)goto next;
-			memcpy(&gcheck[27], zs0, 27 * sizeof gcheck[0]);
-			pcheck3 = pband2;
-			pcheck2 = pband3;
-			ib2check = i3t16;
-			ib3check = i2t16;
-			if (Band2Check())goto next;// band 3 must be a valid "band2"
-			if (Band3Check())goto next;// then band 2 a valid band3
-		}
+		pcheck3 = pband3;
+		memcpy(&gcheck[54], zs0, 27 * sizeof gcheck[0]);
+		if (Band3Check())goto next;
 		bands3[nband3++].InitBand3(it16_3, &zs[54], pband3);
 		goto next;
 	}

@@ -832,8 +832,13 @@ struct CRITHANDLER {
 	}
 	void Dump() {
 		cout << "uasb3 main table " << nuas << endl;
-		for (uint32_t i = 0; i < nuas; i++)
-			cout << Char27out(tuas[i]) << " " << i << endl;	
+		for (uint32_t i = 0; i < nuas; i++) {
+			if (tuas[i] & ~BIT_SET_27)
+				cout << Char32out(tuas[i]) << "  t3infield with out bits" << endl;
+			cout << Char27out(tuas[i]) << " " << i 
+				<< " " << _popcnt32(tuas[i]) << endl;
+
+		}
 	}
 };
 
@@ -952,6 +957,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 
 	}
 	void Addguam(BF128 w, int go2 = 0) {// entry mode 3x32
+		if (w.bf.u32[2] & ~BIT_SET_27)
+			cout << Char32out(w.bf.u32[2]) << " guam with out bits" << endl;
 		if (ntguam >= 384) Pack();
 		tguam[ntguam].bf3 = w.bf.u32[2];
 		register uint64_t U = w.bf.u64[0];
@@ -1196,19 +1203,31 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 
 	STD_B3* myband3;
+
+	uint32_t bufuas3[20000], * pbufuas3;// storing uas in field
 	uint32_t* t3exp, nt3exp;// final table to expand
 	uint32_t t3o[500], nt3o, t3ando, t3infield, t3outseen;
+	uint32_t t3b[200], nt3b, t3c[100], nt3c;// after 3/6 clues
 	uint32_t t3more[200], nt3more;
-	uint32_t bufuas3[20000], * pbufuas3;
-
+	uint32_t ntoassb3;
 	void Dumpt3exp() {
 		for (uint32_t i = 0; i < nt3exp; i++)
 			cout << Char27out(t3exp[i]) << endl;
 	}
 	void Dumpt3o() {
 		cout << "t3o n=" << nt3o << endl;
-		for (uint32_t i = 0; i < nt3o; i++)
-			cout << Char27out(t3o[i]) << endl;
+		for (uint32_t i = 0; i < nt3o; i++) {
+			if (t3o[i] & ~BIT_SET_27)
+				cout << Char32out(t3o[i]) << "  t3outfield with out bits" << endl;
+			cout << Char27out(t3o[i]) << " " << i
+				<<" "<<_popcnt32(t3o[i]) << endl;
+
+		}
+	}
+	void Dumpt3b() {
+		cout << "t3b n=" << nt3b << endl;
+		for (uint32_t i = 0; i < nt3b; i++)
+			cout << Char27out(t3b[i]) << endl;
 	}
 
 	uint32_t t3[1000], nt3,		t3_2[1000], nt3_2,
@@ -1317,6 +1336,15 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Go_8_12();
 	void Go_7_12();
 
+	inline int VerifyValid() {
+		if (clean_valid_done) return 0;
+		clean_valid_done = 1;
+		if (!IsValid_myb12()) return 0;
+		clean_valid_done = 2; return 1;
+	}
+	int Valid3_1_3(uint32_t bf) {
+		return 1;
+	}
 
 	void Expand_7_9();// 18 clues pass2
 	void Expand_10_12();// 18 clues pass2
@@ -1336,9 +1364,8 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void GoB3MissMore2A(CRITHANDLER& crh);
 
 
-	void GoB3End(int ntoass);
-	void GoB3Expand (int ntoass);
 	void GoB3Expand(int ntoass, CRITB3 & ecritb3);
+	void GoB3Expand_1_3( CRITB3& ecritb3);
 	void Out17(uint32_t bfb3);
 
 	int nt4ok, okcheck;// for known
