@@ -1975,7 +1975,11 @@ void G17B::Expand_7_9(SPB03A& s6) {
 next7:	//_______ add clue 7
 	{
 		uint64_t p = sp6.possible_cells;
-		if (!p) {	EndExpand_7_9();	return;	}
+		if (!p) {	
+			if (p_cpt2g[4] == op.f4) cout << " 7 8 9 10 " << ntbelow[0] << " " << ntbelow[1] << " "
+				<< ntbelow[2] << " " << ntbelow[3] << endl;
+
+			EndExpand_7_9();	return;	}
 		bitscanforward64(tcells[0], p);
 		register uint64_t bit = (uint64_t)1 << tcells[0];
 		sp6.possible_cells ^= bit;
@@ -1987,6 +1991,7 @@ next7:	//_______ add clue 7
 			if (!((~pk54) & sp7.all_previous_cells))
 				cout << Char54out(sp7.all_previous_cells) << " expected 7 " << endl;
 		}
+		if(locdiag)cout << Char54out(sp7.all_previous_cells) << "  7 " << endl;
 		// update vectors and get next ua
 		register uint64_t U = 0;
 		sp7.v &= tuv128.vc[tcells[0]];
@@ -2028,7 +2033,7 @@ next8: //add clue 8 and find valid below size 8
 			if (!((~pk54) & sp8.all_previous_cells))
 				cout << Char54out(sp8.all_previous_cells) << " expected 8 " << endl;
 		}
-
+		if(locdiag)cout << Char54out(sp8.all_previous_cells) << "  8 " << endl;
 
 		register uint64_t U = 0;
 		sp8.v &= tuv128.vc[tcells[1]];
@@ -2087,6 +2092,8 @@ next9: // add clue 9 build td and call next step (min 10 clues)
 				}
 			}
 		}
+		if (locdiag)cout << Char54out(sp9.all_previous_cells) << "  9 " << endl;
+
 		register uint64_t U = 0;
 		if (sp9.v.isNotEmpty()) U = twu[sp9.v.getFirst128()];
 		else {
@@ -2284,6 +2291,11 @@ if (t54b12.tandd)
 
 }
 void G17B::EndExpand_7_9() {
+	int locdiag = 0;
+	if (p_cpt2g[4] == op.f4) {
+		cout << "call 7_9 good path end expand" << endl;
+		locdiag = 1; 
+	}
 
 	if (op.t18) {
 		if (op.p1) {
@@ -2580,6 +2592,13 @@ uint64_t G17B::GetLastD() {
 
 
 void G17B::Go_10_11_18() {// 10 clues limit 11 clues 
+	int locdiag = 0;
+	if (p_cpt2g[4] == op.f4) {
+		cout << "go 10 to 11 18 " << ntbelow[3] << endl;
+		locdiag = 1;
+	}
+
+
 	//cout << "valid 10 to go to 11 status ntbelow[3]="<< ntbelow[3] << endl;
 	clean_valid_done = 1;
 	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
@@ -2590,6 +2609,10 @@ void G17B::Go_10_11_18() {// 10 clues limit 11 clues
 			if (!((~pk54) & myb12)) {
 				cout << Char54out(myb12) << " expected 10 to push to 11 " << endl;
 			}
+		}
+		if (locdiag) {
+			cout << Char54out(myb12) << " to push to 11 iv=" << iv << endl;
+
 		}
 
 		//cout << Char54out(myb12) << "10 to test" << endl;
@@ -2614,6 +2637,10 @@ void G17B::Go_10_11_18() {// 10 clues limit 11 clues
 				cout << Char54out(Ac) << "  active to try " << endl;
 			}
 		}
+		if (locdiag) {
+			cout << Char54out(Ac) << "  active to try " << endl;
+
+		}
 		int cell;
 		while (bitscanforward64(cell, Ac)) {
 			CALLBAND3 cb3n = cb3;
@@ -2633,6 +2660,11 @@ void G17B::Go_10_11_18() {// 10 clues limit 11 clues
 					knownt = 11;
 				}
 			}
+			if (locdiag) 
+				cout << Char54out(myb12) << " 11 [7] "	<< p_cpt2g[7] << endl;
+
+			
+
 			for (int ib3 = 0; ib3 < genb12.nband3; ib3++)
 				genb12.bands3[ib3].Go(cb3n);
 			if (knownt >= 11)return;
@@ -4831,30 +4863,46 @@ void  G17B::GoB3Miss2(CRITHANDLER& crh) {
 void  G17B::GoB3Miss3(CRITHANDLER& crh) {
 	p_cpt2g[13]++;
 	int locdiag = 0;// 1;// 2 * (p_cpt2g[8] == 851);
-	if (p_cpt2g[7] == 826384)locdiag = 2;
+	if (p_cpt2g[8] == 2343933)locdiag = 2;
 	if (locdiag) {
 		crh.mycritb3.Status("entry miss3");
 		Dumpt3o();
 	}
 	if (crh.mycritb3.minix[2]<2) {// keep that for later
 		GoB3MissMore2A(crh); return;	}
-	if (nt3o < 5) { GoB3MissMore2A(crh); return; }
 	if (t3ando) { GoB3MissMore2A(crh); return; }// too complex see later 
+	// keep for later if less than 3 clues possible 
+	uint32_t res1, res2, res3;
+	{
+		uint32_t active = BIT_SET_27 & ~t3infield, u1 = t3o[0],and2;
+		while (bitscanforward(res1, u1)) {
+			int bit1 = 1 << res1;
+			u1 ^= bit1; active ^= bit1;
+			and2 = active;
+			uint32_t wand = ~0;// 1 check if 2 clues is enough
+			for (uint32_t j = 1; j < nt3o; j++) {
+				register uint32_t U = t3o[j];
+				if (!(U & bit1))and2&= U; 
+			}
+			if (and2)break;
+		}
+		if(and2) { GoB3MissMore2A(crh); return; }
+	}
+
 	if(locdiag)cout<<Char9out(crh.mycritb3.minix[2])
 		<< "entry go miss 3 to try nt3o="<<nt3o << endl;
 	if (VerifyValid()) return; 
 	// we have outfield potential, what about infield 
 	crh.mycritb3.AssignCritical();
-	uint32_t res1, res2, res3;
-	uint32_t active = BIT_SET_27 & ~t3infield & crh.mycritb3.assigned, u1 = t3o[0];
+	uint32_t active = BIT_SET_27 & ~t3infield, u1 = t3o[0];
 	if (locdiag) {
 		cout << Char27out(u1)<<"first t3o"<<endl;
 		cout << Char27out(active) << "active" << endl;
 	}
-
 	while (bitscanforward(res1, u1)) {
 		int bit1 = 1 << res1,u2=0; 
 		u1 ^= bit1; active ^= bit1;
+		uint32_t wand = ~0;// 1 check if 2 clues is enough
 		for (uint32_t j = 1; j < nt3o; j++) {
 			register uint32_t U = t3o[j];
 			if (!(U & bit1)) {u2 = U & active; break;}
@@ -5041,7 +5089,10 @@ next1:
 	{// catch and apply cell in bitfields
 		register int cell;
 		register uint32_t p = spb[0].possible_cells;
-		if (!p) return;
+		if (!p) {
+			if (locdiag) cout << "back 1_3" << endl;
+			return;
+		}
 		bitscanforward(cell, p);
 		register uint32_t bit = 1 << cell;
 		spb[0].possible_cells ^= bit;
@@ -5140,7 +5191,7 @@ next3:
 endnext3:
 	{// build a reduced table for the next clues
 		nt3b = 0;
-		uint32_t tx[7][20], ntx[7];
+		uint32_t tx[8][30], ntx[7];// gives 60 for 6 and more 
 		memset(ntx, 0, sizeof ntx);
 		register uint32_t A = spb[2].active, F = spb[3].all_previous;
 		for (uint32_t i = spb[2].indtw3 + 1; i < nt3exp; i++) {
