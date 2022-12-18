@@ -4377,14 +4377,12 @@ void STD_B3::Go(CALLBAND3& cb3) {
 		scritb3.Status("aaa");
 	}
 
-
 	if ((int)scritb3.mincount >   scritb3.nb3) return;
 	scritb3.nmiss = scritb3.nb3 - scritb3.mincount;
 	
 	//memcpy(&genb12.grid0[54], band0, sizeof band0);// used in brute force
 	memcpy(&g17b.grid0[54], band0, sizeof band0);// used in brute force
 	g17b.myband3 = this;
-
 	g17b.pbufuas3 = g17b.bufuas3;
 	CRITHANDLER crh; crh.Init(g17b.pbufuas3);
 	crh.mycritb3 = scritb3;
@@ -4398,6 +4396,7 @@ void STD_B3::Go(CALLBAND3& cb3) {
 	g17b.nt3more = 0;
 	g17b.ncluesb3 = crh.mycritb3.nb3;
 	p_cpt2g[9]++;
+
 	//if(locdiag)cout << "go b3 locdiag=1 [8]" << p_cpt2g[8]<<" nmiss = "<< crh.mycritb3.nmiss<< endl;
 	{ // add g2 g2
 		register uint32_t V = scritb3.pairs27, i27;
@@ -4411,6 +4410,10 @@ void STD_B3::Go(CALLBAND3& cb3) {
 	register uint64_t F = g17b.myb12;
 	register uint32_t  		Ac = scritb3.critbf, U;// if critical all must be in
 	g17b.critical_done = 0;
+	if (g17b.knownt == 11) {
+		scritb3.Status("bbb");
+	}
+
 	g17b.Init_t3o(scritb3);
 	if (!scritb3.nmiss) {//critical status uas reduced no out
 		for (uint32_t i = 0; i < ntguam2; i++) {
@@ -4430,9 +4433,6 @@ void STD_B3::Go(CALLBAND3& cb3) {
 		}
 		else g17b.CheckCritical(cb3, crh);
 		return;
-	}
-	if (g17b.knownt == 11) {
-		scritb3.Status("bbb");
 	}
 
 	// not miss 0 no "active" split in/out
