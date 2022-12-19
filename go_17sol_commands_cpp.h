@@ -224,7 +224,8 @@ void Go_c17_10() {
 		int ib3 = perm_ret.i416, ib3a = t416_to_n6[ib3];
 		genb12.bands3[0].InitBand3(ib3, &ze[54], perm_ret);
 		genb12.nband3 = 1;
-
+		genb12.i1t16 = ib1a;
+		genb12.i2t16 = ib2a;
 		ze[81] = 0;
 		if (op.ton)
 			cout << Char2Xout(g17b.p17diag.bf.u64[0]) << " b12 pattern for the 17" << endl;

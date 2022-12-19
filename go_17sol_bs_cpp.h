@@ -4776,7 +4776,9 @@ void G17B::GoB3Miss1(CRITHANDLER& crh) {
 void  G17B::GoB3Miss2(CRITHANDLER& crh) {
 	p_cpt2g[12]++;
 	nt3more = 0;
+	t3outseen = ~0;
 	int locdiag = 0;// 1;// 2 * (p_cpt2g[8] == 851);
+	if (knownt == 11)locdiag = 2;
 	//if (p_cpt2g[7] == 749)locdiag = 2;
 	//if (p_cpt2g[12] == 24)locdiag = 2;
 	if (!crh.mycritb3.minix[2]) {// nothing better than direct
@@ -4794,7 +4796,7 @@ void  G17B::GoB3Miss2(CRITHANDLER& crh) {
 			nt3o = nt3more;
 			nt3more = 0;
 		}
-		else t3ando = BIT_SET_27 & (~t3infield) & (~crh.mycritb3.assigned);
+		else { GoB3MissMore2A(crh); return; }// not available miss 2 infield
 	}
 	if (locdiag) 	cout << Char27out(t3ando) << " t3ando  " << endl;			
 
@@ -4808,9 +4810,9 @@ void  G17B::GoB3Miss2(CRITHANDLER& crh) {
 			uint32_t rmore = nt3more;
 			t3ando = 0;
 			if (locdiag) 	cout << Char27out(crhn.mycritb3.assigned) << " call miss1  " << endl;
-
 			GoB3Miss1(crhn);
-			v &= t3outseen;
+			//if (locdiag) 	cout << Char27out(t3outseen) << " back outseen  " << endl;
+			//v &= t3outseen;
 			if (nt3more>rmore) {
 				for (uint32_t i = rmore; i < nt3more; i++) {
 					register uint32_t U = t3more[i];
