@@ -76,7 +76,8 @@ void STD_B3::InitBand3(int i16, char* ze, BANDMINLEX::PERM& p) {
 	InitBand2_3(i16, ze, p);
 	//memset(&guas, 0, sizeof guas);
 	memset(&g, 0, sizeof g);
-	ntguam = poutdone=0;
+	poutdone=0;
+	InitTg();// init tguam 
 	// setup minirows bit fields
 	for (int i = 0; i < 9; i++) {
 		minirows_bf[i] = 0;
