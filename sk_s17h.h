@@ -741,8 +741,120 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 }guah54;
 
 
-//_____ processing bandb
+//_____ processing band3
+struct XQ {//to build the UAs b3 to expand
+	uint32_t t1a, t1b; //27 bits field assigned 
+	uint32_t  critbf,fa,fb;
+	uint32_t t2a[12], t2b[30];// pairs bf2 other pairs and triplet
+	//uint32_t t4[200], tm[200];
+	uint32_t n2a, n2b, n4, nm,nb3,nmiss,nadded;
+	uint32_t tin[200], tout[200];
+	uint32_t nin, nout,nred;
+	uint32_t iuas4;
+	void Init(uint32_t cbf) { 
+		t1a = t1b = n2a = n2b = n4 = nm 
+			=nin=nout=nadded= 0; 
+		critbf = cbf;
+	}
+	inline void SetFilters () {
+		if (!nmiss) {
+			if ((fa = t1a)) {// initial safety
+				critbf = 0;
+				for (uint32_t i = 0; i < n2b; i++)
+					critbf |= t2b[i];
+			}
+			fb = critbf;
+		}
+		else {	fa = 0; fb = BIT_SET_27;}
+	}
+	int Miss1ToMiss0();
+	int MissxToMiss0(uint32_t ubf);
+	int Miss0CheckTin();
+	int NoRoomToAssign() {
+		return(_popcnt32(t1a) >= nb3);
+	}
+	uint32_t  AddAssigned(uint32_t bf) {
+		nadded++;
+		t1a |= bf;
+		fa = t1a;
+		register uint32_t F = t1a, C = 0,n=n2b;
+		n2b = 0;
+		for (uint32_t i = 0; i < n; i++) {
+			register uint32_t U = t2b[i];
+			if (!(U & F)) {
+				t2b[n2b++]=U;
+				C |= U;
+			}
+		}
+		fb=critbf = C;
+		return C;
+	}
+	inline void Addin(uint32_t bf) { tin[nin++] = bf; }
+	inline void Addout(uint32_t bf) { tout[nout++] = bf; }
+	inline uint32_t GetAndout() {
+		register uint32_t A = tout[0];
+		for (uint32_t i = 1; i < nout; i++)
+			A&=tout[i];
+		return A;
+	}
+	void BuildCheckRedundant() {
+		nred = n2b;
+		if (nmiss) {
+			nred += n2a;
+			memcpy(&t2b[n2b], t2a, n2a * sizeof uint32_t);
+		}
 
+	}
+	int Isoutsize2();
+	int Isoutsize3();
+	int Isoutsize4();
+	int Isoutsize5();
+	int NoDisjoint() {
+		register uint32_t r1 = tout[0] , r2 ;
+		for (uint32_t i = 1; i < nout; i++) {
+			register uint32_t u = tout[i];
+			if (r2 |= r1 & u)return 1; 
+				r1 |= u;
+		}
+		return 0;
+	}
+	int Min1_4Disjoint();
+
+	void Dump1() {
+		cout << "xq nmiss= " << nmiss<< " nb3="<<nb3 << endl;
+		cout << Char27out(t1a) << "bf2 assigned" << endl;
+		cout << Char27out(critbf) << " critbf" << endl;
+		for(uint32_t i=0;i<n2a;i++)
+			cout << Char27out(t2a[i])  << endl;
+		cout << "t2b uas" << endl;
+		for (uint32_t i = 0; i < n2b; i++)
+			cout << Char27out(t2b[i]) << endl;
+
+	}
+	void Dump2() {
+		cout << Char27out(fa) << " F assigned" << endl;
+		cout << Char27out(fb) << " fb active" << endl;
+		cout << Char27out(critbf) << " critbf" << endl;
+	}
+	void DumpOut() {
+		cout << "out status nout=" <<nout<< endl;
+		for (uint32_t j = 0; j < nout; j++)
+			cout << Char27out(tout[j]) << endl;
+
+	}
+
+	void Status() {
+		Dump1(); Dump2();
+		cout << " nadded= " << nadded 
+			<<" nout="<<nout << endl;
+		for (uint32_t i = 0; i < nout; i++)
+			cout << Char27out(tout[i]) << endl;
+		cout << " nin=" << nin << endl;
+		for (uint32_t i = 0; i < nin; i++)
+			cout << Char27out(tin[i]) << endl;
+		cout << "end xq status \n" << endl;
+	}
+}xq;
 struct CALLBAND3 {
 	BF128 g2t, g3t;
 	uint64_t bf12;
@@ -761,6 +873,7 @@ struct CALLBAND3 {
 struct CRITB3 {
 	uint32_t minix[4],// triplet bf1 bf2 bf3  
 		critbf, pairs27, mincount,
+		t1a,t2a[27],nt2a,
 		assigned, active,
 		ncl, nb3, nmiss;
 	inline void Init(int ncb12, CBS& cbsx) {
@@ -853,7 +966,7 @@ struct CRITB3 {
 		if (minix[0])cout << Char9out(minix[0]) << " mini triplets" << endl << endl;
 	}
 
-};
+}scritb3;
 struct CRITHANDLER {
 	CRITB3 mycritb3;
 	uint32_t* tuas, nuas;
@@ -921,7 +1034,9 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	// permanent gangster information
 	struct G {
 		BF128 gsocket2, gsocket3;// active i81 mode 81 bits
+		BF128 gsocket4, gsocket6;//g2 with 4 cells in band 3
 		int pat2[81], pat3[81]; // storing ua bitfields
+		int pat2_27[27]; // storing ua bitfields
 		int ua2_imini[81], ua3_imini[81], ua2bit27[81];
 	}g;
 	int minirows_bf[9];
@@ -933,7 +1048,12 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
 	void Go(CALLBAND3& cb3);
-
+	inline void Go2(int debug=0);
+	int  Go3(int debug = 0);
+	int  GoMiss1Out(int debug = 0);
+	void GoAfter10();
+	void GoAfter11();
+	void GoAfter11Miss0();
 
 	uint32_t Get2d(int d1, int d2) {
 		return fd_sols[0][d1] | fd_sols[0][d2];
@@ -952,6 +1072,14 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		}
 		return -1;
 	}
+	inline int GetI81_x(int bf) {
+		for (uint32_t i = 0; i < 81; i++) {
+			if (g.pat2[i] == bf) return i;
+		}
+		return -1;
+	}
+
+
 	void Pat_to_digitsx(int bf, int* tcells, int* tdigits, int& nt) {
 		register int cell;
 		nt = 0;
@@ -980,7 +1108,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		}
 
 	}
-#define GM_NB 50
+#define GM_NB4 50
+#define GM_NBM 50
 
 	struct GUM64 {
 		uint64_t v0,  vc[55];//vc[54] is for 6 clues
@@ -1035,19 +1164,28 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			cout << Char27out(bf3)
 				<< " " << Count() << endl;
 		}
-	}tgm64[GM_NB];
-	uint32_t nbgm,  nbbgm;
+	}tgm64[GM_NB4], tgm64m[GM_NBM];
+	uint32_t nbgm,  nbbgm, nbgmm, nbbgmm;
 	void InitTg() {
 		nbgm = nbbgm =  0;
-		for (int i = 0; i < GM_NB; i++) tgm64[i].Init();
+		for (int i = 0; i < GM_NB4; i++) tgm64[i].Init();
+		for (int i = 0; i < GM_NBM; i++) tgm64m[i].Init();
 	}
-	inline void Addm(BF128 &w) {// entry mode 3x
-		if (nbgm >= 64 * GM_NB) return;
+	inline void Addm4(BF128 &w) {// entry mode 3x
+		if (nbgm >= 64 * GM_NB4) return;
 		nbbgm = nbgm++ >> 6; // new last bloc 
 		register uint64_t U = w.bf.u64[0];
 		U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
 		tgm64[nbbgm].Add(U, w.bf.u32[2]);
 	}
+	inline void Addmm(BF128& w) {// entry mode 3x
+		if (nbgmm >= 64 * GM_NBM) return;
+		nbbgmm = nbgmm++ >> 6; // new last bloc 
+		register uint64_t U = w.bf.u64[0];
+		U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
+		tgm64m[nbbgmm].Add(U, w.bf.u32[2]);
+	}
+
 	inline void Set6clues(uint64_t known) {
 		uint32_t tc[10], ntc = 0, cell;// build table of cells 
 		register uint64_t F = known;
@@ -1063,6 +1201,11 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		cout << "dumptgm ngm=" << nbgm << endl;
 		for (uint32_t i = 0; i <= nbbgm; i++)
 			tgm64[i].Dump(i << 6);
+	}
+	void DumpTgmm() {
+		cout << "dumptgm ngmm=" << nbgmm << endl;
+		for (uint32_t i = 0; i <= nbbgmm; i++)
+			tgm64m[i].Dump(i << 6);
 	}
 };
 
