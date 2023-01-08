@@ -1505,19 +1505,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void TryMiss1Subcritical();
 
 
-
-	void GoCommonB3(CRITHANDLER& crh);
-	void GoB3Critical(CRITHANDLER & crh);
-	void GoB3SubCritical(CRITHANDLER& crh);
-	void EndGoB3Critical(CRITHANDLER& crh);
-
-	void GoB3Miss1(CRITHANDLER& crh);
-	void GoB3Miss2(CRITHANDLER& crh);
-	void GoB3Miss3(CRITHANDLER& crh);
-	void GoB3MissMore(CRITHANDLER& crh);
-	void GoB3MissMore2A(CRITHANDLER& crh);
-
-
 	void GoB3Expand_1_3(uint32_t bf, uint32_t ac, int debug = 0);
 	void GoB3Expand_4_x(SP3 spe, int debug = 0);
 
