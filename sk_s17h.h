@@ -748,7 +748,7 @@ struct XQ {//to build the UAs b3 to expand
 	uint32_t t2a[12], t2b[30];// pairs bf2 other pairs and triplet
 	//uint32_t t4[200], tm[200];
 	uint32_t n2a, n2b, n4, nm,nb3,nmiss,nadded;
-	uint32_t tin[200], tout[200];
+	uint32_t tin[300], tout[300];
 	uint32_t nin, nout,nred;
 	uint32_t iuas4;
 	void Init(uint32_t cbf) { 
@@ -772,6 +772,16 @@ struct XQ {//to build the UAs b3 to expand
 	int Miss0CheckTin();
 	int NoRoomToAssign() {
 		return(_popcnt32(t1a) >= nb3);
+	}
+	int NToAssign() {
+		return( nb3- _popcnt32(t1a));
+	}
+	inline void SetFreshCrit() {
+		fb = 0;
+		for (uint32_t i = 0; i < n2b; i++) {
+			fb |= t2b[i];
+		}
+		critbf = fb;
 	}
 	uint32_t  AddAssigned(uint32_t bf) {
 		nadded++;
@@ -819,7 +829,10 @@ struct XQ {//to build the UAs b3 to expand
 		return 0;
 	}
 	int Min1_4Disjoint();
-
+	void CleanIn();
+	void CleanOut();
+	void BuildAllOut();
+	void BuildAllOutMiss0();
 	void Dump1() {
 		cout << "xq nmiss= " << nmiss<< " nb3="<<nb3 << endl;
 		cout << Char27out(t1a) << "bf2 assigned" << endl;
@@ -971,9 +984,6 @@ struct CRITHANDLER {
 	CRITB3 mycritb3;
 	uint32_t* tuas, nuas;
 	void Init(uint32_t* t) { tuas = t; nuas = 0; }
-	int CleanOne(CRITHANDLER& hout,int debug=0);
-	int CleanGo(int debug = 0);
-	void SortShrink();
 	inline void Add(uint32_t u) { tuas[nuas++] = u; }
 	inline void AddIf(uint32_t u) {
 		register uint32_t nu = ~u;
@@ -1050,7 +1060,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	void Go(CALLBAND3& cb3);
 	inline void Go2(int debug=0);
 	int  Go3(int debug = 0);
-	int  GoMiss1Out(int debug = 0);
+	//int  GoMiss1Out(int debug = 0);
 	void GoAfter10();
 	void GoAfter11();
 	void GoAfter11Miss0();
@@ -1193,8 +1203,12 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			F ^= (uint64_t)1 << cell;
 			tc[ntc++] = cell;
 		}
-		for (uint32_t i = 0; i <= nbbgm; i++)
+		for (uint32_t i = 0; i <= nbbgm; i++) 
 			tgm64[i].Set6(tc);
+		for (uint32_t i = 0; i <= nbbgmm; i++) 
+				tgm64m[i].Set6(tc);
+
+		
 
 	}
 	void DumpTgm() {
@@ -1366,17 +1380,10 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	STD_B3* myband3;
 
-	uint32_t bufuas3[20000], * pbufuas3;// storing uas in field
-	uint32_t* t3exp, nt3exp;// final table to expand
 	uint32_t t3o[1000], nt3o, t3ando, t3infield, t3outseen;
 	uint32_t t3b[200], nt3b, t3c[100], nt3c;// after 3/6 clues
 	uint32_t t3more[200], nt3more;
 	uint32_t ntoassb3;
-	void Dumpt3exp() {
-		cout << "t3exp n=" << nt3exp << endl;
-		for (uint32_t i = 0; i < nt3exp; i++)
-			cout << Char27out(t3exp[i]) << endl;
-	}
 	void Dumpt3o() {
 		cout << "t3o n=" << nt3o << endl;
 		for (uint32_t i = 0; i < nt3o; i++) {
@@ -1489,32 +1496,15 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		if (!IsValid_myb12()) return 0;
 		clean_valid_done = 2; return 1;
 	}
-	int Valid3_1_3(uint32_t bf) {
-		if (!IsValidB3(bf))return 0;
-		for (uint32_t i = 0; i < nt3more; i++) {
-			t3exp[nt3exp++] = t3more[i];
-			//cout << Char27out(t3more[i]) << " add fresh 1_33" << endl;
-		}
-		nt3more = 0;
-		return 1;
-	}
-	int Valid3mm(uint32_t bf) {
-		if (!IsValidB3(bf))return 0;
-		for (uint32_t i = 0; i < nt3more; i++) {
-			t3b[nt3b++] = t3more[i];
-			t3exp[nt3exp++] = t3more[i];
-			//cout << Char27out(t3more[i]) << " add fresh tb" << endl;
-		}
-		nt3more = 0;
-		return 1;
-	}
+	int Valid3_1_3(uint32_t bf);
+	int Valid3mm(uint32_t bf);
+	void BridgeEndMiss0();
+	void GoEndMiss0();
+	void GoEndAll(uint32_t bf, uint32_t ac,int debug=0);
+	void GoNotMiss0();
+	void TryMiss1Subcritical();
 
-	//void Expand_7_9();// 18 clues pass2
-	//void Expand_10_12();// 18 clues pass2
-	//void Go7Redundancy();
-	//void Go9Redundancy();
-	//void GoExpand_7_12();
-	//void GoExpand_10_12(BF128 ww);
+
 
 	void GoCommonB3(CRITHANDLER& crh);
 	void GoB3Critical(CRITHANDLER & crh);
@@ -1528,9 +1518,8 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void GoB3MissMore2A(CRITHANDLER& crh);
 
 
-	void GoB3Expand(int ntoass, CRITB3 & ecritb3);
-	void GoB3Expand_1_3( CRITB3& ecritb3);
-	void GoB3Expand_4_x(SP3 spe);
+	void GoB3Expand_1_3(uint32_t bf, uint32_t ac, int debug = 0);
+	void GoB3Expand_4_x(SP3 spe, int debug = 0);
 
 	void Out17(uint32_t bfb3);
 
