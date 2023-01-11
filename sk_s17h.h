@@ -746,13 +746,12 @@ struct XQ {//to build the UAs b3 to expand
 	uint32_t t1a, t1b; //27 bits field assigned 
 	uint32_t  critbf,fa,fb;
 	uint32_t t2a[12], t2b[30];// pairs bf2 other pairs and triplet
-	//uint32_t t4[200], tm[200];
-	uint32_t n2a, n2b, n4, nm,nb3,nmiss,nadded;
-	uint32_t tin[300], tout[300];
+	uint32_t n2a, n2b, nb3,nmiss,nadded;
+	uint32_t tin[400], tout[400];
 	uint32_t nin, nout,nred;
 	uint32_t iuas4;
 	void Init(uint32_t cbf) { 
-		t1a = t1b = n2a = n2b = n4 = nm 
+		t1a = t1b = n2a = n2b //= n4 = nm 
 			=nin=nout=nadded= 0; 
 		critbf = cbf;
 	}
@@ -811,7 +810,7 @@ struct XQ {//to build the UAs b3 to expand
 		nred = n2b;
 		if (nmiss) {
 			nred += n2a;
-			memcpy(&t2b[n2b], t2a, n2a * sizeof uint32_t);
+			memcpy(&t2b[n2b], t2a, n2a * sizeof t2b[0]);
 		}
 
 	}
@@ -882,7 +881,7 @@ struct CALLBAND3 {
 		cout << Char27out(g3t.bf.u32[2]) << " g3t" << endl;;
 
 	}
-}cb3;
+};
 struct CRITB3 {
 	uint32_t minix[4],// triplet bf1 bf2 bf3  
 		critbf, pairs27, mincount,
@@ -1055,15 +1054,14 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	uint32_t i_81_to_27[81]; //band i81 for guas guas3
 	uint32_t  poutdone;
 	//_______________________
-
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
 	void Go(CALLBAND3& cb3);
 	inline void Go2(int debug=0);
-	int  Go3(int debug = 0);
+	int  Go3(CALLBAND3& cb3);
 	//int  GoMiss1Out(int debug = 0);
-	void GoAfter10();
-	void GoAfter11();
-	void GoAfter11Miss0();
+	void GoAfter10(CALLBAND3& cb3);
+	void GoAfter11(CALLBAND3& cb3);
+	void GoAfter11Miss0(CALLBAND3& cb3);
 
 	uint32_t Get2d(int d1, int d2) {
 		return fd_sols[0][d1] | fd_sols[0][d2];
@@ -1221,6 +1219,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		for (uint32_t i = 0; i <= nbbgmm; i++)
 			tgm64m[i].Dump(i << 6);
 	}
+	void Checkkown4();
+
 };
 
 
@@ -1376,7 +1376,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	int nclgo, nmiss;
 	int  ncluesb3, mincluesb3;
 	uint32_t anduab3;// b3 expand
-
+	CALLBAND3 cb3;
 
 	STD_B3* myband3;
 
