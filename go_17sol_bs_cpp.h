@@ -93,40 +93,44 @@ void G17B::StartInit() {
 				for (register int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 					STD_B3& b3 = genb12.bands3[ib3];
 					register uint32_t Bf = b3.dpat[w.dig1] | b3.dpat[w.dig2],
-						Bf0=Bf,
+						Bfs = Bf & stack,
 						Bfc = (Bf | (Bf >> 9) | (Bf >> 18)) & 0777;// colummn pattern
-					Bf &= stack;
-					int nr = 0, bfr = 0, irow;
-					if (Bf & 0777) { nr++; bfr |= Bf0 & 0777; irow = 0; }// row1
-					if (Bf & 0777000) { nr++; bfr |= Bf0& 0777000; irow = 1; }
-					if (Bf & 0777000000) { nr++; bfr |= Bf0 & 0777000000; irow = 2; }
-					if (nr == 1) {// we have a gua2
-						//cout << ib3 << " " << i << endl;
+
+					uint32_t c1, c2, r1, r2;
+					bitscanforward(c1, Bfs);	bitscanreverse(c2, Bfs);
+					r1 = c1/9; r2 = c2 / 9;
+					if (r1 == r2) {// socket 2
 						gsock2.setBit(i);
 						w.valid = 1;
 						b3.g.gsocket2.setBit(i);
-						b3.g.pat2[i] = Bf;
-						int imini = 3 * irow + ist, mask = 7 << (3 * imini);
+						b3.g.pat2[i] = Bfs;
+						int imini = 3 * r1 + ist, mask = 7 << (3 * imini);
 						b3.g.ua2_imini[i] = imini;
-						int bit27= mask ^ Bf,i27;
+						int bit27 = mask ^ Bfs, i27;
 						bitscanforward(i27, bit27);
 						b3.g.ua2bit27[i] = bit27;
 						b3.i_27_to_81[i27] = i;
 						b3.i_81_to_27[i] = i27;
-						b3.g.pat2_27[i27] = Bf;
+						b3.g.pat2_27[i27] = Bfs;
+						continue;
+					}
+					// can be a 4/6
+					int ncol = _popcnt32(Bfc);
+					if (ncol > 5) continue;
+					if (ncol == 4) {// this is a ua6
+						b3.g.gsocket6.setBit(i);
+						b3.g.pat2[i] = Bf;
+						continue;
+					}
+					// 5 column find the ua4
+					for (int is2 = 0,mask=7, st2 = 07007007; is2 < 3; is2++,mask<<=3,st2<<=3)
+						if (is2 != ist) 		if (_popcnt32(mask & Bfc) != 1)Bf &= ~st2;
+					// must also be 2 rows 
+					int maskr = 0777 << (9 * r1) | 0777 << (9 * r2);
+					if (Bf & ~maskr) continue;
+					b3.g.gsocket4.setBit(i);
+					b3.g.pat2[i] = Bf;
 
-					}
-					else {// gua46 except if 6 columns
-						int ncol = _popcnt32(Bfc);
-						if (ncol == 5) {// gua2_4
-							b3.g.gsocket4.setBit(i);
-							b3.g.pat2[i] = bfr;
-						}
-						else {
-							b3.g.gsocket6.setBit(i);
-							b3.g.pat2[i] = Bf0;
-						}
-					}
 				}
 			}
 			
@@ -202,6 +206,11 @@ void G17B::StartPrint() {
 		for (int i = 0; i < genb12.nband3; i++) {
 			STD_B3& b3 = genb12.bands3[i];
 			cout << b3.band << " b3 i=" << i << endl;
+			if (op.ton > 2) {
+				for (int j = 0; j < 81; j++)if (b3.g.gsocket4.On(j))
+					cout << j << "\t" <<Char27out( b3.g.pat2[j]) << " ua4" << endl;
+			}
+
 			//for (int id = 0; id < 9; id++)
 			//	cout << Char27out(b3.dpat[id]) << endl;
 		}
@@ -1219,9 +1228,16 @@ void G17B::StartAfterUasHarvest() {
 	t54b12.Build_ta128(tuasb12.tua, tuasb12.nua);
 	if (op.ton) {
 		if (sgo.bfx[1] & 8)t54b12.DebugA();
+		//STD_B3& b = genb12.bands3[22];
+		//cout <<b.band<< "status  b22 pour pat 2" << endl;
+		//((b.g.gsocket2 | b.g.gsocket4) | b.g.gsocket6).Print("g2 4 6");
+		//for (int i = 0; i < 81; i++) {
+			//int p = b.g.pat2[i];
+			//if (p) cout << Char27out(p) << " i=" << i << endl;
+		//}
 	}
 	//if (op.known > 1) genb12.bands3[0].DumpTgm();
-
+	//return;
 	Expand_03();
 
 
@@ -1786,7 +1802,7 @@ void G17B::Expand_7_9(SPB03A& s6) {
 	int locdiag = 0;
 	if (op.ton) {
 		if (op.f3) {
-			if (p_cpt2g[3] == op.f3) {
+			if (p_cpt2g[3] == op.f3&& (!op.f4)) {
 				cout << Char54out(s6.all_previous_cells) << " 6clues [4]" << p_cpt2g[4]
 					<< " nc128=" << t54b12.nc128;
 				cout << Char54out(twu[0]) << " [7]"<< p_cpt2g[7] << endl;
@@ -1795,7 +1811,8 @@ void G17B::Expand_7_9(SPB03A& s6) {
 		}
 		if (op.f4) {
 			if (p_cpt2g[4] == op.f4) {
-				cout << "call 7_9 good path" << endl;
+				cout << Char54out(s6.all_previous_cells) << "call 7_9 good path" << endl;
+				cout << Char54out(s6.active_cells) << " active " << endl;
 				if (op.ton > 2) {tuv128.Dump(30); locdiag = 1;	}
 			}
 			else {
@@ -3131,96 +3148,67 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 			BF128 w = zhgxn.tua[iadd];
 			int cc = _popcnt32(w.bf.u32[2]);
 			if (!cc) {
-				/*
-				cout << Char2Xout(w.bf.u64[0]) << " ";
-				cout << Char27out(w.bf.u32[2]) << " iadd=" << iadd << endl;
-
-				cout << Char54out(myb12) << " ";
-				zhou[0].CallCheckB3(bf, 1);
-				cout << " back count =" << zhgxn.nua << endl;
-				for (uint32_t i = 0; i < zhgxn.nua; i++) {
-					BF128 ww = zhgxn.tua[i];
-					cout << Char2Xout(ww.bf.u64[0]) << " ";
-					cout <<Char27out(ww.bf.u32[2])<<" i="<<i<<endl;
-				}
-				*/
-				cout << Char27out(bf) << " bug no b3 IsValidB3 [7]" << p_cpt2g[7]
-					<< "   [8]" << p_cpt2g[8] << "nr=" << nret << endl;
-
+				cout << Char27out(bf) << " bug no b3 IsValidB3 [7]"					
+					<< p_cpt2g[7]	<< "   [8]" << p_cpt2g[8] 
+					<< "nr=" << nret << endl;
 				aigstop = 1;	return 1;
 			}
 			register uint32_t ua = w.bf.u32[2];
 			t3more[nt3more++] = ua;
 			anduab3 &= ua;
-if (ua & ~t3infield)  t3outseen &= ua;
+			if (ua & ~t3infield)  t3outseen &= ua;
 
-register uint64_t U = w.bf.u64[0];
-uint64_t cc0 = _popcnt64(U);
-if (cc0 > 16)continue;
-if (!cc0) {
-	/*
-	cout << Char2Xout(w.bf.u64[0]) << " ";
-	cout << Char27out(w.bf.u32[2]) << " iadd=" << iadd << endl;
-
-	cout << Char54out(myb12) << " ";
-	zhou[0].CallCheckB3(bf, 1);
-	cout << " back count =" << zhgxn.nua << endl;
-	for (uint32_t i = 0; i < zhgxn.nua; i++) {
-		BF128 ww = zhgxn.tua[i];
-		cout << Char2Xout(ww.bf.u64[0]) << " ";
-		cout <<Char27out(ww.bf.u32[2])<<" i="<<i<<endl;
-	}
-	*/
-	cout << Char27out(bf) << " bug ua nob12 [10]" << p_cpt2g[10] << endl;
-	cout << Char54out(myb12) << " " << endl;
-	cout << "list of uas found" << endl;
-	for (uint32_t i = 0; i < zhgxn.nua; i++) {
-		BF128 ww = zhgxn.tua[i];
-		cout << Char2Xout(ww.bf.u64[0]) << " ";
-		cout << Char27out(ww.bf.u32[2]) << " i=" << i << endl;
-	}
-
-	zhou[0].CallCheckB3(bf, 1);
-	aigstop = 1;	return 1;
-}
-
-U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
-if (cc <= 6 && cc > 1) {
-	if (cc > 3) {// is it a 2 digits??
-		int ndigs = 0;
-		for (int i = 0; i < 9; i++)
-			if (ua & myband3->dpat[i]) ndigs++;
-		if (ndigs == 2) {
-			int i81 = myband3->GetI81_x(ua);
-			if (i81 >= 0) {
-				guah54.AddA2(U, i81, (int)cc0);
-				cb3.g2t.setBit(i81);
-				p_cpt2g[20]++;
-				continue;
+			register uint64_t U = w.bf.u64[0];
+			uint64_t cc0 = _popcnt64(U);
+			if (cc0 > 16)continue;
+			if (!cc0) {
+				cout << Char27out(bf) << " bug ua nob12 [10]" << p_cpt2g[10] << endl;
+				cout << Char54out(myb12) << " " << endl;
+				cout << "list of uas found" << endl;
+				for (uint32_t i = 0; i < zhgxn.nua; i++) {
+					BF128 ww = zhgxn.tua[i];
+					cout << Char2Xout(ww.bf.u64[0]) << " ";
+					cout << Char27out(ww.bf.u32[2]) << " i=" << i << endl;
+				}
+				zhou[0].CallCheckB3(bf, 1);		aigstop = 1;	return 1;
 			}
-		}
-		p_cpt2g[19]++;
-		if (cc == 4)	myband3->Addm4(w);
-		else myband3->Addmm(w);
-		continue;
-	}
 
-	else {
-		if (cc == 2) {
-			int i81 = myband3->GetI81_2(w.bf.u32[2]);
-			guah54.AddA2(U, i81, (int)cc0);
-			cb3.g2t.setBit(i81);
-			p_cpt2g[20]++;
-		}
-		else {
-			int i81 = myband3->GetI81_3(w.bf.u32[2]);
+			U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
+			if (cc <= 6 && cc > 1) {
+				if (cc > 3) {// is it a 2 digits??
+					int ndigs = 0;
+					for (int i = 0; i < 9; i++)
+						if (ua & myband3->dpat[i]) ndigs++;
+					if (ndigs == 2) {
+						int i81 = myband3->GetI81_x(ua);
+						if (i81 >= 0) {
+							guah54.AddA2(U, i81, (int)cc0);
+							cb3.g2t.setBit(i81);
+							p_cpt2g[20]++;
+							continue;
+						}
+					}
+					p_cpt2g[19]++;
+					if (cc == 4)	myband3->Addm4(w);
+					else myband3->Addmm(w);
+					continue;
+				}
 
-			guah54.AddA3(U, i81, (int)cc0);
-			cb3.g3t.setBit(i81);
-			p_cpt2g[21]++;
-		}
-	}
-}
+				else {
+					if (cc == 2) {
+						int i81 = myband3->GetI81_2(w.bf.u32[2]);
+						guah54.AddA2(U, i81, (int)cc0);
+						cb3.g2t.setBit(i81);
+						p_cpt2g[20]++;
+					}
+					else {
+						int i81 = myband3->GetI81_3(w.bf.u32[2]);
+						guah54.AddA3(U, i81, (int)cc0);
+						cb3.g3t.setBit(i81);
+						p_cpt2g[21]++;
+					}
+				}
+			}
 		}
 		return 1;
 	}
@@ -3254,17 +3242,19 @@ int  G17B::Valid3mm(uint32_t bf) {
 //#define MYTEST  1512000
 
 #define VTEST sgo.vx[9]
-void G17B::GoCallB3(CALLBAND3& cb3) {
+void G17B::GoCallB3(CALLBAND3& cb3w) {
 	p_cpt2g[7]++;
+	if(op.f4== p_cpt2g[4] && (!op.f7))cout << Char54out(myb12) << "  [7] "
+		<< p_cpt2g[7] << endl;
 	int locdiag = 0;
-	//if (p_cpt2g[7]== MYTEST){
-		//cout << "GoCallB3 in diag [7]  " << p_cpt2g[7] << endl;
-		//locdiag = 1;
+	if ( p_cpt2g[7]== op.f7){
+		cout << Char54out(myb12) << "GoCallB3 in diag [7]  " << p_cpt2g[7] << endl;
+		locdiag = 1;
 		//cout << "genb12.bands3[0].nbgm "<< genb12.bands3[0].nbgm 
 		//	<< " genb12.bands3[0].nbgmm " << genb12.bands3[0].nbgmm << endl;
 		//genb12.bands3[0].DumpTgmm();
-	//}
-	//if (p_cpt2g[7] > MYTEST) { aigstop = 1; return; }
+	}
+	if (op.f7 && p_cpt2g[7] >op.f7) { aigstop = 1; return; }
 	//if (op.f7 > p_cpt2g[7]) return;
 	if (op.known > 1) {
 		if (!((~pk54) & myb12)) {
@@ -3289,29 +3279,33 @@ void G17B::GoCallB3(CALLBAND3& cb3) {
 
 		}
 	}
-	guah54.GetG2G3(cb3.g2t, cb3.g3t);
+	guah54.GetG2G3(cb3w.g2t, cb3w.g3t);
 	if (locdiag) {
 		cout << "g2t g3t done" << endl; //return;
+		if (op.ton > 1) {
+			cb3w.g2t.Print("g2");
+			guah54.DumpA2(); guah54.DumpB2(1);
+		}
 	}
 
 	//p_cpt2g[16] += cb3.g2t.Count(); p_cpt2g[18] += cb3.g3t.Count();
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 		STD_B3& b3 = genb12.bands3[ib3];
-		b3.Go(cb3);
+		b3.Go(cb3w);
 	}
 
 }
 
 void STD_B3::Go(CALLBAND3& cb3e) {
+	if (VTEST && p_cpt2g[10] > VTEST) return;
 	int locdiag = 0;
-	//if (p_cpt2g[7] == MYTEST) {
-		//cout << "Go(CALLBAND3& cb3e) [7]  " << p_cpt2g[7] << endl;
-		//locdiag = 1;
+	if (p_cpt2g[7] == op.f7) {
+		cout<<band << "Go(CALLBAND3& cb3e) [7]  " << p_cpt2g[7] << endl;
+		locdiag = 1;
 
-	//}
+	}
 
 
-	//if (p_cpt2g[10] == VTEST) cout << " entry VTEST  " << endl;
 	p_cpt2g[8]++;
 	if (g17b.clean_valid_done == 2 || g17b.aigstop) return;
 	memcpy(&g17b.grid0[54], band0, sizeof band0);// used in brute force
@@ -3374,8 +3368,20 @@ void STD_B3::Go(CALLBAND3& cb3e) {
 			}
 		}
 	}
-	if (locdiag) cout << " before  [9] mincount= " << scritb3.mincount << endl;
-	if ((int)scritb3.mincount > scritb3.nb3) return;
+	if (locdiag) {
+		cout << " before  [9] mincount= " << scritb3.mincount
+			<< " [10]" << p_cpt2g[10] << endl;
+
+	}
+	if ((int)scritb3.mincount > scritb3.nb3) {
+		if (locdiag) {
+			scritb3.Status("exit a");
+			(cb3e.g2t & g.gsocket2).Print("g2");
+			(cb3e.g3t & g.gsocket3).Print("g3");
+			Dumpg2();
+		}
+		return;
+	}
 	p_cpt2g[9]++;
 	//if (locdiag) cout << "   [9] " << p_cpt2g[9] << endl;
 
@@ -3744,7 +3750,7 @@ int STD_B3::Go3(CALLBAND3& cb3) {
 			if (debug>1 ) {
 				v4.Print(" potential 4 clues in g4 ");
 				cout << band << endl;
-				guah54.DumpB2(1);
+				//guah54.DumpB2(1);
 			}
 			{
 				register uint32_t r;
@@ -4249,6 +4255,7 @@ endb:	;
 	} 
 	else  g17b.GoNotMiss0();
 }
+
 void G17B::GoNotMiss0() {
 	p_cpt2g[15]++;
 	if (VerifyValid()) return;
@@ -4402,7 +4409,7 @@ void G17B::TryMiss1Subcritical() {
 			}
 		}
 		if (nmiss < 0) return;
-	
+		xq.nmiss = nmiss;
 		if (locdiag) { 
 			cout << "after [90] aaa nmiss="<<nmiss << endl;
 			if (p_cpt2g[10] == VTEST)xq.Status();
@@ -4466,6 +4473,7 @@ void G17B::TryMiss1Subcritical() {
 			uint32_t nass = _popcnt32(F);
 			if (nass > xq.nb3) return; // should not be
 			if (nass == xq.nb3) {// no expand
+				if (xq.nout) return;
 				//if (VerifyValid()) return;
 				if(!IsValidB3(F)) Out17(F);
 				return;

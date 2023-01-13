@@ -1116,6 +1116,15 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 		}
 
 	}
+	void Dumpg2() {
+		cout << "g2 status " << endl;
+		for (int i = 0; i < 81; i++) 
+			if(g.gsocket2.On(i))	{
+			cout << i << "\t"  << " " << Char27out(g.pat2[i]) << endl;
+		}
+
+	}
+
 #define GM_NB4 50
 #define GM_NBM 50
 
