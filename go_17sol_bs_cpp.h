@@ -119,6 +119,7 @@ void G17B::StartInit() {
 					if (ncol > 5) continue;
 					if (ncol == 4) {// this is a ua6
 						b3.g.gsocket6.setBit(i);
+						gsock2.setBit(i);
 						b3.g.pat2[i] = Bf;
 						continue;
 					}
@@ -129,6 +130,7 @@ void G17B::StartInit() {
 					int maskr = 0777 << (9 * r1) | 0777 << (9 * r2);
 					if (Bf & ~maskr) continue;
 					b3.g.gsocket4.setBit(i);
+					gsock2.setBit(i);
 					b3.g.pat2[i] = Bf;
 
 				}
@@ -1228,13 +1230,16 @@ void G17B::StartAfterUasHarvest() {
 	t54b12.Build_ta128(tuasb12.tua, tuasb12.nua);
 	if (op.ton) {
 		if (sgo.bfx[1] & 8)t54b12.DebugA();
-		//STD_B3& b = genb12.bands3[22];
-		//cout <<b.band<< "status  b22 pour pat 2" << endl;
-		//((b.g.gsocket2 | b.g.gsocket4) | b.g.gsocket6).Print("g2 4 6");
-		//for (int i = 0; i < 81; i++) {
-			//int p = b.g.pat2[i];
-			//if (p) cout << Char27out(p) << " i=" << i << endl;
-		//}
+		/*
+		STD_B3& b = genb12.bands3[0];
+		cout <<b.band<< "status  pour pat 2" << endl;
+		((b.g.gsocket2 | b.g.gsocket4) | b.g.gsocket6).Print("g2 4 6");
+		for (int i = 0; i < 81; i++) {
+			int p = b.g.pat2[i];
+			if (p) cout << Char27out(p) << " i=" << i << endl;
+		}
+		b.DumpTgmm();
+		*/
 	}
 	//if (op.known > 1) genb12.bands3[0].DumpTgm();
 	//return;
@@ -3104,6 +3109,18 @@ void DumpPotential(int det=0) {
 
 
 //____________processing band 3 to the end
+void GUAH54::AddA2(uint64_t bf, int i81, int cc) {
+	if (i81 == 37) {
+		cout << Char54out(bf) << ";";
+		cout << Char54out(genb12.bands3[0].g.pat2[i81])
+			<< "add g2=37 [3]" << p_cpt2g[3] << " [4] " << p_cpt2g[4]
+			<< " [7] " << p_cpt2g[7] << " [10] " << p_cpt2g[10]
+			<< "<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+	}
+	wbf = bf; wi = i81, wc = cc;
+	Add2A();
+	if (cc)Add2B();
+}
 
 int G17B::IsValid_myb12() {
 	if (zh2b[1].IsValid(myb12)) {
@@ -3302,7 +3319,8 @@ void STD_B3::Go(CALLBAND3& cb3e) {
 	if (p_cpt2g[7] == op.f7) {
 		cout<<band << "Go(CALLBAND3& cb3e) [7]  " << p_cpt2g[7] << endl;
 		locdiag = 1;
-
+		cout << "xq Dump2 entry go (end of previous)" << endl;
+		xq.Dump2();
 	}
 
 
@@ -3701,19 +3719,19 @@ inline void STD_B3::Go2(int debug ) {
 	if (debug) {
 		cout << "\n\ngo2 [9]=" << p_cpt2g[9] << endl;
 		scritb3.Status("go2 ");
-		xq.Dump1();
+		xq.Status();
 	}
 
 }
 int STD_B3::Go3(CALLBAND3& cb3) {
 	int debug = 0;
+	xq.SetFilters();
 	if ( p_cpt2g[10] == VTEST-1) {
 		cout << "test [10] status entry go3" << endl;
 		xq.Status();
 		debug = 2;
 	}
 
-	xq.SetFilters();
 	{// add band 3 UA size 4
 		register uint32_t F = xq.fa, C = xq.critbf, A = xq.fb; 
 		//if (debug)xq.Dump2();
@@ -3927,7 +3945,7 @@ void STD_B3::GoAfter10(CALLBAND3& cb3) {
 	end10:
 	p_cpt2g[11]++;
 	if (locdiag) {
-		cout << " continue after [11] " << endl;
+		cout << " continue after [11] xq.nmiss= "<< xq.nmiss << endl;
 		if (p_cpt2g[10] == VTEST)xq.Status();
 	}
 	if(xq.nmiss)	GoAfter11(cb3);
@@ -4112,6 +4130,12 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 
 void STD_B3::GoAfter11(CALLBAND3& cb3) {// add now size 6 and more 
 	p_cpt2g[13]++;
+	int locdiag = 0;
+	if (p_cpt2g[10] == VTEST || g17b.knownt == 11) {
+		cout << "test [10]  entry GoAfter11" << endl;
+		if (p_cpt2g[10] == VTEST)xq.Status();
+		locdiag = 1;
+	}
 	// Add first some 4 clues disjoints
 	{ // look for disjoints of required size 
 		register uint32_t bf = 0;
@@ -4179,22 +4203,28 @@ endb:	;
 			if (U & C)	xq.Addin(U);
 			else xq.Addout(U);
 		}
-
-		//if (g17b.knownt == 11) 			DumpTgm();
-		
-
+		if (locdiag) {
+			cout << "  GoAfter11 bbbb  " << endl;
+			cout << Char27out(F) << "F" << endl;
+			cout << Char27out(C) << "C" << endl;
+			xq.Status();
+			DumpTgmm();
+		}
 
 		{
 			ntw = 0;
 			for (uint32_t i = 0; i <= nbbgmm; i++) {
 				GUM64& gw = tgm64m[i];
 				register uint64_t V = gw.Getv(g17b.tclues6p, g17b.nclues6p);
+				if (locdiag) {
+					cout << Char64out(V) << " ibgmm=" << i << endl;
+				}
 				register uint32_t r;
 				while (bitscanforward64(r, V)) {
 					V ^= (uint64_t)1 << r;
 					register uint32_t U = gw.tb3[r],nU=~U;
 					//if (U & F)continue;
-					for (uint32_t j = 0; j <= ntw; j++) {// clean redundancy
+					for (uint32_t j = 0; j < ntw; j++) {// clean redundancy
 						if (!(tw[j] & nU)) {U = 0; break;	}						
 					}
 					if (U) tw[ntw++] = U;

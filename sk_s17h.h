@@ -698,11 +698,15 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 	}
 
 	//_______________ add fresh uas in check b3
-	void AddA2(uint64_t bf, int i81, int cc) {
+	void AddA2(uint64_t bf, int i81, int cc);
+	/*
+	{
 		wbf = bf; wi = i81, wc = cc;
-		Add2A(); 
+
+		Add2A();
 		if(cc)Add2B();
-	}
+	}	*/
+
 	void AddA3(uint64_t bf, int i81, int cc) {
 		wbf = bf; wi = i81, wc = cc;
 		Add3A();
@@ -1214,9 +1218,6 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 			tgm64[i].Set6(tc);
 		for (uint32_t i = 0; i <= nbbgmm; i++) 
 				tgm64m[i].Set6(tc);
-
-		
-
 	}
 	void DumpTgm() {
 		cout << "dumptgm ngm=" << nbgm << endl;
