@@ -229,8 +229,30 @@ void G17B::StartPrint() {
 	//}
 
 }
-
+//#define PUZTEST 1483
 void G17B::Start() {// processing an entry 
+#ifdef PUZTEST
+	if (npuz > PUZTEST) return;
+	if (npuz == PUZTEST) {
+		memset(p_cpt2g, 0, sizeof p_cpt2g);
+		op.ton = 3;
+		op.f3 = 1;
+		op.f4 = 3;
+		op.f7 = 0;
+		op.f10 = sgo.vx[9] = 0;
+		op.f10 = sgo.vx[9] = 15;
+		op.dv12 = op.dv3 = 1;
+	}
+	else {
+		op.ton = 0;
+		op.f3 = 0;
+		op.f4 = 0;
+		op.f7 = 0;
+		op.f10=sgo.vx[9] = 0;
+		op.dv12 = op.dv3 = 0;
+
+	}
+#endif
 	if (aigstop)return;
 	p_cpt2g[0] ++;
 	p_cpt2g[1] += genb12.nband3;
@@ -1424,7 +1446,6 @@ int T54B12::Build_tc128(SPB03A& s3, SPB03A& s6) {
 			}
 		}
 	}
-	if (op.ton > 2)cout << "ua6c ntw=" << ntw << " nc128=" << nc128 << endl;
 	return 0;
 }
 int T54B12::Build_td128(SPB03B &s9) {
@@ -1762,6 +1783,8 @@ next6:
 		p_cpt2g[4]++;
 		if (op.known > 1) {
 			if (knownt >= 9)return;
+			if (op.ton > 2)cout << "ua6c  nc128=" << t54b12.nc128
+				<< "[4] " << p_cpt2g[4] << endl;
 			if (!((~pk54) & sp6.all_previous_cells)) {
 				cout << Char54out(sp6.all_previous_cells) << " expected 6 [4] " 
 					<<p_cpt2g[4] << endl;
@@ -3110,6 +3133,7 @@ void DumpPotential(int det=0) {
 
 //____________processing band 3 to the end
 void GUAH54::AddA2(uint64_t bf, int i81, int cc) {
+	/*
 	if (i81 == 37) {
 		cout << Char54out(bf) << ";";
 		cout << Char54out(genb12.bands3[0].g.pat2[i81])
@@ -3117,6 +3141,24 @@ void GUAH54::AddA2(uint64_t bf, int i81, int cc) {
 			<< " [7] " << p_cpt2g[7] << " [10] " << p_cpt2g[10]
 			<< "<<<<<<<<<<<<<<<<<<<<<<<" << endl;
 	}
+	*/
+	if (op.dv3&& p_cpt2g[10]) {
+		cout << Char54out(bf) << "\ti81="<<i81  << " added g2  [10] " << p_cpt2g[10]  << endl;
+/*
+		if (i81 == 13 || i81 == 71) {
+			cout << Char54out(bf) << ";";
+			cout << Char54out(genb12.bands3[0].g.pat2[i81])
+				<< "add g2=13/71 [3]" << p_cpt2g[3] << " [4] " << p_cpt2g[4]
+				<< " [7] " << p_cpt2g[7] << " [10] " << p_cpt2g[10]
+				<< "<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+			xq.Status();
+			if (p_cpt2g[7] > 103) g17b.aigstop = 1;
+		}
+*/
+	}
+
+
+
 	wbf = bf; wi = i81, wc = cc;
 	Add2A();
 	if (cc)Add2B();
@@ -3206,8 +3248,22 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 						}
 					}
 					p_cpt2g[19]++;
-					if (cc == 4)	myband3->Addm4(w);
-					else myband3->Addmm(w);
+					if (cc == 4) {
+						myband3->Addm4(w);
+						if (op.dv3) {
+							cout << Char54out(U) <<"\t";
+							cout << Char27out(w.bf.u32[2]) << " added 4 " << myband3->nbgm 
+								<<" [10] "<< p_cpt2g[10] << endl;
+						}
+					}
+					else {
+						myband3->Addmm(w);
+						if (op.dv3) {
+							cout << Char54out(U) << "\t";
+							cout << Char27out(w.bf.u32[2]) << " added >4 " 
+								<< " [10] " << p_cpt2g[10] << myband3->nbgmm << endl;
+						}
+					}
 					continue;
 				}
 
@@ -3261,15 +3317,17 @@ int  G17B::Valid3mm(uint32_t bf) {
 #define VTEST sgo.vx[9]
 void G17B::GoCallB3(CALLBAND3& cb3w) {
 	p_cpt2g[7]++;
-	if(op.f4== p_cpt2g[4] && (!op.f7))cout << Char54out(myb12) << "  [7] "
+	if(op.f4== p_cpt2g[4] )cout << Char54out(myb12) << "  [7] "
 		<< p_cpt2g[7] << endl;
 	int locdiag = 0;
 	if ( p_cpt2g[7]== op.f7){
 		cout << Char54out(myb12) << "GoCallB3 in diag [7]  " << p_cpt2g[7] << endl;
 		locdiag = 1;
-		//cout << "genb12.bands3[0].nbgm "<< genb12.bands3[0].nbgm 
-		//	<< " genb12.bands3[0].nbgmm " << genb12.bands3[0].nbgmm << endl;
-		//genb12.bands3[0].DumpTgmm();
+		if (op.known) {
+			cout << "genb12.bands3[0].nbgm "<< genb12.bands3[0].nbgm 
+				<< " genb12.bands3[0].nbgmm " << genb12.bands3[0].nbgmm << endl;
+			//genb12.bands3[0].DumpTgmm();
+		}
 	}
 	if (op.f7 && p_cpt2g[7] >op.f7) { aigstop = 1; return; }
 	//if (op.f7 > p_cpt2g[7]) return;
@@ -4013,7 +4071,6 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 	{
 		register uint32_t  	A = xq.fb, F = xq.fa, U;// miss0 all must be in
 		if (locdiag) {
-			//cout << endl;
 			//cout << Char27out(F) << "F27" << endl;
 			//cout << Char32out(F) << "F" << endl;
 			//cout << Char32out(A) << "A" << endl;
@@ -4021,6 +4078,12 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 		for (uint32_t i = 0; i <= nbbgmm; i++) {
 			GUM64& gw = tgm64m[i];
 			register uint64_t V = gw.Getv(g17b.tclues6p, g17b.nclues6p);
+			if (locdiag) {
+				cout << " imm=" << i << endl;
+				cout << Char64out(V) << " v" << endl;
+				gw.Dump(0);
+			}
+
 			register uint32_t r;
 			while (bitscanforward64(r, V)) {
 				V ^= (uint64_t)1 << r;
@@ -4031,6 +4094,7 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 					g17b.aigstop = 1;
 					return;
 				}
+				if (locdiag)cout << Char32out(U) << " uamm" << endl;
 				if (!(U &= A)) return;// dead				
 				{
 					register uint32_t cc = _popcnt32(U);
@@ -4050,7 +4114,7 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 			//cout << Char32out(F) << "F" << endl;
 			//cout << Char32out(F) << "A" << endl;
 		}
-		if (locdiag) return;
+		//if (locdiag) return;
 
 		for (uint32_t i = 0; i < xq.n2b; i++) {
 			//if (locdiag)continue;
@@ -4205,10 +4269,10 @@ endb:	;
 		}
 		if (locdiag) {
 			cout << "  GoAfter11 bbbb  " << endl;
-			cout << Char27out(F) << "F" << endl;
-			cout << Char27out(C) << "C" << endl;
+			//cout << Char27out(F) << "F" << endl;
+			//cout << Char27out(C) << "C" << endl;
 			xq.Status();
-			DumpTgmm();
+			//DumpTgmm();
 		}
 
 		{
@@ -4216,9 +4280,9 @@ endb:	;
 			for (uint32_t i = 0; i <= nbbgmm; i++) {
 				GUM64& gw = tgm64m[i];
 				register uint64_t V = gw.Getv(g17b.tclues6p, g17b.nclues6p);
-				if (locdiag) {
-					cout << Char64out(V) << " ibgmm=" << i << endl;
-				}
+				//if (locdiag) {
+					//cout << Char64out(V) << " ibgmm=" << i << endl;
+				//}
 				register uint32_t r;
 				while (bitscanforward64(r, V)) {
 					V ^= (uint64_t)1 << r;

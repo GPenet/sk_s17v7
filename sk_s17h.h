@@ -15,7 +15,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	char* b2start;
 	int skip, last;
 	int ton;//test on and test level
-	uint64_t f3, f4, f7; // filters p_cpt2g [3] [4) [7]
+	uint64_t f3, f4, f7,f10; // filters p_cpt2g [3] [4) [7]
 	int upto3, upto4; // active below f3 below f4
 	int dv12, dv3;// print fresh uas bands 1 2 band 3
 	int dumpa;
@@ -44,11 +44,13 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			b2start = sgo.s_strings[0];
 		ton= sgo.vx[1];
 
-		f3 = sgo.vx[6];		f4 = sgo.vx[7];		f7 = sgo.vx[8];
+		f3 = sgo.vx[6];	f4 = sgo.vx[7];		
+		f7 = sgo.vx[8]; f10 = sgo.vx[9];
 
 		if (sgo.bfx[1] & 1)upto3 = 1;		if (sgo.bfx[1] & 2)upto4 = 1;
 		if (sgo.bfx[1] & 4)dv12 = 1;
 		if (sgo.bfx[1] & 8)dumpa = 1;
+		if (sgo.bfx[1] & 16)dv3 = 1;
 
 		if (sgo.bfx[2] & 1) out_one = 1;
 		if (sgo.bfx[2] & 2) out_entry = 1;
@@ -1189,6 +1191,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	uint32_t nbgm,  nbbgm, nbgmm, nbbgmm;
 	void InitTg() {
 		nbgm = nbbgm =  0;
+		nbgmm = nbbgmm = 0;
 		for (int i = 0; i < GM_NB4; i++) tgm64[i].Init();
 		for (int i = 0; i < GM_NBM; i++) tgm64m[i].Init();
 	}
