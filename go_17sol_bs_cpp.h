@@ -4267,7 +4267,7 @@ endb:	;
 			if (U & C)	xq.Addin(U);
 			else xq.Addout(U);
 		}
-		if (locdiag) {
+		if (locdiag && op.ton) {
 			cout << "  GoAfter11 bbbb  " << endl;
 			//cout << Char27out(F) << "F" << endl;
 			//cout << Char27out(C) << "C" << endl;
@@ -4548,10 +4548,7 @@ void G17B::TryMiss1Subcritical() {
 				}
 				if (!ass) break;// ass must be one ua in t2b
 				F |= ass;
-				for (uint32_t i = 0; i < xq.n2b; i++) {
-					register uint32_t a = xq.t2b[i];
-					if (a & ass) A &= ~a;
-				}
+				A &= ~ass;
 			}
 			if (locdiag) {
 				cout << "after [90] cccc" << endl;
@@ -4582,7 +4579,7 @@ void G17B::TryMiss1Subcritical() {
 				cout << Char27out(F) << "final assign  " << endl;
 			}
 			//xq.DumpOut();
-			GoEndAll(F, A);
+			GoEndAll(F, A,locdiag);
 			return;
 		}			
 	}
