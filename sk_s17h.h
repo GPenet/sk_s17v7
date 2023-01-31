@@ -142,7 +142,7 @@ struct CBS {// clues band stack
 		return 0;
 	}
 	void Status() {
-		cout << " bx " << b[0] << b[1] << b[2];
+		cout << " bx " << b[0] << b[1] << b[2] << endl;
 
 	}
 };
@@ -321,7 +321,7 @@ inline void AddA(uint64_t u) {
 			myvc[cell].clearBit(ir);
 		}
 	}
-	int Build_tb128(SPB03A & s);
+	int Build_tb128( SPB03A& s);
 
 //   #define UACNBLOCS 15 see befor SPB 
 	// status after 6 clues (C)
@@ -350,7 +350,7 @@ inline void AddA(uint64_t u) {
 			myvc[cell].clearBit(ir);
 		}
 	}
-	int Build_tc128(SPB03A& s3,SPB03A& s6);// after 6 clues
+	int Build_tc128( SPB03A& s6);// after 6 clues
 	inline int IsNotRedundant(uint64_t u) {
 		register uint64_t nu = ~u;
 		for (uint32_t i = 0; i < ntc128[0]; i++)
@@ -358,7 +358,8 @@ inline void AddA(uint64_t u) {
 		return 1;
 	}
 
-#define UADNBLOCS 10
+#define UADNBLOCS 2
+	// nearly no chance to get a 12 with more than 64 uas
 	// status after 9 clues (D)
 	TUVECT td128[UADNBLOCS];// max start 10*128=1280 uas 
 	uint64_t tandd;
@@ -385,7 +386,7 @@ inline void AddA(uint64_t u) {
 			myvd[cell].clearBit(ir);
 		}
 	}
-	int Build_td128(SPB03B& s9);
+	int Build_td128(SPB03A& s9);
 	inline int IsNotRedundantD(uint64_t u) {
 		register uint64_t nu = ~u;
 		for (uint32_t i = 0; i < ntd128[0]; i++)
@@ -416,7 +417,7 @@ inline void AddA(uint64_t u) {
 		}
 	}
 	void DebugD() {
-		cout << " debugD nd128=" << nd128 << endl;
+		cout << " debugD nd128=" << nd128  << endl;
 		td128[0].Dump();
 	}
 
@@ -651,7 +652,7 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 #define G3BNBLOCS 50
 	uint32_t nbg2, nbg3, nbbg2, nbbg3;
 	struct G64B {
-		uint64_t v0, vc[54];
+		uint64_t v0, vc[54], v9;
 		uint32_t ti81[64], n;
 		void Init() {
 			n = 0;		v0 = 0;
@@ -680,6 +681,19 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 				cout << "  " << i + i0 << endl;
 			}
 		}
+		void Dump_v9(int i0) {
+			for (uint32_t i = 0; i < n; i++) {
+				uint64_t bit = (uint64_t)1 << i;
+				if(!(v9&bit)) continue;
+				cout << ti81[i] << "\t";
+				for (int j = 0; j < 54; j++)
+					if (vc[j] & bit) cout << ".";
+					else cout << "1";
+				cout << "  " << i + i0 << endl;
+			}
+		}
+
+
 	}bg2[G2BNBLOCS], bg3[G3BNBLOCS];
 	void InitB() {
 		nbg2 = nbg3 = nbbg2 = nbbg3 = 0;
@@ -716,9 +730,10 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 	}
 
 	void Build();
-	void Build2(uint64_t filter, uint64_t active);
-	void Build9(uint64_t filter, uint64_t active);
+	void Build6(int debug=0);
 	void GetG2G3(BF128& g2, BF128& g3);
+	void GetG2G3_12(BF128& g2, BF128& g3);
+	void SetupV9();
 
 	void DumpA2() {
 		cout << "dumpA2 ng2=" << nag2 << endl;
@@ -736,6 +751,12 @@ struct GUAH54 {// handler guas 2 3 in 54 mode
 		for (uint32_t i = 0; i <= nbbg2; i++)
 			bg2[i].Dump(i << 6);
 	}
+	void DumpB2_9(int det = 0) {
+		cout << "dumpB2_9 ng2=" << nbg2 << endl;
+		for (uint32_t i = 0; i <= nbbg2; i++)
+			bg2[i].Dump_v9(i << 6);
+
+	}
 	void DumpB3(int det=0) {
 		cout << "dumpB3 ng3=" << nbg3 << endl;
 		if(det)
@@ -752,12 +773,12 @@ struct XQ {//to build the UAs b3 to expand
 	uint32_t t1a, t1b; //27 bits field assigned 
 	uint32_t  critbf,fa,fb;
 	uint32_t t2a[12], t2b[30];// pairs bf2 other pairs and triplet
-	uint32_t n2a, n2b, nb3,nmiss,nadded;
+	uint32_t n2a, n2b, nb3,bf3p,nmiss,nadded;
 	uint32_t tin[400], tout[400];
 	uint32_t nin, nout,nred;
 	uint32_t iuas4;
 	void Init(uint32_t cbf) { 
-		t1a = t1b = n2a = n2b //= n4 = nm 
+		t1a = t1b = n2a = n2b =bf3p 
 			=nin=nout=nadded= 0; 
 		critbf = cbf;
 	}
@@ -772,7 +793,7 @@ struct XQ {//to build the UAs b3 to expand
 		}
 		else {	fa = 0; fb = BIT_SET_27;}
 	}
-	int Miss1ToMiss0();
+	int Miss1ToMiss0(int debug=0);
 	int MissxToMiss0(uint32_t ubf);
 	int Miss0CheckTin();
 	int NoRoomToAssign() {
@@ -1380,11 +1401,29 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	//============================ b12 no more uas to test
 	BF128 dvect[2];
 	uint64_t ua_ret7p, myb12, myandall,	myac,
-		myb12_6,myb12_9,myac_9, myandall_9,
 		anduab12, clean_valid_done,critical_done;
 
-	uint32_t tclues6p[20]; 
-	int nclues6p;
+	uint64_t bf_cl3, bf_cl6, bf_cl9, bf_cl_6_9;
+	uint64_t ac_cl3, ac_cl6, ac_cl9;
+	uint32_t tclues6p[20],
+		tc_1_3[3], tc_1_6[6], tc_4_6[3], tc_7_9[5],// 5 for expand 7 11 
+		tc_10_12[3];
+	int nclues6p, ntc_6_9;
+	inline void Set3(SPB03A& s3) {
+		bf_cl3 = s3.all_previous_cells;
+		ac_cl3 = s3.active_cells;
+		memcpy(tc_1_6, tc_1_3,  sizeof tc_1_3);
+	}
+	inline void Set6(SPB03A& s6) {
+		bf_cl6 = s6.all_previous_cells;
+		ac_cl6 = s6.active_cells;
+		memcpy(&tc_1_6[3], tc_4_6, sizeof tc_4_6);
+	}
+	inline void Set9(SPB03A& s9) {
+		bf_cl9 = s9.all_previous_cells;
+		ac_cl9 = s9.active_cells;
+		//memcpy(&tc_1_6[3], tc_4_6, sizeof tc_4_6);
+	}
 	//============  go band3
 	int nclgo, nmiss;
 	int  ncluesb3, mincluesb3;
@@ -1463,7 +1502,14 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Expand_46(SPB03A& s3);
 	void Expand_7_9(SPB03A& s6);
 	void EndExpand_7_9();
+	void Expand_10_12(SPB03A& s9);
+	void EndExpand_10_12();
+
+
+
+
 	void GoCallB3(CALLBAND3& cb3);
+	void GoCallB3_12(CALLBAND3& cb3);
 	uint64_t GetLastD();
 
 

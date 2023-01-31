@@ -56,9 +56,12 @@ const char * libs_c17_00_cpt2g[100] = {
 	"75 exp 96_128",	
 	"76 ","77 ","78 ","79 ",
 	"80 ntoass<5 ","81 ntoass >=5",
-	"82 ","83  ",
-	"84 ","85 ",	"86 ","87 ","88 ","89 ",
-	"90 ","91","92 ","93 ","94 ","95 ",	"96 ","97 ","98 ","99 ",
+	"82 D only b2","83  D only b1 ",
+	"84 D 0-31","85 D 32_63","86 D 64_95 ",
+	"87 D >95","88 ","89 ",
+	"90 entry 10_12 ",
+	"91active 10_12","92 10_12 avec 12","93 ","94 ",
+	"95 n10",	"96 n11","97 n12","98 maxn12","99 ",
 
 };
 void Go_c17_00( ) {// p2 process
@@ -165,24 +168,10 @@ void Go_c17_10() {
 			if (op.ton)cout << " see later 17 clues for a 18" << endl;
 			continue;
 		}
-		if (op.p2 && (cbs.s[0] > 6 || cbs.s[1] > 6 || cbs.s[2] > 6)) {
-			if (op.ton)cout << " pass2 stack > 6 clues" << endl;
-			continue;
-		}
 		if (op.t18) {
 			if (op.p2 && (cbs.b[0] > 6 || cbs.b[1] > 6 || cbs.b[2] > 6)) {
 				if (op.ton)cout << "t18  pass2 not 666 666" << endl;
 				continue;
-			}
-			if (!op.p2) {
-				if (cbs.b[2] < 7) {
-					if (op.ton)cout << "t18  pass1 not >=7 in b3" << endl;
-					continue;
-				}
-				if (cbs.b[2] < cbs.s[0] || cbs.b[2] < cbs.s[1] || cbs.b[2] < cbs.s[2]) {
-					if (op.ton)cout << "t18  stack too high" << endl;
-					continue;
-				}
 			}
 		}
 		if ((!op.t18) && op.p2) {
@@ -207,8 +196,6 @@ void Go_c17_10() {
 		if (op.ton)		cout << ze << " to process  n=" << npuz
 			<< " bands " << cbs.b[0] << cbs.b[1] << cbs.b[2]
 			<< " stacks " << cbs.s[0] << cbs.s[1] << cbs.s[2] << endl;
-
-
 		// =======================morph entry 
 		for (int i = 0; i < 81; i++)zs0[i] = ze[i] - '1';
 		BANDMINLEX::PERM perm_ret;
