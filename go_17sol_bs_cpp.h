@@ -2292,7 +2292,7 @@ void G17B::EndExpand_7_9() {
 		}
 	}
 }
-//#define T90 15971
+//#define T90 162366
 void G17B::Expand_10_12(SPB03A& s9) {
 	if (aigstop) return;
 	p_cpt2g[90]++;
@@ -4433,7 +4433,9 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 			}
 		}
 	}
-	if (locdiag) xq.Status();
+	if (locdiag) {
+		cout << "miss0 bbb nbbgmm="<< nbbgmm << endl; xq.Status(); //return;
+	}
 	// add now guamm from the band (6 clues and more) and add t2b tin
 	uint32_t tw[500], ntw = 0;
 	{
@@ -4447,9 +4449,8 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 			GUM64& gw = tgm64m[i];
 			register uint64_t V = gw.Getv(g17b.tclues6p, g17b.nclues6p);
 			if (locdiag) {
-				cout << " imm=" << i << endl;
-				cout << Char64out(V) << " v" << endl;
-				gw.Dump(0);
+				cout << Char64out(V) << " v  imm=" << i << endl;
+				//gw.Dump(0);
 			}
 
 			register uint32_t r;
@@ -4478,6 +4479,7 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 		}
 		if (locdiag) {
 			cout << "ntwa=" << ntw << " xq.n2b=" << xq.n2b << endl;
+			//return;
 			//cout << Char27out(F) << "F27" << endl;
 			//cout << Char32out(F) << "F" << endl;
 			//cout << Char32out(F) << "A" << endl;
@@ -4493,11 +4495,11 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 				F |= U;
 				xq.t1a |= U;
 				A = xq.AddAssigned(U);
-				//if (locdiag) cout<< Char27out(U) << " new assign"  << endl;
+				if (locdiag) cout<< Char27out(U) << " new assign"  << endl;
 			}
 			else tw[ntw++] = U;
 		}
-		//if (locdiag) cout << "ntwb=" << ntw << endl;
+		if (locdiag) cout << "ntwb=" << ntw << endl;
 		//if (locdiag) return;
 
 		// add in to clean all single
@@ -4530,11 +4532,11 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 	}
 
 	// last check and expand builder  this is miss0, t2a is covered
-	
+
 	// sort by size
 	{ 
 		register uint32_t  	A = xq.fb, F = xq.fa, U,cc;// last status
-		uint32_t tws[7][100], ntws[7];// size 1 to 6
+		uint32_t tws[9][100], ntws[9];// size 1 to 6 plus margin
 		memset(ntws, 0, sizeof ntws);
 		for (uint32_t i = 0; i < ntw; i++) {
 			U = tw[i];
@@ -4543,6 +4545,14 @@ void STD_B3::GoAfter11Miss0(CALLBAND3& cb3) {// add now size 6 and more
 			cc = _popcnt32(U); if (cc > 6)cc = 6;
 			tws[cc][ntws[cc]++] = U;
 		}
+		if (locdiag) {
+			cout << "sort n 1-6 ";
+			for (int i = 1; i < 7; i++) cout << ntws[i] << " ";
+			cout << endl;
+		}
+		//if (locdiag) return;
+
+
 		xq.nout = 0;
 		for (int i = 1; i < 7; i++) if (ntws[i]) {
 			uint32_t* t = tws[i];
@@ -5114,6 +5124,7 @@ void  G17B::GoEndAll(uint32_t bf, uint32_t ac, int debug) {//  call the relevant
 		cout << Char27out(bf) << "assigned" << endl;
 		cout << Char27out(ac) << "active " << endl;
 		xq.DumpOut();
+		//return;
 	}
 
 	int ass = _popcnt32(bf);
