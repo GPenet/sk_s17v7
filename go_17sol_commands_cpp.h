@@ -321,6 +321,12 @@ void Go_c17_12() {// check diagonal status in a 665
 				<< endl;
 		}
 		switch (sgo.vx[2]) {
+		case 0:cout << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
+			<< ";\t" << ib1a << ";" << ib2a << ";" << ib3a
+			<< ";\t" << ib1d << ";" << ib2d << ";" << ib3d
+			<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
+			<< endl;
+			break;
 		case 1:// extract 18 (8 in [87]
 			if (strlen(ze) < 88)break;
 			if (ze[87] == '8')

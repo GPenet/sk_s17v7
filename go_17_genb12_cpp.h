@@ -180,18 +180,19 @@ int GEN_BANDES_12::F17Novalid1_2() {
 			}
 	}
 	if (op.t18 && op.b3low) return 0;
-	if (op.b2slice) {
-		int ix = t416_to_n6[it16_2];
-		if (ix < op.b2_is) return 1;
-		if (ix > op.b2) return 1;
-	}
-	else if (op.b2) {
+	//if (op.b2slice) {
+		//int ix = t416_to_n6[it16_2];
+		//if (ix < op.b2_is) return 1;
+		//if (ix > op.b2) return 1;
+	//}
+	//else 
+	if (op.b2) {
 		if( t416_to_n6[it16_2] != op.b2) return 1;
-		if (op.b2start) {
-			char* wc = op.b2start;
-			int n = (int)strlen(wc);
-			if(strncmp(myband2.band,wc,n)) return 1; 
-		}
+		//if (op.b2start) {
+			//char* wc = op.b2start;
+			//int n = (int)strlen(wc);
+			//if(strncmp(myband2.band,wc,n)) return 1; 
+		//}
 	}
 	return 0;
 }
@@ -276,10 +277,10 @@ int GEN_BANDES_12::ValidBand2() {
 			}
 		}
 		ValidInitGang();// also called from existing 17 in test
-		if(F17Novalid1_2())return ((nb12 >> 6) >= op.last);
+		if(F17Novalid1_2())return ((nb12 >> 6) > op.last);
 		if (op.p1)Find_band3B_pass1();
 		else Find_band3B();
-		return ((nb12 >> 6) >= op.last);
+		return ((nb12 >> 6) > op.last);
 	}
 	//______________________ testing options 
 	if (modeb12 ==11) {	// enumeration test
@@ -422,6 +423,7 @@ next:// erase previous fill and look for next
 		}
 		int it16_3 = pband3.i416;
 		ib3check = i3t16 = t416_to_n6[it16_3];
+		//if (i3t16 != 82) goto next;
 		//if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
 			//if (i3t16 < op.b2_is)goto next; 
 			//if (i3t16 > op.b2) goto next;
@@ -451,7 +453,7 @@ back:
 				fout1 << myband1.band << myband2.band
 				<< bands3[i].band
 				<< ";" << i1t16 << ";" << i2t16 << ";"
-				<< t416_to_n6[bands3[i].i416] << endl;
+				<< t416_to_n6[bands3[i].i416]<< " slice "<< (nb12 >> 6) << endl;
 		}
 		else g17b.Start();// call the process for that entry
 	}

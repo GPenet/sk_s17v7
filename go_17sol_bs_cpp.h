@@ -1266,7 +1266,7 @@ void G17B::StartAfterUasHarvest() {
 		*/
 	}
 	//if (op.known > 1) genb12.bands3[0].DumpTgm();
-	//return;
+	return;
 	Expand_03();
 
 
@@ -2271,7 +2271,6 @@ void G17B::EndExpand_7_9() {
 			if (ntbelow[3]) Go_10_11_18(); // do 10 clues then more
 		}
 		else {
-			return;
 			if (knownt > 11)return;
 			if (ntbelow[0]) Go_7_12(); // push to 12 clues 666
 			if (ntbelow[1]) Go_8_12();
@@ -3211,9 +3210,6 @@ void G17B::Go_11_12() {
 				tc_10_12[n++] = cell;
 			}
 		}
-
-
-
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
 		Ac &= cb3.cbs.NextActive();
@@ -3228,9 +3224,7 @@ void G17B::Go_11_12() {
 		if (locdiag>1) {
 			cout << Char54out(myb12) << "  11 go 11 12 iv=" << iv << endl;
 			cout << Char54out(Ac) << " active  ";
-		}
-
-		
+		}		
 		while (bitscanforward64(tc_10_12[2], Ac)) {
 			CALLBAND3 cb3n = cb3;
 			uint64_t bit = (uint64_t)1 << tc_10_12[2];
@@ -3250,7 +3244,6 @@ void G17B::Go_11_12() {
 				cout << Char54out(myb12) << "  12 previous [7]" << p_cpt2g[7] << endl;
 				cout << Char54out(Ac) << " active  ";
 			}
-
 			GoCallB3_12(cb3n);
 		}
 	}
@@ -3268,27 +3261,34 @@ void G17B::Go_10_12() {
 		BF128 ww = tbelow10[iv];
 		myb12 = cb3.bf12 = ww.bf.u64[0];
 		cb3.cbs.Init(myb12, 10);
+		{
+			register uint64_t F = myb12 & ~bf_cl9;
+			int n = 0;// cells 9_12
+			register int cell;// build table of cells 
+			while (bitscanforward64(cell, F)) {
+				F ^= (uint64_t)1 << cell;
+				tc_10_12[n++] = cell;
+			}
+		}
 		// try now one more clue in bands 1+2
 		uint64_t Ac = ww.bf.u64[1];
-		int cell;
-		while (bitscanforward64(cell, Ac)) {
+		while (bitscanforward64(tc_10_12[1], Ac)) {
 			CALLBAND3 cb3n = cb3;
-			uint64_t bit = (uint64_t)1 << cell;
+			uint64_t bit = (uint64_t)1 << tc_10_12[1];
 			Ac ^= bit; //clear bit
 			cb3n.bf12 |= bit;
 			myb12 = cb3n.bf12;
-			cb3n.cbs.Add(cell);
+			cb3n.cbs.Add(tc_10_12[1]);
 			// try now a second clue in bands 1+2
 			uint64_t Ac2 = Ac;// others are not active now
 			Ac2 &= cb3n.cbs.NextActive();
-			int cell2;
-			while (bitscanforward64(cell2, Ac2)) {
+			while (bitscanforward64(tc_10_12[2], Ac2)) {
 				CALLBAND3 cb3n2 = cb3n;
-				uint64_t bit2 = (uint64_t)1 << cell2;
+				uint64_t bit2 = (uint64_t)1 << tc_10_12[2];
 				Ac2 ^= bit2; //clear bit
 				cb3n2.bf12 |= bit2;
 				myb12 = cb3n2.bf12;
-				cb3n2.cbs.Add(cell2);
+				cb3n2.cbs.Add(tc_10_12[2]);
 				cb3n2.ncl = 12;
 				GoCallB3_12(cb3n2);
 			}
