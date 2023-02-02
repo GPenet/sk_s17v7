@@ -1266,7 +1266,7 @@ void G17B::StartAfterUasHarvest() {
 		*/
 	}
 	//if (op.known > 1) genb12.bands3[0].DumpTgm();
-	return;
+	//return;
 	Expand_03();
 
 
