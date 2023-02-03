@@ -793,7 +793,7 @@ struct XQ {//to build the UAs b3 to expand
 		}
 		else {	fa = 0; fb = BIT_SET_27;}
 	}
-	int Miss1ToMiss0(int debug=0);
+	int Miss1ToMiss0();
 	int MissxToMiss0(uint32_t ubf);
 	int Miss0CheckTin();
 	int NoRoomToAssign() {
@@ -1083,7 +1083,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	//_______________________
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
 	void Go(CALLBAND3& cb3);
-	inline void Go2(int debug=0);
+	inline void Go2();
 	int  Go3(CALLBAND3& cb3);
 	//int  GoMiss1Out(int debug = 0);
 	void GoAfter10(CALLBAND3& cb3);

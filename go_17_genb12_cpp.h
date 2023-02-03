@@ -180,19 +180,14 @@ int GEN_BANDES_12::F17Novalid1_2() {
 			}
 	}
 	if (op.t18 && op.b3low) return 0;
-	//if (op.b2slice) {
-		//int ix = t416_to_n6[it16_2];
-		//if (ix < op.b2_is) return 1;
-		//if (ix > op.b2) return 1;
-	//}
-	//else 
+
 	if (op.b2) {
 		if( t416_to_n6[it16_2] != op.b2) return 1;
-		//if (op.b2start) {
-			//char* wc = op.b2start;
-			//int n = (int)strlen(wc);
-			//if(strncmp(myband2.band,wc,n)) return 1; 
-		//}
+		if (op.b2start) {
+			char* wc = op.b2start;
+			int n = (int)strlen(wc);
+			if(strncmp(myband2.band,wc,n)) return 1; 
+		}
 	}
 	return 0;
 }
