@@ -180,7 +180,12 @@ int GEN_BANDES_12::F17Novalid1_2() {
 			}
 	}
 	if (op.t18 && op.b3low) return 0;
-
+	//if (op.b2slice) {
+		//int ix = t416_to_n6[it16_2];
+		//if (ix < op.b2_is) return 1;
+		//if (ix > op.b2) return 1;
+	//}
+	//else 
 	if (op.b2) {
 		if( t416_to_n6[it16_2] != op.b2) return 1;
 		if (op.b2start) {
@@ -262,7 +267,7 @@ int GEN_BANDES_12::ValidBand2() {
 	//_______________________ std process
 	if (modeb12 < 10) {
 		nband3 = 0;
-		if ((nb12 >> 6) < op.skip) return 0;// here restart value, kept untouched if no band 3 found
+		if ((nb12 >> 6) <= op.skip) return 0;// here restart value, kept untouched if no band 3 found
 		{// print a restart point every 64 bands 1+2 seen
 			uint64_t w = genb12.nb12, w1 = w >> 6;
 			w &= 63;
