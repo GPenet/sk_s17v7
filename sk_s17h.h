@@ -708,22 +708,17 @@ struct GUAH54N {
 		}
 	}
 
-	inline void AddA2(uint64_t bf,  int32_t i81){
+	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){
 		int n =  zz[indg2[i81]].n;
+		if (n >= 80 && cc12 > 14) return;
+		if (n >= 100 && cc12 > 13) return;
 		if(n>120 && n<128)
 		cout << "\t\t\tadded g2 " << indg2[i81] << " " << zz[indg2[i81]].n << endl;
 		zz[indg2[i81]].Enter(bf);
 	}
 	inline void AddA3(uint64_t bf, int32_t i81) {
 		int ix = indg3[i81];
-		if (ix < 0) {
-			cout << "bug g3" << i81 << " " << ix << endl;
-		//	zz[nzzused].Init(1, i81);
-		//	ix = indg3[i81] = nzzused++;
-		}
 		int n = zz[ix].n;
-		if (n > 65)
-			cout << "\t\t\tadded g3 " << ix << " " << zz[ix].n << endl;
 		zz[ix].Enter(bf);
 	}
 
@@ -1267,7 +1262,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	void GoB1();//  band 3 miss1 at start
 	void GoB1toMiss0(uint32_t bf);//  band 3 miss1 at start
 	void GoBMore1();//  band 3 miss>1 at start
-	void GoBMoretoMiss0(uint32_t ubf);//  band 3 miss1 at start
+	void GoBMoretoMiss0(uint32_t ubf); 
+	void GoBMoretoMiss1(uint32_t ubf); 
 
 
 	uint32_t Get2d(int d1, int d2) {

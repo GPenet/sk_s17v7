@@ -281,6 +281,8 @@ void G17B::Start() {// processing an entry
 		aigstop = 1;
 		guah54n.Status();
 	}
+	//guah54n.Status(2);
+
 }
 
 void G17B::StartKnown() {// processing an entry  with a known o follow3
@@ -1547,7 +1549,7 @@ void GUAH54N::Build() {// cut to 30 switch to 54 killer
 		if (g17b.gsock2.On(i81)) {
 			GUAH::GUA& g0 = guah.tg2[i81];
 			uint32_t n = g0.nua;
-			if (n == 1) {
+			if (0 && n == 1) {
 				register uint64_t U = g0.tua[0];
 				U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
 				BLOC0& b0 = bloc0[nbl0++];
@@ -2940,7 +2942,7 @@ void G17B::GoCallB3Com() {
 int maskminirow[9] = { 07,070,0700,07000,070000,0700000,07000000,070000000,0700000000 };
 void STD_B3::GoA() {
 	CALLBAND3& cb3e = g17b.cb3;
-	if (VTEST && p_cpt2g[10] > VTEST) return;
+	if (VTEST && p_cpt2g[8] > VTEST) return;
 	int locdiag = 0;
 	if (op.known && g17b.knownt >= 10) locdiag = 1;
 
@@ -2992,11 +2994,11 @@ void STD_B3::GoA() {
 		M = ming2_3;
 		while (bitscanforward(x, M)) {
 			M ^= 1 << x;
-			register int mask = maskminirow[x],
-				i0 = 3 * x;
+			register int i0 = 3 * x;
 			xq.t2b3[xq.n2b3++] = g.pat2_27[i0++];
 			xq.t2b3[xq.n2b3++] = g.pat2_27[i0++];
 			xq.t2b3[xq.n2b3++] = g.pat2_27[i0];
+			xq.critbf |= maskminirow[x];
 		}
 		xq.t2b = xq.t2b3 + xq.n2b3;// now one pair
 		M = ming2_1;
@@ -3106,7 +3108,7 @@ void STD_B3::GoB0() {
 			register uint32_t U = tua[i] & BIT_SET_27;
 			MISS0ADD;
 		}
-		if (p_cpt2g[8] == 2636656) xq.Statusmiss0(F,A);
+//		if (p_cpt2g[8] == 2636656) xq.Statusmiss0(F,A);
 		if (xq.nin) {// check fresh potential 
 			while (1) {// open the door tomore than one assign
 				register uint32_t Fr = F, nn = xq.nin;
@@ -3288,6 +3290,8 @@ else xq.Addin(U)
 
 void STD_B3::GoB1() {
 	p_cpt2g[41]++;
+	int locdiag = 0;
+	if (VTEST && p_cpt2g[8] == VTEST) locdiag = 1;
 	//xq.Status();
 	{// add band 3 UA size 4
 		register uint32_t  A = xq.critbf, wa = BIT_SET_27;
@@ -3311,7 +3315,10 @@ void STD_B3::GoB1() {
 			register uint32_t U = tua[i] & BIT_SET_27;
 			MISS1ADD;
 		}
-		//cout << Char27out(wa) << " end after first adds nin="<<xq.nin << endl;
+		if (locdiag) {
+			cout << Char27out(wa) << "Gob1 aa wa  end after first adds nin="<<xq.nin << endl;
+			//xq.Status();
+		}
 		if (!wa) return;
 		if (xq.nout) {	GoB1toMiss0(wa); return; }
 		g17b.Do7x();
@@ -3336,7 +3343,10 @@ void STD_B3::GoB1() {
 				MISS1ADDIF;
 			}
 		}
-		//cout << Char27out(wa) << " end after first adds nin=" << xq.nin << endl;
+		if (locdiag) {
+			cout << Char27out(wa) << "Gob1 bb wa  end after adds nin=" << xq.nin << endl;
+			xq.Status();
+		}
 		if (!wa) return;
 		if (xq.nout) { GoB1toMiss0(wa); return; }
 		//___ test global  
@@ -3346,12 +3356,14 @@ void STD_B3::GoB1() {
 		if (g17b.IsValidB3(xq.critbf)) {// not valid, new outfield
 			register uint32_t U = g17b.anduab3;
 			if (!U) return;
-			//cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
-			GoB1toMiss0(wa); return;
+			if (locdiag) cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
+			GoB1toMiss0(U); return;
 		}
+		if (locdiag) 		cout  << "Gob1 try subcritical"  << endl;
 		// now miss1 no out try all in
 		XQ xqr = xq;
 		g17b.TryMiss1Subcritical();
+		if (locdiag) 		cout << "Gob1 go miss0 with all out" << endl;
 		xq = xqr;
 		uint32_t U = BIT_SET_27 ^ xq.critbf;// dummy UA for any outfield
 		GoB1toMiss0(U);
@@ -3384,39 +3396,7 @@ void STD_B3::GoB1toMiss0(uint32_t wa) {
 	GoC0(F, A);
 }
 void G17B::TryMiss1Subcritical() {
-	//cout << "Subcritical() after buildout" << endl;
-	int locdiag = 0;
-	if (p_cpt2g[10] == VTEST || g17b.knownt == 12)  locdiag = 1;
-	memcpy(xq.tout, xq.t2a, xq.n2a * sizeof xq.tout[0]);
-	memcpy(&xq.tout[xq.n2a], xq.t2b3, xq.n2b3 * sizeof xq.tout[0]);
-	memcpy(&xq.tout[xq.n2a + xq.n2b3], xq.t2b, xq.n2b * sizeof xq.tout[0]);
-	xq.nout = xq.n2a + xq.n2b3 + xq.n2b;// +nin;
-	register uint32_t F = 0, A = xq.critbf;
 
-	{
-		uint32_t ass = 0;// load xq.in in the limit of A
-		for (uint32_t i = 0; i < xq.nin; i++) {
-			register uint32_t u = xq.tin[i];
-			if (F & u) continue;
-			if (!(u &= A)) return;// dead
-			if (_popcnt32(u) == 1)ass |= u;
-			else xq.tout[xq.nout++] = u;
-		}
-		F |= ass; xq.fa |= ass;
-		A &= ~ass; xq.fb &= ~ass;
-	}
-	xq.nin = 0;
-	if (!F) {	GoEndAll(F, A); return;	}
-	int more = xq.SubCritMore(F);
-	if (more > 1) return;
-	if (more) {//now miss0
-		xq.SubCritMoreDo(F);
-		A = xq.SubCritActive(F);
-		GoSubcritToMiss0(F, A);
-		return;
-	}
-	xq.CleanOut(F,A);
-	GoEndAll(F, A);
 }
 void G17B::GoSubcritToMiss0(uint32_t bf, uint32_t ac) {
 	//cout << " GoSubcritToMiss0" << endl;
@@ -3520,32 +3500,7 @@ void STD_B3::GoBMore1() {
 				return;
 			}
 		}
-		if (g17b.VerifyValidb3())return;
-		// put first in t2a others "in" then 
-		//cout << "miss2 to miss1 [8] " << p_cpt2g[8] << endl;
-		//xq.DumpOut();
-		//cout << Char27out(wa) << " and of uas " << endl;
-		xq.t2b[xq.n2b++] = xq.tout[0];
-		xq.critbf |= xq.tout[0];
-		xq.nmiss = 1;
-		for (uint32_t i = 1; i < xq.nout; i++)
-			xq.Addin(xq.tout[i]);
-		xq.nout = 0;
-		g17b.nt3more = 0;
-		if (g17b.IsValidB3(xq.critbf)) {// not valid, new outfield
-			register uint32_t U = g17b.anduab3;
-			if (!U) return;
-			//cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
-			GoB1toMiss0(wa); 
-			
-			return;
-		}
-		// now miss1 no out try all in
-		XQ xqr = xq;
-		g17b.TryMiss1Subcritical();
-		xq = xqr;
-		uint32_t U = BIT_SET_27 ^ xq.critbf;// dummy UA for any outfield
-		GoB1toMiss0(U);
+		GoBMoretoMiss1(1);// first as disjoint
 		return;
 	}
 	if (xq.nout<xq.nmiss-2 || wa) {//go direct
@@ -3553,9 +3508,45 @@ void STD_B3::GoBMore1() {
 		g17b.GoEndAll(0, BIT_SET_27);
 		return;
 	}
-
+	if (xq.nmiss == 3) {
+		int x = xq.Isoutsize2();
+		if (!x) {//go direct
+			xq.BuildMissxOut();
+			g17b.GoEndAll(0, BIT_SET_27);
+			return;
+		}
+		int y = xq.Isoutsize3();
+		if (!y) {// push to miss 1
+			GoBMoretoMiss1(y);
+			return;
+		}
+		else {
+			GoBMoretoMiss0(y);
+			return;
+		}
+	}
+	if (xq.nmiss == 4) {
+		int x = xq.Isoutsize3();
+		if (!x) {//go direct
+			xq.BuildMissxOut();
+			g17b.GoEndAll(0, BIT_SET_27);
+			return;
+		}
+		int y = xq.Isoutsize4();
+		if (!y) {// push to miss 1
+			GoBMoretoMiss1(y);
+			return;
+		}
+		else {
+			GoBMoretoMiss0(y);
+			return;
+		}
+	}
 	cout << "miss>2  [8] " << p_cpt2g[8] << " miss= "<< xq.nmiss << endl;
 	xq.DumpOut();
+	xq.BuildMissxOut();
+	g17b.GoEndAll(0, BIT_SET_27);
+
 }
 void STD_B3::GoBMoretoMiss0(uint32_t ubf) {
 	if (!ubf) return ;
@@ -3587,7 +3578,36 @@ void STD_B3::GoBMoretoMiss0(uint32_t ubf) {
 	if (_popcnt32(F) == xq.nb3) { GoC0F(F); return; }
 	GoC0(F, A);
 }
+void STD_B3::GoBMoretoMiss1(uint32_t ubf) {
+	if (g17b.VerifyValidb3())return;
+	if (!ubf) return;
+	for (uint32_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
+		register uint32_t u = xq.tout[i];
+		if (bit & ubf) {// new crit
+			xq.t2b[xq.n2b++] = u;
+			xq.critbf |= u;
+		}
+		else xq.tin[xq.nin++] = u; // put it in to check later
+	}
+	xq.nmiss = 1;
+	xq.nout = 0;
+	g17b.nt3more = 0;
+	if (g17b.IsValidB3(xq.critbf)) {// not valid, new outfield
+		register uint32_t U = g17b.anduab3;
+		if (!U) return;
+		//cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
+		GoB1toMiss0(U);
+		return;
+	}
+	// now miss1 no out try all in
+	XQ xqr = xq;
+	g17b.TryMiss1Subcritical();
+	xq = xqr;
+	uint32_t U = BIT_SET_27 ^ xq.critbf;// dummy UA for any outfield
+	GoB1toMiss0(U);
+	return;
 
+}
 
 //________________expand and go search 17 pass 1
 void G17B::Go_8_10() {// 8 clues limit 10 clues 
@@ -4340,7 +4360,15 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 					if (ndigs == 2) {
 						int i81 = myband3->GetI81_x(ua);
 						if (i81 >= 0) {
-							guah54n.AddA2(U, i81);
+							if ((!i81) && cc0 == 4) {
+								cout << Char54out(U) << "\t";
+								cout << Char27out(w.bf.u32[2]) << " redundancy 0"
+									<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
+									<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
+									<< endl;
+
+							}
+							guah54n.AddA2(U, i81,(int)cc0);
 							guah54n.g2.setBit(i81);
 							p_cpt2g[20]++;
 							continue;
@@ -4360,7 +4388,7 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 						if (op.dv3) {
 							cout << Char54out(U) << "\t";
 							cout << Char27out(w.bf.u32[2]) << " added >4 " 
-								<< " [10] " << p_cpt2g[10] << myband3->nbgmm << endl;
+								<< " [8] " << p_cpt2g[8] << myband3->nbgmm << endl;
 						}
 					}
 					continue;
@@ -4369,7 +4397,15 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 				else {
 					if (cc == 2) {
 						int i81 = myband3->GetI81_2(w.bf.u32[2]);
-						guah54n.AddA2(U, i81);
+						if ((!i81) && cc0 == 4) {
+							cout << Char54out(U) << "\t";
+							cout << Char27out(w.bf.u32[2]) << " redundancy 0"
+								<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
+								<<"[7]"		<< p_cpt2g[7] << "   [8]" << p_cpt2g[8]
+								 << endl;
+
+						}
+						guah54n.AddA2(U, i81,(int)cc0);
 						guah54n.g2.setBit(i81);
 						p_cpt2g[20]++;
 					}
@@ -4748,228 +4784,13 @@ void XQ::CleanOut(uint32_t F, uint32_t A) {// usually miss1 last step
 
 
 
-void G17B::GoNotMiss0() {
-	p_cpt2g[15]++;
-	if (VerifyValidb3()) return;
-	if (xq.nout) {
-		cout << "\n\nGoNotMiss0() entry with xqnout, see why" << endl;
-		xq.Status();
-		aigstop = 1;
-		return;
-	}
-	int locdiag = 0;
-	if (p_cpt2g[10] == VTEST || g17b.knownt == 12)  locdiag = 1;
-	//___ test global till valid critbf
-	{
-		while (1) {
-			nt3more = 0;
-			if (locdiag)cout << Char27out(xq.critbf) << "chek valid b3" << endl;
-			if (IsValidB3(xq.critbf)) {// not valid, new outfield
-				 if (locdiag)for (uint32_t i = 0; i < nt3more; i++)
-					cout << Char27out(t3more[i]) << " fresh ua i=" << i << endl;
-				if (xq.nmiss == 1) {// now dummy ua and miss 0
-					xq.Addout(anduab3);
-					if (xq.Miss1ToMiss0()) return;
-					if (locdiag) {
-						cout << "after xq.Miss1ToMiss0() " << endl;
-						xq.Status();
-					}
-					BridgeEndMiss0();
-					return;
-				}
-				// missing here possibility to have 2 gu2 same mini row
-				if (nt3more == 1) {// most often
-					xq.t2b[xq.n2b++] = anduab3;
-					xq.nmiss--;
-					xq.critbf|= anduab3;
-					continue;
-				}
-				for (uint32_t i = 0; i < nt3more; i++) {// good chance to get disjoints 
-					register uint32_t U= t3more[i];
-					if (!(xq.critbf & U)) {
-						if (!xq.nmiss) return;
-						xq.t2b[xq.n2b++] = U;
-						xq.nmiss--;
-						xq.critbf |= U;
-					}
-					else xq.Addin(U);
-				}
-			}
-			else break;
-		}
-	}
-	//if (locdiag) { cout << "exit xhile" << endl; xq.Status(); }
-	if (!xq.nmiss) { BridgeEndMiss0(); return; }
-	// now in field always possible any outlied can be added 
-	p_cpt2g[16]++;
-	//if (p_cpt2g[10] == 3510150) locdiag = 1;
-	xq.CleanIn();// hit by critical or subset/equal
-	if (locdiag) { cout << "after clean in" << endl; 
-		if (p_cpt2g[10] == VTEST)xq.Status();
-	}
-
-	if (xq.nmiss > 1) {// direct to expand 
-		//xq.BuildAllOut();
-		//if (locdiag) { cout << "after Buildout" << endl; xq.Status(); }
-		GoEndAll(0, BIT_SET_27);
-		return;
-	}
-	p_cpt2g[17]++;
-	// now miss1 no out try all in  
-	XQ xqr = xq;
-	TryMiss1Subcritical();
-	if (locdiag)  cout << "back subcritical" << endl;
-	// then add out field as dummy ua leading to miss 2
-	xq = xqr;
-	xq.t2b[xq.n2b++] = BIT_SET_27 ^ xq.critbf;
-	xq.critbf= BIT_SET_27;
-	xq.nmiss = 0;
-	xq.SetFilters();
-	if (xq.Miss0CheckTin()) return;
-	//xq.BuildAllOutMiss0();
-	xq.CleanOut();
-	if (locdiag) {
-		cout << " [17]after cleanout" << endl;
-		if (p_cpt2g[10] == VTEST)xq.Status();
-	}
-	int ntoass = xq.nb3 - _popcnt32(xq.t1a);
-	xq.nin = 0;
-	switch (ntoass) {
-	case 0:if (xq.nout) return;
-		if (!IsValidB3(xq.t1a)) Out17(xq.t1a);
-		return;
-	case 1:if (xq.Isoutsize2()) return;		break;
-	case 2:if (xq.Isoutsize3()) return;		break;
-	case 3:if (xq.Isoutsize4()) return;		break;
-	case 4:if (xq.Isoutsize5()) return;		break;
-	}
-	if (locdiag) { cout << " [18]do miss1" << endl;
-		if (p_cpt2g[10] == VTEST)xq.Status();
-	}
-	p_cpt2g[18]++;
-	GoEndAll(xq.fa, xq.fb);
-
-}
+void G17B::GoNotMiss0() {}
 
 void G17B::BridgeEndMiss0() {// build tout mis0 exit  GoAfter11() 
-	int locdiag = 0;
-	if (p_cpt2g[10] == VTEST) {
-		cout << "entry BridgeEndMiss0() in test" << endl;
-		locdiag = 1;
-		xq.Status();
-	}
-	// sort by size
-	{
-		register uint32_t  	A = xq.fb, F = xq.fa, U, cc;// last status
-		uint32_t tws[8][100], ntws[8];// size 1 to 6
-		memset(ntws, 0, sizeof ntws);
-		for (uint32_t i = 0; i < xq.n2b; i++) {
-			U = xq.t2b[i];
-			if (U & F)continue;
-			if (!(U &= A))return;
-			cc = _popcnt32(U); if (cc > 6)cc = 7;
-			tws[cc][ntws[cc]++] = U;
-		}
-		for (uint32_t i = 0; i < xq.nin; i++) {
-			U = xq.tin[i];
-			if (U & F)continue;
-			if (!(U &= A))return;
-			cc = _popcnt32(U); if (cc > 6)cc = 7;
-			tws[cc][ntws[cc]++] = U;
-		}
 
-		for (uint32_t i = 0; i < xq.nout; i++) {
-			U = xq.tout[i];
-			if (U & F)continue;
-			if (!(U &= A))return;
-			cc = _popcnt32(U); if (cc > 6)cc = 7;
-			tws[cc][ntws[cc]++] = U;
-		}
-		xq.nout = xq.nin = 0;
-		for (int i = 1; i < 8; i++) if (ntws[i]) {
-			uint32_t* t = tws[i];
-			for (uint32_t j = 0; j < ntws[i]; j++) {
-				U = t[j];
-				register uint32_t  nU = ~U;
-				for (uint32_t k = 0; k < xq.nout; k++) {
-					if (!(xq.tout[k] & nU)) { U = 0; break; }
-				}
-				if (U)xq.tout[xq.nout++] = U;
-			}
-		}
-	}
-
-	if (locdiag) {
-		cout << "call GoEndMiss0() in test" << endl;
-		xq.Status();
-	}
-	GoEndMiss0();
 }
 void G17B::GoEndMiss0() {
-	int locdiag = 0;
-	if (p_cpt2g[10] == VTEST) {
-		cout << "GoEndMiss0() in test" << endl;
-		locdiag = 1;
-		//return;
-	}	
-	// if one in "tout" is subset of tb, replace it
-	{	
-		int aig = 0;
-		for (uint32_t i = 0; i < xq.nout; i++) {
-			register uint32_t U = xq.tout[i];
-			for (uint32_t j = 0; j < xq.n2b; j++) {
-				register uint32_t U2 = xq.t2b[j];
-				if (U == U2)  break;
-				if (!(U & ~U2)) {// subset replace U2
-					aig = 1;
-					xq.t2b[j] = U;
-				}
-			}
-		}
-		if (aig) {// could have more to clear
-			p_cpt2g[38]++;
-			xq.SetFreshCrit();
-			while (1) {
-				register uint32_t A = xq.fb, F = xq.t1a;
-				uint32_t bf = 0, nn = xq.nout; xq.nout = 0;
-				for (uint32_t i = 0; i < nn; i++) {
-					register uint32_t U = xq.tout[i];
-					if (U & F) continue;
-					if (!(U &= A)) return;
-					if (_popcnt32(U) == 1)bf = U;
-					xq.tout[xq.nout++] = U;
-				}
-				if (bf) xq.AddAssigned(bf);
-				else break;
-			}
-			p_cpt2g[39]++;
-		}
-	}
-	p_cpt2g[40]++;
-	nt3more = 0;
-	int ntoass = xq.nb3 - _popcnt32(xq.t1a);
-	if (locdiag) {
-		cout << "GoEndMiss0() in test [40] ntoass="<< ntoass << endl;
-		xq.Status();
-	}
-	if (ntoass < 0) {
-		cout << "bug miss0 ntoass<0  [8]" << p_cpt2g[8]
-			<< " na,b " << scritb3.nb3 << " " << _popcnt32(xq.t1a) << endl;
-		xq.Status();
-		aigstop = 1; return;
-	}
-	if (VerifyValidb3())return;
-	if (!ntoass) {
-		if(!IsValidB3(xq.t1a))Out17(xq.t1a);
-		return;
-	}
-	p_cpt2g[45]++;
-	if (IsValidB3(xq.fb | xq.t1a)) return;// possible 18??
-	p_cpt2g[46]++; // around 6000 in sample test
-	GoEndAll(xq.t1a, xq.fb,locdiag);
-	return;
-	if (p_cpt2g[7] <= op.f7) {	}
-	if (knownt == 11) 		scritb3.Status("bbb");
+
 }
 void  G17B::GoEndAll(uint32_t bf, uint32_t ac, int debug) {//  call the relevant expand b3
 	ac &= BIT_SET_27;// be sure to have no extra digit
