@@ -555,16 +555,28 @@ struct GUAH54N {
 				vc[cell].clearBit(nr);
 			}
 		}
-		void Dump() {
+		void Dump(int det=0) {
 			cout << "dump mode " << mode2_3 << " i81" << i81 << endl;
 			for (uint32_t i = 0; i < 128; i++) {
 				if (v0.Off(i))break;
+				if (det > 1)
+					cout << 100 * (mode2_3 + 1) + i81<<" ";
 				for (int j = 0; j < 54; j++)
 					if (vc[j].On(i)) cout << ".";
 					else cout << "1";
 				cout << "  " << i << endl;
 			}
 
+		}
+		int Redundant(uint64_t u) {
+			for (uint32_t i = 0; i < 128; i++) {
+				if (v0.Off(i))return 0;
+				register uint64_t uc = 0, bit = 1;
+				for (int j = 0; j < 54; j++,bit<<=1)
+					if (vc[j].Off(i)) uc|=bit;
+				if(u==uc )return 1;
+			}
+			return 0;
 		}
 
 	}zz[162];
@@ -574,8 +586,8 @@ struct GUAH54N {
 	uint32_t nbl0, nzzused, nzzg2;
 	uint32_t tind6[160], ntind6;
 	uint32_t tind9[160], ntind9;
-	uint32_t tg2[81], ntg2;
-	uint32_t tg3[81], ntg3;
+	uint32_t tg2[81], ntg2,tmg2[10], ntmg2;
+	uint32_t tg3[81], ntg3,tmg3[10], ntmg3;
 	BF128 g2, g3;
 	int indg2[81], indg3[81];
 
@@ -585,16 +597,18 @@ struct GUAH54N {
 		memset(indg2, 255, sizeof indg2);
 		memset(indg3, 255, sizeof indg3);
 	}
+	inline void InitCom() { ntmg2 = ntmg3 = 0; }
 	void Build();
 	void Build6( uint32_t* tc) {
 		ntind6 = 0;
 		for (uint32_t i = 0; i < nzzused; i++) {
 			Z128& myz = zz[i];
-			BF128 v = myz.v0;
-			for (int j = 0; j < 6; j++)
+			//BF128 v = myz.v0;
+			BF128 v= myz.vc[tc[0]];
+			for (int j = 1; j < 6; j++)
 				v &= myz.vc[tc[j]];
 			myz.v6 = v;
-			if (v.isNotEmpty())tind6[ntind6++] = i;
+			if ((v& myz.v0).isNotEmpty())tind6[ntind6++] = i;
 		}
 	}
 	void Build9(uint32_t* tc) {
@@ -605,7 +619,7 @@ struct GUAH54N {
 			for (int j = 0; j < 3; j++)
 				v &= myz.vc[tc[j]];
 			myz.v9 = v;
-			if (v.isNotEmpty())tind9[ntind9++] = tind6[it];
+			if ((v & myz.v0).isNotEmpty())tind9[ntind9++] = tind6[it];
 		}
 	}
 	inline void GetG2G3A(uint64_t bf) {
@@ -623,6 +637,49 @@ struct GUAH54N {
 				else {
 					g2.setBit(ix);
 					tg2[ntg2++] = ix;
+				}
+			}
+		}
+	}
+	void GetG2G3_7(uint64_t bf, uint32_t cell1) {
+		GetG2G3A(bf);
+		{
+			for (uint32_t it = 0; it < ntind6; it++) {
+				Z128& myz = zz[tind6[it]];
+				if (bf & myz.killer) continue;
+				BF128 v = (myz.v6 & myz.v0) & myz.vc[cell1];
+				if (v.isNotEmpty()) {
+					register uint32_t ix = myz.i81;
+					if (myz.mode2_3) {// this is a g3
+						g3.setBit(ix);
+						tg3[ntg3++] = ix;
+					}
+					else {
+						g2.setBit(ix);
+						tg2[ntg2++] = ix;
+					}
+				}
+			}
+		}
+	}
+	void GetG2G3_8(uint64_t bf, uint32_t * tc) {
+		GetG2G3A(bf);
+		{
+			for (uint32_t it = 0; it < ntind6; it++) {
+				Z128& myz = zz[tind6[it]];
+				if (bf & myz.killer) continue;
+				BF128 v = (myz.v6 & myz.v0) & 
+					(myz.vc[tc[0]]& myz.vc[tc[1]]);
+				if (v.isNotEmpty()) {
+					register uint32_t ix = myz.i81;
+					if (myz.mode2_3) {// this is a g3
+						g3.setBit(ix);
+						tg3[ntg3++] = ix;
+					}
+					else {
+						g2.setBit(ix);
+						tg2[ntg2++] = ix;
+					}
 				}
 			}
 		}
@@ -648,7 +705,7 @@ struct GUAH54N {
 			for (uint32_t it = 0; it < ntind9; it++) {
 				Z128& myz = zz[tind9[it]];
 				if (bf & myz.killer) continue;
-				BF128 v = myz.v9 & myz.vc[cell1];
+				BF128 v = (myz.v9 & myz.v0) & myz.vc[cell1];
 				if (v.isNotEmpty()) {
 					register uint32_t ix = myz.i81;
 					if (myz.mode2_3) {// this is a g3
@@ -669,7 +726,7 @@ struct GUAH54N {
 			for (uint32_t it = 0; it < ntind9; it++) {
 				Z128& myz = zz[tind9[it]];
 				if (bf & myz.killer) continue;
-				BF128 v = myz.v9 & (myz.vc[cell1]& myz.vc[cell1]);
+				BF128 v = (myz.v9 & myz.v0) & (myz.vc[cell1]& myz.vc[cell1]);
 				if (v.isNotEmpty()) {
 					register uint32_t ix = myz.i81;
 					if (myz.mode2_3) {// this is a g3
@@ -690,7 +747,7 @@ struct GUAH54N {
 			for (uint32_t it = 0; it < ntind9; it++) {
 				Z128& myz = zz[tind9[it]];
 				if (bf & myz.killer) continue;
-				BF128 v = myz.v9;
+				BF128 v = (myz.v9 & myz.v0);
 				for (uint32_t j = 0; j < 3; j++)
 					v &= myz.vc[tc[j]];
 				if (v.isNotEmpty()) {
@@ -709,6 +766,14 @@ struct GUAH54N {
 	}
 
 	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){
+		uint32_t nx = ntmg2;
+		tmg2[ntmg2++] = i81;
+		for (uint32_t i = 0; i < nx; i++) {
+			if (i81 == tmg2[i]) {
+				ntmg2--; // was there
+				break;
+			}
+		}
 		int n =  zz[indg2[i81]].n;
 		if (n >= 80 && cc12 > 14) return;
 		if (n >= 100 && cc12 > 13) return;
@@ -717,6 +782,14 @@ struct GUAH54N {
 		zz[indg2[i81]].Enter(bf);
 	}
 	inline void AddA3(uint64_t bf, int32_t i81) {
+		uint32_t nx = ntmg3;
+		tmg3[ntmg3++] = i81;
+		for (uint32_t i = 0; i < nx; i++) {
+			if (i81 == tmg3[i]) {
+				ntmg3--; // was there
+				break;
+			}
+		}
 		int ix = indg3[i81];
 		int n = zz[ix].n;
 		zz[ix].Enter(bf);
@@ -746,7 +819,7 @@ struct GUAH54N {
 					<< " n=" << myz.n << endl;
 				if (det > 1) {
 					cout << Char54out(myz.killer) << " killer" << endl;
-					myz.Dump();
+					myz.Dump(det);
 				}
 			}
 			nn += myz.n;
@@ -1006,15 +1079,19 @@ struct XQ {//to build the UAs b3 to expand
 
 	}
 	void BuildMissxOut() {
-		nout = n2a+n2b3+n2b;//  always stored out
-		memcpy(tout, t2a, n2a * sizeof tred[0]);
-		memcpy(&tout[n2a], t2b3, n2b3 * sizeof tred[0]);
-		memcpy(&tout[n2a+n2b3], t2b, n2b * sizeof tred[0]);
+		register uint32_t* tt = tout + nout;
+		memcpy(tt, t2a, n2a * sizeof tred[0]);
+		tt += n2a;
+		memcpy(tt, t2b3, n2b3 * sizeof tred[0]);
+		tt += n2b3;
+		memcpy(tt, t2b, n2b * sizeof tred[0]);
+		nout =(int) (tt - tout) + n2b;
 		for (uint32_t i = 0; i < nin; i++) {
 			register uint32_t u = tin[i];
 			if (IsNotRedundantOut(u))
 				tout[nout++] = u;
 		}
+		nin = 0;
 	}
 
 
@@ -1566,9 +1643,10 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		anduab12,build9done, tcluesxpdone,
 		clean_valid_done,critical_done;
 
-	uint64_t bf_cl3, bf_cl6, bf_cl9, bf_cl_6_9;
-	uint64_t ac_cl3, ac_cl6, ac_cl9;
-	uint32_t tcluesxp[20],
+	uint64_t bf_cl3, bf_cl6, bf_cl9, bf_clc;
+	uint64_t ac_cl3, ac_cl6, ac_cl9, ac_clc;
+	uint32_t tcluesxp[20],// to access guam
+		tclx[10],// to expan 7_+
 		tc_1_3[3], tc_1_6[6], tc_4_6[3], tc_7_9[5],// 5 for expand 7 11 
 		tc_10_12[3];
 	int ncluesxp, ntc_6_9;
@@ -1712,6 +1790,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	void Go_8_11_18();
 	void Go_7_11_18();
+	void Go_x_11_18();
 
 	void Go_10_11_17();
 	void Go_8_11_17();
