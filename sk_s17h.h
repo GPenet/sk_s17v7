@@ -1333,6 +1333,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	//_______________________
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
 	void GoA();// start band 3  
+	void GoAg23();// fresh g2 g3 to consider 
 	void GoB0();// band3 miss0 at start
 	void GoC0(uint32_t bf, uint32_t a);// band3 miss0 before guam guamm
 	void GoC0F(uint32_t bf);//same nb3 filled

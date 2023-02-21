@@ -2936,6 +2936,35 @@ void G17B::GoCallB3Com() {
 }
 
 int maskminirow[9] = { 07,070,0700,07000,070000,0700000,07000000,070000000,0700000000 };
+
+void STD_B3::GoAg23() {
+	for (uint32_t i = 0; i < guah54n.ntmg2; i++) {
+		register uint32_t i81 = guah54n.tmg2[i], a;
+		if ((a = isg2[i81])) {
+			if (a == 2) {
+				register uint32_t  bitmini = 1 << g.ua2_imini[i81];
+				mg2 |= g.ua2bit27[i81];
+				if (bitmini & ming2_2) {
+					ming2_2 ^= bitmini;
+					ming2_3 |= bitmini;
+				}
+				else if (bitmini & ming2_1) {// should always be
+					ming2_1 ^= bitmini;
+					ming2_2 |= bitmini;
+				}
+			}
+			else if (a == 4)tg2_4[ntg2_4++] = i81;
+			else tg2_6[ntg2_6++] = i81;
+		}
+	}
+	for (uint32_t i = 0; i < guah54n.ntmg3; i++) {
+		register uint32_t i81 = guah54n.tmg3[i];
+		if (isg3[i81]) mg3 |= 1 << g.ua3_imini[i81];
+	}
+	register uint32_t all = ming2_1 | ming2_2 | ming2_3;
+	mg3 &= ~all;
+	minc = _Popcount(all | mg3) + _Popcount(ming2_3);
+}
 void STD_B3::GoA() {
 	CALLBAND3& cb3e = g17b.cb3;
 	if (VTEST && p_cpt2g[8] > VTEST) return;
@@ -2953,11 +2982,9 @@ void STD_B3::GoA() {
 	if (g17b.clean_valid_done == 2 || g17b.aigstop) return;
 	memcpy(&g17b.grid0[54], band0, sizeof band0);// used in brute force
 	g17b.myband3 = this;
-	if (guah54n.ntmg2) {// possible change in mincout
-
-	}
-	if (guah54n.ntmg3) {// possible change in mincout
-
+	if (guah54n.ntmg2 | guah54n.ntmg3) {// possible change in mincout
+		GoAg23();
+		if ((int)minc > g17b.ncluesb3) return;
 	}
 
 
