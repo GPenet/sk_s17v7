@@ -2726,11 +2726,17 @@ void G17B::Go_7_11_18() {// 7 clues limit 11 clues
 	}
 }
 void G17B::Go_x_11_18() {// 8 clues limit 11 clues 
+	int locdiag = 0;
+	if (p_cpt2g[4] == op.f4) {
+		cout << Char54out(bf_clc) << "entry Go_x_11_18 cells " << tclx[0] << " " << tclx[1] << endl;
+		locdiag = 1;
+	}
 	myb12 = bf_clc; ncluesb12 = 8; ncluesb3 = 10;
 	guah54n.GetG2G3_8(myb12, tclx);// try 8
+	if (locdiag)  cout <<"a" << endl;
 	GoCallB3Com();
+	if (locdiag)  cout << "b" << endl;
 	// try now a second clue in bands 1+2
-	guah54n.Build9(tclx);
 
 	uint64_t Ac2 = ac_clc;
 	while (bitscanforward64(tclx[2], Ac2)) {
@@ -2739,6 +2745,8 @@ void G17B::Go_x_11_18() {// 8 clues limit 11 clues
 		uint64_t bf2 = bf_clc | bit2;
 
 		myb12 = bf2; ncluesb12 = 9; ncluesb3 = 9;
+		guah54n.Build9(tclx);
+		if (locdiag)  cout << "c" << endl;
 		guah54n.GetG2G3_9(myb12);
 		GoCallB3Com();
 		if (aigstop)return;
@@ -2784,95 +2792,24 @@ void G17B::Go_x_11_18() {// 8 clues limit 11 clues
 
 
 
-void G17B::GoCallB3(CALLBAND3& cb3w) {
+void G17B::GoCallB3(CALLBAND3& cb3w) {}
 
-	/*
-	if (sgo.bfx[3] & 1) return; // only ohase 1
-	if (op.t18 && op.p2) return;// should not be called
-	if(op.f4== p_cpt2g[4] )cout << Char54out(myb12) << "  [7] "
-		<< p_cpt2g[7] << endl;
+void G17B::GoCallB3Com() {
+	p_cpt2g[7]++;
 	int locdiag = 0;
-	if ( p_cpt2g[7]== op.f7){
-		cout << Char54out(myb12) << "GoCallB3 in diag [7]  " << p_cpt2g[7] << endl;
-		locdiag = 1;
-		if (op.known) {
-			cout << "genb12.bands3[0].nbgm "<< genb12.bands3[0].nbgm
-				<< " genb12.bands3[0].nbgmm " << genb12.bands3[0].nbgmm << endl;
-		}
-	}
-	if (op.f7 && p_cpt2g[7] >op.f7) { aigstop = 1; return; }
-	if (op.known > 1) {
-		if (!((~pk54) & myb12)) {
-			cout << Char54out(myb12) << "  expected 11 [7] "<< p_cpt2g[7] << endl;
-			knownt = 11;
-		}
-	}
-	*/
-}
-
-/*
-
-
-void G17B::GoCallB3Com() {
-	p_cpt2g[7]++;
-	//return;
-	int tb3[256], ntb3 = 0;
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-		STD_B3& b3 = genb12.bands3[ib3];
-		b3.ntg2_4 = b3.ntg2_6 = 0;
-		p_cpt2g[23]++;
-		register uint32_t  Mg2 = 0, Mg3 = 0;
-		for (uint32_t i = 0; i < guah54n.ntg2; i++) {
-			p_cpt2g[8]++;
-			register uint32_t i81 = guah54n.tg2[i], a;
-			if ((a = b3.isg2[i81])) {
-				if(a==2)	Mg2 |= b3.g.ua2bit27[i81];
-				else if(a==4)b3.tg2_4[b3.ntg2_4++] = i81;
-				else b3.tg2_6[b3.ntg2_6++] = i81;
-			}
-		}
-		for (uint32_t i = 0; i < guah54n.ntg3; i++) {
-			p_cpt2g[9]++;
-			register uint32_t i81 = guah54n.tg3[i];
-			if (b3.isg3[i81]) 	Mg3 |= 1 << b3.g.ua3_imini[i81];
-		}
-		register uint32_t mask = 7,  bitmini = 1, minc = 0;
-		{ //highly critical code
-		loop:
-			register uint32_t vmini = Mg2 & mask;
-			if (vmini) {
-				minc++;
-				if (vmini == mask) minc++;
-			}
-			else if (Mg3 & bitmini) 	minc++;
-			if (bitmini < 0x100) {
-				bitmini <<= 1;
-				mask <<= 3;
-				goto loop;
-			}
-		}
-
-		if (minc <= (uint32_t)ncluesb3) {
-			b3.mg2 = Mg2; b3.mg3 = Mg3; b3.minc = minc;
-			tb3[ntb3++] = ib3;
-		}
-	}
-	if (!ntb3) return;
-	p_cpt2g[24]++;
-	p_cpt2g[25] += ntb3;
-
-}
-*/
-
-
-void G17B::GoCallB3Com() {
-	p_cpt2g[7]++;
 	if (op.f7 ){
 		if(op.f4 && p_cpt2g[4] == op.f4)
 			cout << Char54out(myb12) << " :GoCallB3Com() [7]" << p_cpt2g[7] << endl;
 
 		if (p_cpt2g[7] == op.f7) {
 			cout << Char54out(myb12) << " :GoCallB3Com() in test clean_valid_done" << clean_valid_done << endl;
+			locdiag = 1;
+			guah54n.zz[18].Dump();
+			guah54n.zz[18].v0.Print("v0");
+			guah54n.zz[18].v6.Print("v6");
+			guah54n.zz[18].v9.Print("v9");
+			guah54n.g2.Print("g2");
+			guah54n.g3.Print("g3");
 		}
 	}
 	tcluesxpdone = 0;
@@ -2890,7 +2827,9 @@ void G17B::GoCallB3Com() {
 			register uint32_t mini;
 			for (uint32_t i = 0; i < guah54n.ntg2; i++) {
 				register uint32_t i81 = guah54n.tg2[i], a;
-				if ((a = b3.isg2[i81])) {
+				if ((a = b3.isg2[i81])) { 
+					//if (locdiag) cout << Char27out(b3.g.ua2bit27[i81]) << " ib3" << ib3 << " g2 i81 " << i81 
+					//	<< " mini  " << b3.g.ua2_imini[i81] << endl;
 					if (a == 2) {
 						Mg2 |= b3.g.ua2bit27[i81];
 						mini =1<< b3.g.ua2_imini[i81];
@@ -2926,8 +2865,10 @@ void G17B::GoCallB3Com() {
 	if (p_cpt2g[7] == op.f7) {
 		cout  << " :GoCallB3Com() in test loop ntb3=" << ntb3 << endl;
 	}
-	for (int i = 0; i < ntb3; i++)
+	for (int i = 0; i < ntb3; i++) {
 		genb12.bands3[tb3[i]].GoA();
+		//if (locdiag && i > 9) break;
+	}
 
 	if (p_cpt2g[7] == op.f7) {
 		cout << " :GoCallB3Com() in test endloop ntb3"   << endl;
@@ -2937,10 +2878,11 @@ void G17B::GoCallB3Com() {
 
 int maskminirow[9] = { 07,070,0700,07000,070000,0700000,07000000,070000000,0700000000 };
 
-void STD_B3::GoAg23() {
+void STD_B3::GoAg23(int debug) {
 	for (uint32_t i = 0; i < guah54n.ntmg2; i++) {
 		register uint32_t i81 = guah54n.tmg2[i], a;
-		if ((a = isg2[i81])) {
+		if (debug)cout << "GoAg23 add g2 i81=" << i81 << endl;
+			if ((a = isg2[i81])) {
 			if (a == 2) {
 				register uint32_t  bitmini = 1 << g.ua2_imini[i81];
 				mg2 |= g.ua2bit27[i81];
@@ -2948,10 +2890,11 @@ void STD_B3::GoAg23() {
 					ming2_2 ^= bitmini;
 					ming2_3 |= bitmini;
 				}
-				else if (bitmini & ming2_1) {// should always be
+				else if (bitmini & ming2_1) {
 					ming2_1 ^= bitmini;
 					ming2_2 |= bitmini;
 				}
+				else ming2_1 |= bitmini;
 			}
 			else if (a == 4)tg2_4[ntg2_4++] = i81;
 			else tg2_6[ntg2_6++] = i81;
@@ -2959,6 +2902,7 @@ void STD_B3::GoAg23() {
 	}
 	for (uint32_t i = 0; i < guah54n.ntmg3; i++) {
 		register uint32_t i81 = guah54n.tmg3[i];
+		if (debug)cout << "GoAg23 add g3 i81=" << i81 << endl;
 		if (isg3[i81]) mg3 |= 1 << g.ua3_imini[i81];
 	}
 	register uint32_t all = ming2_1 | ming2_2 | ming2_3;
@@ -2974,7 +2918,8 @@ void STD_B3::GoA() {
 	if (p_cpt2g[7] == op.f7) {
 		cout << band << "GoA() [7]  " << p_cpt2g[7] << " [8]  " << p_cpt2g[8] << endl;
 		locdiag = 1;
-		cout << "xq Dump2 entry goA clean_valid_done  "<< g17b.clean_valid_done << endl;
+		cout << "xq Dump2 entry goA clean_valid_done  "<< g17b.clean_valid_done
+			<< " nmore "<< guah54n.ntmg2 + guah54n.ntmg3 << endl;
 		xq.Dump2();
 	}
 	p_cpt2g[8]++;
@@ -2983,7 +2928,10 @@ void STD_B3::GoA() {
 	memcpy(&g17b.grid0[54], band0, sizeof band0);// used in brute force
 	g17b.myband3 = this;
 	if (guah54n.ntmg2 | guah54n.ntmg3) {// possible change in mincout
-		GoAg23();
+		if (locdiag) {
+
+		}
+		GoAg23(locdiag);
 		if ((int)minc > g17b.ncluesb3) return;
 	}
 
@@ -3107,6 +3055,8 @@ else xq.Addin(U)
 
 void STD_B3::GoB0() {
 	p_cpt2g[40]++;
+	int locdiag = 0;
+	if (VTEST && p_cpt2g[8] == VTEST) locdiag = 1;
 	xq.SetFilters();
 	{// add band 3 UA size 4
 		register uint32_t F = xq.fa, A = xq.fb;
@@ -3130,7 +3080,7 @@ void STD_B3::GoB0() {
 			register uint32_t U = tua[i] & BIT_SET_27;
 			MISS0ADD;
 		}
-//		if (p_cpt2g[8] == 2636656) xq.Statusmiss0(F,A);
+		if (locdiag) xq.Statusmiss0(F,A);
 		if (xq.nin) {// check fresh potential 
 			while (1) {// open the door tomore than one assign
 				register uint32_t Fr = F, nn = xq.nin;
@@ -3142,12 +3092,10 @@ void STD_B3::GoB0() {
 				if (Fr == F) break;;
 			}
 		}
-		/*
-		if (p_cpt2g[8] == 2636657) {
+		if (locdiag) {
 			cout << "still valid end of goB0 clean_valid_done  " << g17b.clean_valid_done << endl;
 			xq.Statusmiss0(F, A);
 		}
-		*/
 
 		if (_popcnt32 (F) == xq.nb3) {	GoC0F(F); return;}
 		GoC0(F,A);
@@ -4289,15 +4237,15 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 					if (ndigs == 2) {
 						int i81 = myband3->GetI81_x(ua);
 						if (i81 >= 0) {
-							if (!i81) {
+							if (0 &&i81==18) {
 								cout << Char54out(U) << "\t";
 								cout << Char27out(w.bf.u32[2]) << " added 0A"
 									<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
 									<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
 									<< endl;
-								if (0 &&guah54n.zz[0].Redundant(U) ){
+								if (guah54n.zz[18].Redundant(U) ){
 									cout << Char54out(U) << "\t";
-										cout << Char27out(w.bf.u32[2]) << " redundancy 0"
+										cout << Char27out(w.bf.u32[2]) << " redundancy 18"
 										<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
 										<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
 										<< endl;
@@ -4335,15 +4283,15 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 				else {
 					if (cc == 2) {
 						int i81 = myband3->GetI81_2(w.bf.u32[2]);
-						if (!i81) {
+						if (0 && i81==18) {
 							cout << Char54out(U) << "\t";
 							cout << Char27out(w.bf.u32[2]) << " added 0B"
 								<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
 								<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
 								<< endl;
-							if (0 &&guah54n.zz[0].Redundant(U)) {
+							if (guah54n.zz[18].Redundant(U)) {
 								cout << Char54out(U) << "\t";
-								cout << Char27out(w.bf.u32[2]) << " redundancy 0"
+								cout << Char27out(w.bf.u32[2]) << " redundancy 18"
 									<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
 									<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
 									<< endl;
@@ -5352,7 +5300,7 @@ void G17B::Out17(uint32_t bfb3) {
 	if ((_popcnt32(bfb3) + _popcnt64(myb12)) > 18) {
 		cout << Char54out(myb12) << "\t";
 		cout <<Char27out(bfb3) << " more than 18 [3] " << p_cpt2g[3]
-			<< " [4] " << p_cpt2g[4] << " [10] " << p_cpt2g[10] << endl;
+			<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << " [8] " << p_cpt2g[8] << endl;
 
 		DumpPotential();
 		aigstop = 1;

@@ -584,11 +584,11 @@ struct GUAH54N {
 		uint64_t ua, id;
 	}bloc0[40];
 	uint32_t nbl0, nzzused, nzzg2;
-	uint32_t tind6[160], ntind6;
-	uint32_t tind9[160], ntind9;
-	uint32_t tg2[81], ntg2,tmg2[10], ntmg2;
-	uint32_t tg3[81], ntg3,tmg3[10], ntmg3;
-	BF128 g2, g3;
+	uint32_t tind6[162], ntind6;
+	uint32_t tind9[162], ntind9;
+	uint32_t tg2[81], ntg2,tmg2[20], ntmg2;
+	uint32_t tg3[81], ntg3,tmg3[20], ntmg3;
+	BF128 g2, g3,g2_6,g3_6,g2_9,g3_9;
 	int indg2[81], indg3[81];
 
 	//____________________________________
@@ -600,6 +600,7 @@ struct GUAH54N {
 	inline void InitCom() { ntmg2 = ntmg3 = 0; }
 	void Build();
 	void Build6( uint32_t* tc) {
+		g2_6.SetAll_0(); g3_6 = g2_6;
 		ntind6 = 0;
 		for (uint32_t i = 0; i < nzzused; i++) {
 			Z128& myz = zz[i];
@@ -608,10 +609,15 @@ struct GUAH54N {
 			for (int j = 1; j < 6; j++)
 				v &= myz.vc[tc[j]];
 			myz.v6 = v;
-			if ((v& myz.v0).isNotEmpty())tind6[ntind6++] = i;
+			if ((v & myz.v0).isNotEmpty()) {
+				tind6[ntind6++] = i;
+				if (myz.mode2_3) g3_6.setBit(myz.i81);
+				else g2_6.setBit(myz.i81);
+			}
 		}
 	}
 	void Build9(uint32_t* tc) {
+		g2_9.SetAll_0(); g3_9 = g2_9;
 		ntind9 = 0;
 		for (uint32_t it = 0; it < ntind6; it++){
 			Z128& myz = zz[tind6[it]];
@@ -619,7 +625,11 @@ struct GUAH54N {
 			for (int j = 0; j < 3; j++)
 				v &= myz.vc[tc[j]];
 			myz.v9 = v;
-			if ((v & myz.v0).isNotEmpty())tind9[ntind9++] = tind6[it];
+			if ((v & myz.v0).isNotEmpty()) {
+				tind9[ntind9++] = tind6[it];
+				if (myz.mode2_3) g3_9.setBit(myz.i81);
+				else g2_9.setBit(myz.i81);
+			}
 		}
 	}
 	inline void GetG2G3A(uint64_t bf) {
@@ -766,31 +776,56 @@ struct GUAH54N {
 	}
 
 	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){
-		uint32_t nx = ntmg2;
-		tmg2[ntmg2++] = i81;
-		for (uint32_t i = 0; i < nx; i++) {
-			if (i81 == tmg2[i]) {
-				ntmg2--; // was there
-				break;
+		register int iz = indg2[i81];
+		if (g2_9.Off(i81)) {
+			g2_9.setBit(i81);
+			tind9[ntind9++] = iz;
+			tmg2[ntmg2++] = i81;
+			if (g2_6.Off(i81)) {
+				g2_6.setBit(i81);
+				tind6[ntind6++] = iz;
 			}
 		}
-		int n =  zz[indg2[i81]].n;
+		else {
+			uint32_t nx = ntmg2;
+			tmg2[ntmg2++] = i81;
+			for (uint32_t i = 0; i < nx; i++) {
+				if (i81 == tmg2[i]) {
+					ntmg2--; // was there
+					break;
+				}
+			}
+		}
+		int n =  zz[iz].n;
 		if (n >= 80 && cc12 > 14) return;
 		if (n >= 100 && cc12 > 13) return;
 		if(n>120 && n<128)
 		cout << "\t\t\tadded g2 " << indg2[i81] << " " << zz[indg2[i81]].n << endl;
-		zz[indg2[i81]].Enter(bf);
+		zz[iz].Enter(bf);
 	}
 	inline void AddA3(uint64_t bf, int32_t i81) {
-		uint32_t nx = ntmg3;
-		tmg3[ntmg3++] = i81;
-		for (uint32_t i = 0; i < nx; i++) {
-			if (i81 == tmg3[i]) {
-				ntmg3--; // was there
-				break;
+		register int ix = indg3[i81];
+
+		if (g3_9.Off(i81)) {
+			g3_9.setBit(i81);
+			tind9[ntind9++] = ix;
+			tmg3[ntmg3++] = i81;
+			if (g3_6.Off(i81)) {
+				g3_6.setBit(i81);
+				tind6[ntind6++] = ix;
 			}
 		}
-		int ix = indg3[i81];
+		else {
+			uint32_t nx = ntmg3;
+			tmg3[ntmg3++] = i81;
+			for (uint32_t i = 0; i < nx; i++) {
+				if (i81 == tmg3[i]) {
+					ntmg3--; // was there
+					break;
+				}
+			}
+		}
+
 		int n = zz[ix].n;
 		zz[ix].Enter(bf);
 	}
@@ -1333,7 +1368,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	//_______________________
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
 	void GoA();// start band 3  
-	void GoAg23();// fresh g2 g3 to consider 
+	void GoAg23(int debug=0);// fresh g2 g3 to consider 
 	void GoB0();// band3 miss0 at start
 	void GoC0(uint32_t bf, uint32_t a);// band3 miss0 before guam guamm
 	void GoC0F(uint32_t bf);//same nb3 filled
