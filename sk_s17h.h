@@ -408,7 +408,7 @@ struct GUAH {// handler for initial collection of guas 2 3
 			for (uint32_t i = 0; i < nua; i++) {
 				if (ua == tua[i]) return;
 			}
-			tua[nua++] = ua;
+			if (nua < 128)tua[nua++] = ua;
 		}
 
 		inline void Init(uint32_t n, uint32_t t, uint32_t i) {
@@ -425,7 +425,7 @@ struct GUAH {// handler for initial collection of guas 2 3
 			}
 			return n;
 		}
-		void SortClean() {
+		void SortClean(uint32_t lim=40) {
 			if (nua < 2)return;
 			GUA w = *this;
 			BF128 vsize[30];
@@ -448,9 +448,9 @@ struct GUAH {// handler for initial collection of guas 2 3
 						if (!(U & (~U2))) { U = 0; break; }
 					}
 					if (U) tua[nua++] = U;
-					if (nua > 40) break;
+					if (nua > lim) break;
 				}
-				if (nua > 40) break;
+				if (nua > lim) break;
 			}
 
 		}
@@ -487,12 +487,12 @@ struct GUAH {// handler for initial collection of guas 2 3
 		for (int i = 0; i < 81; i++)
 			if (tg3[i].nua > 1) tg3[i].SortClean();
 	}
-	void SortClean() {
+	void SortClean(uint32_t lim = 40) {
 		for (int i = 0; i < 81; i++)
-			if (tg2[i].nua > 1) tg2[i].SortClean();
+			if (tg2[i].nua > 1) tg2[i].SortClean(lim);
 	}
 
-	int CutG2(int lim) {
+	int CutG2x(int lim) {
 		int n = 0;
 		for (int i = 0; i < 81; i++) {
 			if ((int)tg2[i].nua > lim)tg2[i].nua = lim;
@@ -500,7 +500,7 @@ struct GUAH {// handler for initial collection of guas 2 3
 		}
 		return n;
 	}
-	int CutG3(int lim) {
+	int CutG3x(int lim) {
 		int n = 0;
 		for (int i = 0; i < 81; i++) {
 			if ((int)tg3[i].nua > lim)tg3[i].nua = lim;
@@ -1057,7 +1057,7 @@ struct XQ {//to build the UAs b3 to expand
 		// others are disjoints more if 2 clues
 		nn = n2b;	n2b = 0;
 		for (uint32_t i = 0; i < nn; i++) {
-			register uint32_t a = xq.t2b[i] ;
+			register uint32_t a = t2b[i] ;
 			if (!(a & F))t2b[n2b++] = a;
 		}
 
@@ -1828,15 +1828,19 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	void Go_7_11_18();
 	void Go_x_11_18();
 
-	void Go_10_11_17();
-	void Go_8_11_17();
-	void Go_7_11_17();
-
 
 	void Go_11_12();
 	void Go_10_12();
 	void Go_8_12();
 	void Go_7_12();
+	void Go_x_12();
+
+
+
+	void Go_10_11_17();
+	void Go_8_11_17();
+	void Go_7_11_17();
+
 /*
 	inline int VerifyValid() {
 		if (clean_valid_done) return 0;

@@ -369,11 +369,16 @@ back:
 	if (--ii >= 0) goto next;
 	if (m10 != 1)return;
 	if (nband3) {
-		if (op.out_entry){// send in fout the list of attached solution grids 
-			for (int i = 0; i < nband3; i++)
+		if (op.out_entry) {// send in fout the list of attached solution grids 
+			for (int i = 0; i < nband3; i++) {
 				fout1 << myband1.band << myband2.band
-				<< bands3[i].band 
-				<< ";"<< i1t16<<";"<<i2t16 << endl;
+				<< bands3[i].band;
+				if (op.ton)
+					fout1 << ";" << i1t16 << ";" << i2t16 << ";"
+					<< t416_to_n6[bands3[i].i416]
+					<< " slice " << (nb12 >> 6) << endl;
+				else fout1 << endl;
+			}
 		}
 		else g17b.Start();// call the process for that entry
 	}
