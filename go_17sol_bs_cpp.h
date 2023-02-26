@@ -3685,7 +3685,12 @@ void STD_B3::GoBMore1() {
 	}
 	if (!xq.nout) {//go direct
 		xq.BuildMissxOut();
-		g17b.GoEndAll(0, BIT_SET_27);
+		xq.CleanOut();
+		if (locdiag) {
+			cout << "GoBMore1 buildout done" << endl;
+			xq.Status();
+		}
+		g17b.GoEndAll(0, BIT_SET_27,locdiag);
 		return;
 	}
 	if (xq.nmiss == 2) {// exit or miss1
@@ -3704,17 +3709,19 @@ void STD_B3::GoBMore1() {
 	}
 	if (xq.nout<=xq.nmiss-2 || wa) {//go direct
 		xq.BuildMissxOut();
+		xq.CleanOut();
 		if (locdiag) {
 			cout << "GoBMore1 all out" << endl;
 			xq.Status();
 		}
-		g17b.GoEndAll(0, BIT_SET_27);
+		g17b.GoEndAll(0, BIT_SET_27,locdiag);
 		return;
 	}
 	if (xq.nmiss == 3) {
 		int x = xq.Isoutsize2();
 		if (!x) {//go direct
 			xq.BuildMissxOut();
+			xq.CleanOut();
 			g17b.GoEndAll(0, BIT_SET_27);
 			return;
 		}
@@ -4328,6 +4335,7 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 	else return 0;
 }
 int G17B::Valid3_1_3(uint32_t bf) {
+	nt3more = 0;
 	if (!IsValidB3(bf))return 0;
 	for (uint32_t i = 0; i < nt3more; i++) {
 		xq.tout[xq.nout++] = t3more[i];
@@ -4336,6 +4344,7 @@ int G17B::Valid3_1_3(uint32_t bf) {
 	return 1;
 }
 int  G17B::Valid3mm(uint32_t bf) {
+	nt3more = 0;
 	if (!IsValidB3(bf))return 0;
 	for (uint32_t i = 0; i < nt3more; i++) {
 		t3b[nt3b++] = t3more[i];
@@ -4783,7 +4792,7 @@ void G17B::GoB3Expand_1_3(uint32_t bf, uint32_t ac, int debug ) {
 	int locdiag = debug;// = 2 * (p_cpt2g[8] == 933);
 	//if (p_cpt2g[8] == 3475969) locdiag = 1;
 	if (locdiag) {
-		cout << "expand entry nto ass =" << ntoassb3
+		cout << "expand entry 1-3 nto ass =" << ntoassb3
 			<< " clean_valid_done=" << clean_valid_done << endl;
 		xq.DumpOut();
 	}
@@ -4899,6 +4908,11 @@ next3:
 	goto next3;
 endnext3:
 	//if (debug) goto next3;
+	if (locdiag) {
+		cout << " endnext3 nout=" << xq.nout << endl;
+		xq.DumpOut();
+	}
+
 	{// build a reduced table for the next clues
 		nt3b = 0;
 		uint32_t tx[8][50], ntx[7];// gives 60 for 6 and more 
@@ -4926,7 +4940,8 @@ endnext3:
 			if (VerifyValidb3()) return;
 			if (!Valid3_1_3(spb[3].all_previous))goto next2;
 			// fresh uas see what to do
-			cout << " fresh uas last step 1_3 seee what to do" << endl;
+			cout << " fresh uas last step 1_3 see what to do [3] " << p_cpt2g[3]
+				<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << " [8] " << p_cpt2g[8] << endl;
 			aigstop = 1;
 			return;
 		}
@@ -4950,7 +4965,7 @@ void G17B::GoB3Expand_4_x(SP3 spe, int debug ) {
 	//if (knownt >= 20)locdiag = 2;
 	uint64_t limspot = ntoass - 1, limm1 = limspot - 1;
 	if (locdiag) {
-		cout <<Char27out(spe.all_previous) << " expand entry nto ass =" << ntoass
+		cout <<Char27out(spe.all_previous) << " expand entry 4_x nto ass =" << ntoass
 			<< " limspot= " << limspot << " " << limm1
 			<< " clean_valid_done=" << clean_valid_done
 			<< " ncluesb3=" << ncluesb3

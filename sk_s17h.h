@@ -1010,8 +1010,8 @@ struct XQ {//to build the UAs b3 to expand
 			register uint32_t mask = t2b3[i] | t2b3[i + 1]| t2b3[i + 2],
 				f = mask & F;
 			if (f) {
-				ff &= ~(mask & F);				
-				ret += _popcnt32(f)-2;
+				if (f == mask) ret++;
+				ff &= ~(mask & F);	
 			}
 		}
 		if (ret > 1||!ff) return ret;// already to many

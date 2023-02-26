@@ -454,6 +454,8 @@ back:
 	if (nband3) {
 		if (op.out_entry) {// send in fout the list of attached solution grids 
 			for (int i = 0; i < nband3; i++)
+				if((!bands3[i].i416)&& i2t16 == 361)
+//				if(i2t16==359&& t416_to_n6[bands3[i].i416] ==361)
 				fout1 << myband1.band << myband2.band
 				<< bands3[i].band
 				<< ";" << i1t16 << ";" << i2t16 << ";"
