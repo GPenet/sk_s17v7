@@ -267,7 +267,7 @@ int GEN_BANDES_12::ValidBand2() {
 	//_______________________ std process
 	if (modeb12 < 10) {
 		nband3 = 0;
-		if ((nb12 >> 6) <= op.skip) return 0;// here restart value, kept untouched if no band 3 found
+		if(op.skip &&((nb12 >> 6) <= op.skip)) return 0;// here restart value, kept untouched if no band 3 found
 		{// print a restart point every 64 bands 1+2 seen
 			uint64_t w = genb12.nb12, w1 = w >> 6;
 			w &= 63;
@@ -428,7 +428,6 @@ next:// erase previous fill and look for next
 		}
 		int it16_3 = pband3.i416;
 		ib3check = i3t16 = t416_to_n6[it16_3];
-		//if (i3t16 != 82) goto next;
 		//if (op.b3low) {// if it is a partial treatment, we want index 3 <= index 1
 			//if (i3t16 < op.b2_is)goto next; 
 			//if (i3t16 > op.b2) goto next;

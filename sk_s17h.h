@@ -3,7 +3,6 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	// processing options 
 	int opcode;
 	int t18, p1, p2, p2b,//17 of 18 clues, pass or 2 (2a or 2b)
-		p2c,//asking for list of attached ED grids (coded as t18 p2b)
 		b2slice, // runing a slice of bands 2 in 18 mode bfx[0] & 8
 		b3low, // running band 1 pass1 for slices in pass2 bfx[0] & 16
 		out_one,// limit output to one per band 3 .bfx[2] & 1
@@ -27,7 +26,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (sgo.bfx[0] & 6) {// pass 1 2a 2b
 			p2 = 1;
 			if (sgo.bfx[0] & 4) p2b = 1;
-			if (p2b && t18) { p2b = 0; p2c = 1; }
+			if (p2b && t18) { p2b = 0; }
 		}
 		else p1 = 1;
 		if(t18 && (sgo.bfx[0] & 8)) {// slice of bands 
@@ -66,7 +65,6 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if(p1)cout << "\t\tpass1 via -b0-.x." << endl;
 			if (p2)cout << "\t\tpass2 via -b0-.x." << endl;
 			if (p2b)cout << "\t\tpass2b via -b0-..x." << endl;
-			if (p2c) cout << " file1 contains attached solution grids" << endl;
 			cout << sgo.vx[0] << " b1  -v0- band 0_415" << endl;
 			cout << sgo.vx[2] << " skip  -v2- skip first nnn restart after batch failure" << endl;
 			cout << sgo.vx[3] << " last  -v3- last entry number for this batch must be > vx[2]" << endl;
@@ -1853,8 +1851,9 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	inline int VerifyValidb3() {
 		if (clean_valid_done == 2) return 1;
 		if (clean_valid_done) return 0;
-		clean_valid_done = 2;
+		clean_valid_done = 1;
 		if (!IsValid_myb12()) return 0;
+		clean_valid_done = 2;
 		return 1;
 	}
 

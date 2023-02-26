@@ -1638,9 +1638,6 @@ void G17B::Expand_03() {
 	if (aigstop) return;
 	SPB03A sp0, sp1,sp2, sp3;
 	T54B12::TUVECT& tuv128 = t54b12.ta128[0];
-#ifdef T7CLUES
-	tuv128.Dump(30);
-#endif
 	uint64_t* twu = tuv128.t;
 	memset(&sp0, 0, sizeof sp0);
 	sp0.active_cells = maskLSB[54].u64[0];
@@ -1712,15 +1709,17 @@ next3:
 }
 void G17B::Expand_46(SPB03A& s3) {
 	if (aigstop) return;
-	//if (op.known > 1) {
-		//cout << Char54out(s3.all_previous_cells) << " entry 3 [3] "
-			//<< p_cpt2g[3] << endl;
-	//}
-#ifdef T7CLUES
-	//cout << Char54out(s3.all_previous_cells) << " entry 3 [3] "
-	//	<< p_cpt2g[3] << endl;
-	//return;
-#endif
+	int locdiag = 0;
+	if (op.known ) {
+		cout << Char54out(s3.all_previous_cells) << " entry 3 [3] "	<< p_cpt2g[3] << endl;
+		if (!((~pk54) & s3.all_previous_cells)) {
+			cout << Char54out(s3.all_previous_cells) << " expected 3 [3] "
+				<< p_cpt2g[3] << endl;
+			knownt = 3;
+			locdiag = 1;
+		}
+	}
+
 
 	T54B12::TUVECT& tuv128 = t54b12.tb128[0];
 	uint64_t* twu = tuv128.t;
@@ -1728,7 +1727,6 @@ void G17B::Expand_46(SPB03A& s3) {
 	sp3 = s3;
 	sp3.possible_cells = twu[0];
 	sp3.v = tuv128.v0;// initial nothing done
-	int locdiag = 0;
 	if (op.ton) {
 		if (op.ton>1)cout << Char54out(s3.all_previous_cells) << " 3clues [3]" << p_cpt2g[3]  << endl;
 		if (op.f3) {
@@ -1804,16 +1802,14 @@ next6:
 		if (t54b12.Build_tc128( sp6)) goto next6;
 		p_cpt2g[4]++;
 		Set6(sp6);
-		if (op.known > 1) {
+		if (op.known ) {
 			if (knownt >= 9)return;
 			if (op.ton > 2)cout << "ua6c  nc128=" << t54b12.nc128
 				<< "[4] " << p_cpt2g[4] << endl;
 			if (!((~pk54) & sp6.all_previous_cells)) {
 				cout << Char54out(bf_cl6) << " expected 6 [4] " 
-					<<p_cpt2g[4] << endl;
-				cout << Char54out(ac_cl6) << " expected 6 [4] "
-					<< p_cpt2g[4] << endl;
-				cout << "cells " << tc_1_6[0] << " " << tc_1_6[1] << " "
+					<<p_cpt2g[4] ;
+				cout << " cells " << tc_1_6[0] << " " << tc_1_6[1] << " "
 					<< tc_1_6[2] << " " << tc_1_6[3] << " "
 					<< tc_1_6[4] << " " << tc_1_6[5] << endl;
 				knownt = 6;
@@ -1834,11 +1830,6 @@ void G17B::Expand_7_9(SPB03A& s6) {
 	if (t54b12.nc128<128)t54b12.nc128=128;// be sure to have fresh uas outside
 	// ____ build a reduced table of uas/guas for band 3
 	guah54n.Build6(tc_1_6);
-	//cout << Char54out(s6.all_previous_cells) << " 6clues " << endl;
-	//guah54n.Statusv6();
-	//aigstop = 1; return;
-	//cout << "go on with test" << endl;
-	//return;
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 		genb12.bands3[ib3].Set6clues(tc_1_6);
 	}
@@ -1988,7 +1979,7 @@ next9: // add clue 9 build td and call next step (min 10 clues)
 		sp9.v &= tuv128.vc[tcells[2]];
 		Set9(sp9);
 		build9done = 0;
-		if (op.known > 1) {
+		if (op.known ) {
 			if (knownt >= 9)return;
 			if (!((~pk54) & sp9.all_previous_cells)) {
 				cout << Char54out(sp9.all_previous_cells) << " expected 9 " << endl;
@@ -2473,7 +2464,7 @@ next11: //add clue 11
 				goto next11;
 			}
 			Uand = anduab12;
-			if (locdiag)cout << Char54out(Uand) << " not  11 " << endl;
+			//if (locdiag)cout << Char54out(Uand) << " not  11 " << endl;
 		}
 		//this is a 11 to push to 12
 		if (locdiag>1 || knownt == 11)cout << Char54out(Uand) << "  <-11 to push to 12" << endl;
@@ -2496,8 +2487,6 @@ next11: //add clue 11
 				}
 				else continue;
 			}
-			if (locdiag)
-				cout << " add n=" << ntbelow[5] << endl;
 			tfull[ ntbelow[5]++]= sp11.all_previous_cells | bit2;
 		}
 		goto next11;
@@ -2511,16 +2500,6 @@ void G17B::EndExpand_10_12() {
 	int locdiag = 0;	//if (p_cpt2g[91] == 225393) locdiag = 1;
 	//if (p_cpt2g[91] > 4) return;
 	if (op.known &&!((~pk54) & bf_cl9)) 		locdiag = 1;
-#ifdef  T18P2
-	if (p_cpt2g[91]&8191)return;
-	//locdiag = 2;
-	if ((ntbelow[3] | ntbelow[4])) {
-		cout << Char54out(bf_cl9) << " end after 9 [91] " << p_cpt2g[91]
-			<< " [3] " << p_cpt2g[3] << " [4] " << p_cpt2g[4] << endl;
-		DumpPotential();// ntbelow[5]=4;
-	}
-#endif
-
 	guah54n.Build9(tc_7_9);
 
 
@@ -2529,8 +2508,7 @@ void G17B::EndExpand_10_12() {
 			p_cpt2g[92]++;
 			myb12 = tfull[i];
 			if (locdiag)cout << Char54out(myb12) << " 12" << endl;
-			if (knownt >= 11) {
-				cout << Char54out(myb12) << " 12" << endl;
+			if (op.known) {
 				if (!((~pk54) & myb12)) {
 					cout << Char54out(myb12) << " expected 12 " << endl;
 					knownt = 12;
@@ -2575,7 +2553,7 @@ void G17B::EndExpand_10_12() {
 			uint64_t bit = (uint64_t)1 << tc_10_12[2];
 			Ac ^= bit; //clear bit
 			myb12 = bf11 | bit;
-			if (op.known > 1) {
+			if (op.known ) {
 				if (!((~pk54) & myb12)) {
 					cout << Char54out(myb12) << " expected 12 in 11_12 added clue  "
 						<< tc_10_12[2] << endl;
@@ -2593,10 +2571,6 @@ void G17B::EndExpand_10_12() {
 		}
 
 	}
-#ifdef  T18P2
-	return;
-
-#endif
 	if (ntbelow[3]) 	for (uint32_t iv = 0; iv < ntbelow[3]; iv++) {
 		if (locdiag) cout << "Go_10_12() in test iv=" << iv << endl;
 		BF128 ww = tbelow10[iv];
@@ -2619,7 +2593,7 @@ void G17B::EndExpand_10_12() {
 				uint64_t bit2 = (uint64_t)1 << tc_10_12[2];
 				Ac2 ^= bit2; //clear bit
 				myb12 = bf11 | bit;
-				if (op.known > 1) {
+				if (op.known ) {
 					if (!((~pk54) & myb12)) {
 						cout << Char54out(myb12) << " expected 12 in 11_12 added clue  "
 							<< tc_10_12[2] << endl;
@@ -3112,9 +3086,13 @@ void STD_B3::GoAg23(int debug) {
 }
 void STD_B3::GoA() {
 	CALLBAND3& cb3e = g17b.cb3;
+	p_cpt2g[8]++;
 	if (VTEST && p_cpt2g[8] > VTEST) return;
 	int locdiag = 0;
-	if (op.known && g17b.knownt >= 10) locdiag = 1;
+	if (op.known && g17b.knownt >= 10) {
+		cout << band << "GoA() in diag known [7]  " << p_cpt2g[7] << " [8]  " << p_cpt2g[8] << endl;
+		locdiag = 1;
+	}
 
 	if (p_cpt2g[7] == op.f7) {
 		cout << band << "GoA() [7]  " << p_cpt2g[7] << " [8]  " << p_cpt2g[8] << endl;
@@ -3123,7 +3101,6 @@ void STD_B3::GoA() {
 			<< " nmore "<< guah54n.ntmg2 + guah54n.ntmg3 << endl;
 		xq.Dump2();
 	}
-	p_cpt2g[8]++;
 
 	if (g17b.clean_valid_done == 2 || g17b.aigstop) return;
 	memcpy(&g17b.grid0[54], band0, sizeof band0);// used in brute force
@@ -3566,9 +3543,9 @@ void STD_B3::GoB1toMiss0(uint32_t wa) {
 	GoC0(F, A);
 }
 void G17B::TryMiss1Subcritical() {
-	//cout << "Subcritical() after buildout" << endl;
 	int locdiag = 0;
 	if (p_cpt2g[8] == VTEST || g17b.knownt == 12)  locdiag = 1;
+	if(locdiag)cout << "Subcritical() after buildout" << endl;
 	memcpy(xq.tout, xq.t2a, xq.n2a * sizeof xq.tout[0]);
 	memcpy(&xq.tout[xq.n2a], xq.t2b3, xq.n2b3 * sizeof xq.tout[0]);
 	memcpy(&xq.tout[xq.n2a + xq.n2b3], xq.t2b, xq.n2b * sizeof xq.tout[0]);
@@ -3588,7 +3565,13 @@ void G17B::TryMiss1Subcritical() {
 		A &= ~ass; xq.fb &= ~ass;
 	}
 	xq.nin = 0;
-	if (!F) { GoEndAll(F, A); return; }
+	if (locdiag) xq.Statusmiss0(F, A);
+	if (!F) { 
+		xq.CleanOut(F, A);
+		if (locdiag) xq.Statusmiss0(F, A);
+		GoEndAll(F, A,locdiag);
+		return; 
+	}
 	int more = xq.SubCritMore(F);
 	if (more > 1) return;
 	if (more) {//now miss0
@@ -3639,6 +3622,7 @@ void G17B::GoSubcritToMiss0(uint32_t bf, uint32_t ac) {
 void STD_B3::GoBMore1() {
 	p_cpt2g[42]++;
 	int locdiag = 0;
+	if (op.known && g17b.knownt >= 10) locdiag = 1;
 	if (VTEST && p_cpt2g[8] == VTEST) locdiag = 1;
 	//xq.Status();
 	register uint32_t  A = xq.critbf, wa = BIT_SET_27;
@@ -3755,8 +3739,8 @@ void STD_B3::GoBMore1() {
 			return;
 		}
 	}
-	cout << "miss>2  [8] " << p_cpt2g[8] << " miss= "<< xq.nmiss << endl;
-	xq.DumpOut();
+	//cout << "miss>2  [8] " << p_cpt2g[8] << " miss= "<< xq.nmiss << endl;
+	//xq.DumpOut();
 	xq.BuildMissxOut();
 	g17b.GoEndAll(0, BIT_SET_27);
 
@@ -3793,6 +3777,8 @@ void STD_B3::GoBMoretoMiss0(uint32_t ubf) {
 }
 void STD_B3::GoBMoretoMiss1(uint32_t ubf) {
 	if (g17b.VerifyValidb3())return;
+	int locdiag = 0;
+	if (op.known && g17b.knownt >= 10) locdiag = 1;
 	if (!ubf) return;
 	for (uint32_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
 		register uint32_t u = xq.tout[i];
@@ -3804,11 +3790,12 @@ void STD_B3::GoBMoretoMiss1(uint32_t ubf) {
 	}
 	xq.nmiss = 1;
 	xq.nout = 0;
+	if (locdiag) xq.Status();
 	g17b.nt3more = 0;
 	if (g17b.IsValidB3(xq.critbf)) {// not valid, new outfield
 		register uint32_t U = g17b.anduab3;
 		if (!U) return;
-		//cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
+		if (locdiag)cout << Char27out(U) << "Not valid critbf go to miss0" << endl;
 		GoB1toMiss0(U);
 		return;
 	}
