@@ -3574,6 +3574,12 @@ void G17B::TryMiss1Subcritical() {
 	}
 	int more = xq.SubCritMore(F);
 	if (more > 1) return;
+	if (locdiag) cout << "nmore="<<more<<endl;
+	if (_popcnt32(F) == ncluesb3) {
+		if (xq.NonHitOut(F))return;
+	}
+
+
 	if (more) {//now miss0
 		xq.SubCritMoreDo(F);
 		A = xq.SubCritActive(F);

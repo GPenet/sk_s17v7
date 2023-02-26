@@ -1007,7 +1007,7 @@ struct XQ {//to build the UAs b3 to expand
 		}
 		if (ret > 1 || !ff) return ret; 
 		for (uint32_t i = 0; i < n2b3; i += 3) {
-			register uint32_t mask = t2a[i] | t2a[i + 1]| t2a[i + 2],
+			register uint32_t mask = t2b3[i] | t2b3[i + 1]| t2b3[i + 2],
 				f = mask & F;
 			if (f) {
 				ff &= ~(mask & F);				
@@ -1073,7 +1073,12 @@ struct XQ {//to build the UAs b3 to expand
 			if (!(F & t2b[i]))ret |= t2b[i];		
 		return ret;
 	}
-
+	inline uint32_t NonHitOut(uint32_t F) {
+		register uint32_t ret = 0;
+		for (uint32_t i = 0; i < nout; i ++) 
+			if (!(F&tout[i]) )return 1;
+		return 0;
+	}
 	int IsNotRedundantOut(uint32_t bf) {
 		register uint32_t nbf = ~bf;
 		for (uint32_t i = 0; i < nout; i++) {
