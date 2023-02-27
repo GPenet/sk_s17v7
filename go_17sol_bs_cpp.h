@@ -3525,8 +3525,8 @@ void G17B::TryMiss1Subcritical() {
 		return; 
 	}
 	int more = xq.SubCritMore(F);
-	if (more > 1) return;
 	if (locdiag) cout << "nmore="<<more<<endl;
+	if (more > 1) return;
 	if (_popcnt32(F) == ncluesb3) {
 		if (xq.NonHitOut(F))return;
 	}
@@ -3546,9 +3546,14 @@ void G17B::TryMiss1Subcritical() {
 	GoEndAll(F, A,locdiag);
 }
 void G17B::GoSubcritToMiss0(uint32_t bf, uint32_t ac) {
-	//cout << " GoSubcritToMiss0" << endl;
+	int locdiag = 0;
+	if (p_cpt2g[8] == VTEST || g17b.knownt == 12)  locdiag = 1;
 	xq.nmiss = 0;
-	//if (p_cpt2g[8] == 3173376) {xq.Status(); aigstop = 1;	}
+	//xq.CleanOut(bf, ac);
+	if (locdiag) {
+		cout << " GoSubcritToMiss0" << endl;
+		xq.Status();
+	}
 	register uint32_t F = bf, A = 0;
 	F |= xq.t1a;
 	for (uint32_t i = 0; i < xq.n2b3; i++)
@@ -3556,8 +3561,10 @@ void G17B::GoSubcritToMiss0(uint32_t bf, uint32_t ac) {
 
 	for (uint32_t i = 0; i < xq.n2b; i++)
 		if (!(F & xq.t2b[i]))A |= xq.t2b[i];
-	//cout << " GoSubcritToMiss0 while process tout" << endl;
-	//xq.Statusmiss0(F, A);
+	if (locdiag) {
+		cout << " GoSubcritToMiss0 while process tout" << endl;
+		xq.Statusmiss0(F, A);
+	}
 	while (1) {// open the door tomore than one assign
 		register uint32_t Fr = F, nn = xq.nout;
 		xq.nout = 0;

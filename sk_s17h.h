@@ -1001,8 +1001,11 @@ struct XQ {//to build the UAs b3 to expand
 				mask = a | b, f = mask & F;
 			if (f) {
 				ff &= ~(mask & F);
-				f &= ~(a & b); // clues extra mincount
-				ret += _popcnt32(f);
+				int cc = _popcnt32(f);
+				if (cc > 1)ret += _popcnt32(f) - 1;
+				else if (f &= ~(a & b)) ret++;
+				//f &= ~(a & b); // clues extra mincount
+				//ret += _popcnt32(f)-1;
 			}
 		}
 		if (ret > 1 || !ff) return ret; 
