@@ -3737,14 +3737,16 @@ void STD_B3::GoBMore1() {
 	}
 	if (xq.nmiss == 4) {
 		int x = xq.Isoutsize3();
+		if (locdiag)	cout << Char27out(x) << "x size 3="  << endl;
 		if (!x) {//go direct
 			xq.BuildMissxOut();
 			g17b.GoEndAll(0, BIT_SET_27);
 			return;
 		}
 		int y = xq.Isoutsize4();
+		if (locdiag)	cout << Char27out(y) << "y size 4=" << endl;
 		if (!y) {// push to miss 1
-			GoBMoretoMiss1(y);
+			GoBMoretoMiss1(x);
 			return;
 		}
 		else {
