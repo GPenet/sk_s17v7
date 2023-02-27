@@ -3727,7 +3727,7 @@ void STD_B3::GoBMore1() {
 		}
 		int y = xq.Isoutsize3();
 		if (!y) {// push to miss 1
-			GoBMoretoMiss1(y);
+			GoBMoretoMiss1(x);
 			return;
 		}
 		else {
