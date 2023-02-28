@@ -1625,8 +1625,8 @@ int G17B::IsValid7pbf(uint64_t bf) {
 			if (cc < 21) {
 				t54b12.AddA(ua54);
 				t54b12.AddB(ua54);
-				t54b12.AddC(ua54);
 			}
+			t54b12.AddC(ua54);
 		}
 		ua_ret7p = ua54;// return last (smaller)
 		return 1;
@@ -2033,8 +2033,19 @@ next9: // add clue 9 build td and call next step (min 10 clues)
 			if (aigstop) return;	goto next9;
 		}
 		else {// must expand 10_12
-			if (!t54b12.Build_td128(sp9))Expand_10_12(sp9);
-			if (aigstop) return;	goto next9;
+			if (!t54b12.Build_td128(sp9)) {
+				Expand_10_12(sp9);
+				if (aigstop) return;	goto next9;
+			}
+			else {
+				if (knownt == 9) {
+					cout << " whith known empty td after 9 see what to do" << endl;
+					t54b12.DebugC();
+				}
+				//cout << "bug possible after 9 " << endl;
+				//aigstop = 1; return;
+				if (aigstop) return;	goto next9;
+			}
 		}
 	}
 	//now 17 p1 max 10 in b1+2 or p2 11 in b1+2
@@ -4666,9 +4677,15 @@ void  G17B::GoEndAll(uint32_t bf, uint32_t ac, int debug) {//  call the relevant
 	ac &= BIT_SET_27;// be sure to have no extra digit
 	int ass = _popcnt32(bf);
 	ntoassb3 = xq.nb3-ass;
+	if (VerifyValidb3())return;
 	if (ntoassb3 == 1) {
 		int x,u;
-		if (!(u= xq.GetAndout())) return; // no single clue
+		if (!xq.nout) {
+			if (!IsValidB3(bf))u = ac;
+			else u= anduab3;
+		}
+		else // must try a possible "17"belox"
+			if (!(u = xq.GetAndout())) return; // no single clue
 		while (bitscanforward(x, u)) {
 			register int bit= 1 << x;
 			u ^= bit;
