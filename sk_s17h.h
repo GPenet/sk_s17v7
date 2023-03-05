@@ -12,7 +12,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	int b1;//band 1 in process 
 	int b2,b2_is ;//bands b2  forced
 	char* b2start;
-	int skip, last;
+	int first, last;
 	int ton;//test on and test level
 	uint64_t f3, f4, f7,f10; // filters p_cpt2g [3] [4) [7]
 	int upto3, upto4; // active below f3 below f4
@@ -35,7 +35,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (p1 && (sgo.bfx[0] & 16))b3low = 1;
 
 		b1 = sgo.vx[0];
-		skip = sgo.vx[2];
+		first = sgo.vx[2];
 		last = sgo.vx[3];
 		b2_is = sgo.vx[4];
 		b2 = sgo.vx[5];
@@ -66,8 +66,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (p2)cout << "\t\tpass2 via -b0-.x." << endl;
 			if (p2b)cout << "\t\tpass2b via -b0-..x." << endl;
 			cout << sgo.vx[0] << " b1  -v0- band 0_415" << endl;
-			cout << sgo.vx[2] << " skip  -v2- skip first nnn restart after batch failure" << endl;
-			cout << sgo.vx[3] << " last  -v3- last entry number for this batch must be > vx[2]" << endl;
+			cout << sgo.vx[2] << " first  -v2- first slice to process" << endl;
+			cout << sgo.vx[3] << " last  -v3- last slice to process must be >= vx[2]" << endl;
 			if (b2slice) {
 				cout << "running a slice of bands 2 index from="
 					<< b2_is << " to=" << b2 << endl;
@@ -1829,23 +1829,22 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	void Go_8_10();
 	void Go_7_10();
+	void Go_x_10();
 
 	void Go_8_11_18();
 	void Go_7_11_18();
 	void Go_x_11_18();
 
 
-	void Go_11_12();
-	void Go_10_12();
 	void Go_8_12();
 	void Go_7_12();
 	void Go_x_12();
 
 
 
-	void Go_10_11_17();
 	void Go_8_11_17();
 	void Go_7_11_17();
+	void Go_x_11_17();
 
 /*
 	inline int VerifyValid() {

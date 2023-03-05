@@ -267,20 +267,21 @@ int GEN_BANDES_12::ValidBand2() {
 	//_______________________ std process
 	if (modeb12 < 10) {
 		nband3 = 0;
-		if(op.skip &&((nb12 >> 6) <= op.skip)) return 0;// here restart value, kept untouched if no band 3 found
+		if((nb12 >> 6) < op.first) return 0;// here restart value, kept untouched if no band 3 found
 		{// print a restart point every 64 bands 1+2 seen
 			uint64_t w = genb12.nb12, w1 = w >> 6;
 			w &= 63;
 			if (w == 0) {
 				long tfin = GetTimeMillis();
-				cout << "next skip value to use=\t" << w1 << "\tmil=" << (tfin - sgo.tdeb) / 1000 << "\tnb2=" << p_cpt2g[0] << endl;
+				cout << "next slice to use=\t" << w1 << "\tmil=" << (tfin - sgo.tdeb) / 1000 << "\tnb2=" << p_cpt2g[0] << endl;
 			}
 		}
+		if (((nb12 >> 6) > op.last)) return 1;
 		ValidInitGang();// also called from existing 17 in test
 		if(F17Novalid1_2())return ((nb12 >> 6) > op.last);
 		if (op.p1)Find_band3B_pass1();
 		else Find_band3B();
-		return ((nb12 >> 6) > op.last);
+		return 0;
 	}
 	//______________________ testing options 
 	if (modeb12 ==11) {	// enumeration test
