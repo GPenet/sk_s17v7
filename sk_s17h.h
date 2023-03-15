@@ -2,6 +2,7 @@
 struct OPCOMMAND {// decoding command line option for this rpocess
 	// processing options 
 	int opcode;
+	int tbn, bx3;// 
 	int t18, p1, p2, p2b,//17 of 18 clues, pass or 2 (2a or 2b)
 		b2slice, // runing a slice of bands 2 in 18 mode bfx[0] & 8
 		b3low, // running band 1 pass1 for slices in pass2 bfx[0] & 16
@@ -22,6 +23,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		memset(this, 0, sizeof * this);
 		opcode = opcod;
 		known = k;
+		tbn = sgo.vx[10];
+		bx3 = sgo.vx[11];
 		if (sgo.bfx[0] & 1)t18 = 1;
 		if (sgo.bfx[0] & 6) {// pass 1 2a 2b
 			p2 = 1;
@@ -81,7 +84,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 				cout << "processing solution grids with known" << endl;
 				if (known > 1)cout << "\tfilter on path active  sgo.bfx[2] & 2" << endl; 
 			}
-			cout << sgo.vx[5] << " b2 -v5- filter band 2 index" << endl;
+			if(b2)		cout << b2 << " b2 -v5- filter band 2 index" << endl;
+			if (bx3<416)		cout << bx3 << " b3 index" << endl;
 			if (b2start)	cout << b2start << " filter band 2 start" << endl;
 
 			if (ton)cout << ton << "  test on  -v1- verbose mode " << endl;
@@ -734,7 +738,7 @@ struct GUAH54N {
 			for (uint32_t it = 0; it < ntind9; it++) {
 				Z128& myz = zz[tind9[it]];
 				if (bf & myz.killer) continue;
-				BF128 v = (myz.v9 & myz.v0) & (myz.vc[cell1]& myz.vc[cell1]);
+				BF128 v = (myz.v9 & myz.v0) & (myz.vc[cell1]& myz.vc[cell2]);
 				if (v.isNotEmpty()) {
 					register uint32_t ix = myz.i81;
 					if (myz.mode2_3) {// this is a g3
@@ -1146,7 +1150,6 @@ struct XQ {//to build the UAs b3 to expand
 	int Isoutsize2();
 	int Isoutsize3();
 	int Isoutsize4();
-	int Isoutsize5();
 	int NoDisjoint() {
 		register uint32_t r1 = tout[0] , r2 ;
 		for (uint32_t i = 1; i < nout; i++) {
@@ -1183,7 +1186,7 @@ struct XQ {//to build the UAs b3 to expand
 	void DumpOut() {
 		cout << "out status nout=" <<nout<< endl;
 		for (uint32_t j = 0; j < nout; j++)
-			cout << Char27out(tout[j]) << endl;
+			cout << Char27out(tout[j])<< " "<<j << endl;
 
 	}
 
@@ -1544,16 +1547,17 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 struct GEN_BANDES_12 {// encapsulating global data 
 	STD_B3 bands3[512];
 	int modeb12, go_back, diagmore, diagbug, ip20,
-		it16, it16_2, imin16_1, imin16_2, imin16_3;
-	int i1t16, i2t16, i3t16, maxnb3; // index 416 ordered in increasing size of valid clues 6
+		it16, it16_2, it16_3, imin16_1, imin16_2, imin16_3;
+	int i1t16, i2t16, i3t16	,// index 416 ordered in increasing size of valid clues 3
+		ixmin1, ixmin2, ixmin3, maxnb3;
 	char zsol[82], rband2[28];
 	int grid0[81], tc[6], ntc;
-	int gcheck[82], ib2check, ib3check;
+	int gcheck[82], ib1check, ib2check, ib3check,ibasecheck;
 	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
 	BANDMINLEX::PERM t_auto_b1[108], // maxi is 107excluding start position
 		t_auto_b1b2[108], t_auto_b2b1[108],
-		pband2, pband3, pcheck2, pcheck3;
+		pband2, pband3,  pcheck2 , pcheck3;
 	int n_auto_b1, n_auto_b1b2, n_auto_b2b1;
 	BANDMINLEX::PERM t_auto_b1b[108], // maxi is 107excluding start position
 		t_auto_b1b2b[108], t_auto_b2b1b[108];
@@ -1621,16 +1625,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	uint64_t wua0, ua;// partial gua ua to check
 	uint64_t tuacheck[100], tua_for_check[500];
 	uint32_t uadigs_for_check[500], nua_for_check, nua_check;
-	//================ A creating a catalogue for the 17 search 
-	//sorted increasing number of valid bands 6 clues
 
-	GEN_BANDES_12() {
-		//gang27 = gang[0];
-		//InitialSockets2Setup();
-		//InitialSockets3Setup();
-	}
-	//void InitialSockets2Setup();// batch level
-	//void InitialSockets3Setup();// batch level
 	//================================= functions
 	void GetStartB2(int i); // one of the 20 starts 
 	void Start(int mode = 0);
@@ -1638,12 +1633,20 @@ struct GEN_BANDES_12 {// encapsulating global data
 	int F17Novalid1_2();
 	int Band2Check();
 	int Band3Check();
+	int Band2_3Check(int* zw);
+	int Band2_3CheckNoauto(int* zw);
 	void Find_band2B();
 	int ValidBand2();
 	void ValidInitGang();
 	void Find_band3B(int m10 = 1);
 	void Find_band3B_pass1(int m10 = 1);
 	void Find_band3B_pass1B(int m10 = 1);
+	void F3B_See();
+	inline void F3B_See_18();// one NED return 1 if equal not loaded
+	inline void F3B_See_Com();// one NED  after see diag
+	inline void F3B_See_ComOld();// one NED  after see diag
+
+
 	//============= loops control for UAs 5;6;7 digits collection (collect more=
 	int iband, ibox, iminirow, ibox2, iminirow2, pat1, pat2, ncells;
 	int tcells[6], tcols[6];
@@ -1810,7 +1813,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		}
 	}
 
-	void GoCallB3(CALLBAND3& cb3);
 	void GoCallB3_12(CALLBAND3& cb3);
 
 	void GoCallB3Com();

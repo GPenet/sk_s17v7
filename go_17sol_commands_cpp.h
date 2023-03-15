@@ -294,7 +294,7 @@ void Go_c17_11() {// extract cout xx5 file1 xx6
 	}
 
 }
-
+void BandReShapewithknown(int* s, int* d, char* sk, char* dk, BANDMINLEX::PERM p);
 void Go_c17_12() {// check diagonal status in a 665
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char* ze = finput.ze;
@@ -330,19 +330,21 @@ void Go_c17_12() {// check diagonal status in a 665
 				<< endl;
 		}
 		switch (sgo.vx[2]) {
-		case 0:cout << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
+		case 0: {cout << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
 			<< ";\t" << ib1a << ";" << ib2a << ";" << ib3a
 			<< ";\t" << ib1d << ";" << ib2d << ";" << ib3d
 			<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
 			<< endl;
 			break;
-		case 1:// extract 18 (8 in [87]
+		}
+		case 1: {// extract 18 (8 in [87]
 			if (strlen(ze) < 88)break;
 			if (ze[87] == '8')
 				fout1 << ze << endl;
 			break;
+		}
 
-		case 2:// extract 18 (8 in [87]) plus info
+		case 2: {// extract 18 (8 in [87]) plus info
 			if (strlen(ze) < 88)break;
 			if (ze[87] == '8')
 				fout1 << ze << ";\t" << ib1 << ";" << ib2 << ";" << ib3
@@ -351,6 +353,7 @@ void Go_c17_12() {// check diagonal status in a 665
 				<< ";\t" << ib1ad << ";" << ib2ad << ";" << ib3ad
 				<< endl;
 			break;
+		}
 		case 3: {// sol+18 to analyze get pass2
 			if (strlen(ze) < 162)break;
 			if (!sgo.vx[3])sgo.vx[3] = 82;
@@ -406,13 +409,73 @@ void Go_c17_12() {// check diagonal status in a 665
 				fout1 << ze << ";bands 666 "  << endl;
 			break;
 		}
+		case 6: {// morph to CF sol+known
+			cout << ze << endl;
+			if (strlen(ze) < 162)break;
+			bandminlex.Getmin(zs0, &perm_ret);
+			int ib1 = perm_ret.i416, ib1a = t416_to_n6[ib1],
+				gw[81];
+			char zks[82]; zks[81] = 0;
+			myband1.Initstd();
+			myband1.InitG12(ib1);
+			memcpy(gw, myband1.band0, sizeof myband1.band0);
+			char* zke = &ze[82];
+			BandReShapewithknown(zs0, gw, zke, zks, perm_ret);
+			BandReShapewithknown(&zs0[27], &gw[27], &zke[27], &zks[27], perm_ret);
+			BandReShapewithknown(&zs0[54], &gw[54], &zke[54], &zks[54], perm_ret);
+			for (int i = 0; i < 81; i++)fout1 << gw[i] + 1;
+			fout1 << ";" << zks << endl;
+	
+			break;
+		}
 		}
 	}
 
 }
-
-void BandReShape(int* s, int* d, BANDMINLEX::PERM p) {
+void BandReShapewithknown(int* s, int* d, char* sk, char*dk, BANDMINLEX::PERM p) {
 	int* pc = p.cols;
+	//uint8_t* pc = p.cols;
+	for (int irow = 0; irow < 3; irow++) {
+		int drow = 9 * irow;
+		for (int icol = 0; icol < 9; icol++) {
+			int x = p.map[s[drow + pc[icol]]];
+			char c= sk[drow + pc[icol]],
+				cx = (char)x + '1';
+			d[drow + icol] =x;
+			if (c == '.')dk[drow + icol] = '.';
+			else dk[drow + icol] = cx;
+		}
+	}
+	int temp[9];// now reorder 
+	char tempk[9];
+	if (d[0] > d[9]) {
+		memcpy(temp, &d[0], sizeof temp);
+		memcpy(&d[0], &d[9], sizeof temp);
+		memcpy(&d[9], temp, sizeof temp);
+		memcpy(tempk, &dk[0], sizeof tempk);
+		memcpy(&dk[0], &dk[9], sizeof tempk);
+		memcpy(&dk[9], tempk, sizeof tempk);
+	}
+	if (d[0] > d[18]) {
+		memcpy(temp, &d[0], sizeof temp);
+		memcpy(&d[0], &d[18], sizeof temp);
+		memcpy(&d[18], temp, sizeof temp);
+		memcpy(tempk, &dk[0], sizeof tempk);
+		memcpy(&dk[0], &dk[18], sizeof tempk);
+		memcpy(&dk[18], tempk, sizeof tempk);
+	}
+	if (d[9] > d[18]) {
+		memcpy(temp, &d[9], sizeof temp);
+		memcpy(&d[9], &d[18], sizeof temp);
+		memcpy(&d[18], temp, sizeof temp);
+		memcpy(tempk, &dk[9], sizeof tempk);
+		memcpy(&dk[9], &dk[18], sizeof tempk);
+		memcpy(&dk[18], tempk, sizeof tempk);
+	}
+}
+void BandReShape(int* s, int* d, BANDMINLEX::PERM p) {
+	int * pc = p.cols;
+	//uint8_t* pc = p.cols;
 	for (int irow = 0; irow < 3; irow++) {
 		int drow = 9 * irow;
 		for (int icol = 0; icol < 9; icol++)
@@ -441,7 +504,7 @@ BANDMINLEX::PERM t_auto20[108];
 void Go_c17_20() {// Morph to clear redundancy in pass1 entry file
 	// search 17 using a file having known  as entry and one 17 given 6 6 5
 	char* ze = finput.ze;
-	int  zs0[81], zs0d[81],  grid0[81],gw[81],
+	int  zs0[81],  grid0[81],gw[81],
 		m1t16, m2t16, m3t16,		// min index 0_415
 		i1t16, i2t16, i3t16, npuz = 0,n_auto20=0; // index n6
 	STD_B3 bands3[512],mb1;
@@ -469,7 +532,6 @@ void Go_c17_20() {// Morph to clear redundancy in pass1 entry file
 		// =======================morph entry to have min n6 count in first
 		for (int i = 0; i < 81; i++) {
 			zs0[i] = ze[i] - '1';
-			zs0d[i] = ze[C_transpose_d[i]] - '1';
 		}
 		BANDMINLEX::PERM perm_retb3,perm_retb2,perm_retb1;
 		bandminlex.Getmin(&zs0[54], &perm_retb3);
@@ -505,34 +567,18 @@ void Go_c17_20() {// Morph to clear redundancy in pass1 entry file
 				band[i + 9] = p.map[z0[p.cols[i] + 9]];
 				band[i + 18] = p.map[z0[p.cols[i] + 18]];
 			}
-
 			int tsort[3], bandw[27], aig = 0;;
 			G17BuildSort(band, tsort);
-			//for (int i = 0; i < 27; i++) cout << band[i] + 1;
-			//cout << " morphed imorph=" << imorph 
-			//	<< " sort " << (tsort[0] & 3) << (tsort[1] & 3) << (tsort[2] & 3) << endl;
-
-
 			for (int i = 0,k=0; i < 3; i++) {
 				int* b = &band[9 * (tsort[i] & 3)];
 				for (int j = 0; j < 9; j++,k++) bandw[k] = b[j];
 			}
-
-
-			for (int i = 0; i < 27; i++) {
-				if ((aig = bandw[i] - band2min[i])) {
-					//if (aig < 0) cout << "i=" << i << " w=" << bandw[i]
-					//	<< "  min=" << band2min[i] <<  endl;
-					break;
-				}
-			}
+			for (int i = 0; i < 27; i++) 
+				if ((aig = bandw[i] - band2min[i])) 	break;	
 			if (aig > 0)continue; // not minimal
 			for (int i = 0; i < 27; i++) cout << bandw[i] + 1;
 			cout << "imorph=" << imorph << " aig" << aig << endl;
-			if (!aig) {
-				tmini[nmini++] = imorph;
-				continue;
-			}
+			if (!aig) {		tmini[nmini++] = imorph;		continue;	}
 			// now a lower 
 			nmini = 0;
 			tmini[nmini++] = imorph;
@@ -540,10 +586,30 @@ void Go_c17_20() {// Morph to clear redundancy in pass1 entry file
 		}
 		if (tmini[0] < 0) {//keep source
 			for(int i=27;i<81;i++) fout1 << gw[i] + 1;
-			fout1<<";"<<npuz<<";" << i1t16 << ";" << i2t16 << ";" << i3t16 << endl;
+			fout1<<";" << i1t16 << ";" << i2t16 << ";" << i3t16 << ";np=" << npuz <<"; source "<<ze << endl;
+			continue;
 		}
-		for (int i = 0; i < 27; i++) fout1 << band2min[i] + 1;
-		fout1 << i1t16 << ";" << i2t16 << ";" << i3t16 << endl;  
+		// morph band 3 to perm
+		for (int im = 0; im < nmini; im ++ ) {
+			BANDMINLEX::PERM& p = t_auto20[tmini[im]];
+			int band3[27], * z0 = &gw[54];// morph the band
+			for (int i = 0; i < 9; i++) {
+				band3[i] = p.map[z0[p.cols[i]]];
+				band3[i + 9] = p.map[z0[p.cols[i] + 9]];
+				band3[i + 18] = p.map[z0[p.cols[i] + 18]];
+			}
+
+			int tsort[3], bandw[27], aig = 0;;
+			G17BuildSort(band3, tsort);
+
+			for (int i = 0, k = 0; i < 3; i++) {
+				int* b = &band3[9 * (tsort[i] & 3)];
+				for (int j = 0; j < 9; j++, k++) bandw[k] = b[j];
+			}
+			for (int j = 0; j < 27; j++) fout1 << band2min[j] + 1;
+			for (int j = 0; j < 27; j++) fout1 << bandw[j] + 1;
+			fout1 <<";" << i1t16 << ";" << i2t16 << ";" << i3t16 << ";np=" << npuz << " morph " << im << " " << ze << endl;
+		}
 
 		// is now <= print for analysis purpose 
 
@@ -568,16 +634,23 @@ int G17ComparedOrderedBand(int * zs0, int * band){
 
 
 void Go_c17_80() {// enumeration test
-	return; // revise command line
+	//return; // revise command line
 	cout << "Go_c17_80 phase 2a enumeration test " << endl;
 	cout << sgo.vx[0] << " -v0- first id 0_415" << endl;
 	cout << sgo.vx[1] << " -v1- second id 0_415" << endl;
 	cout << sgo.vx[2] << " -v2- if 1 printout asked" << endl;
 	cout << sgo.vx[4] << " -v4- 0 mode p2a 1 mode p2b 2 mode p1" << endl;
 	int it16_start = sgo.vx[0], it16_end = sgo.vx[1];
+	memset(&op, 0, sizeof op);
 	op.first = 0;
 	op.last = 100000;
-
+	op.t18 = 1;
+	op.bx3 = sgo.vx[11];
+	int x = (int)sgo.vx[4];
+	if (x == 2) op.p1 = 1;
+	else {
+		op.p2 = 1; if (x == 1) op.p2b = 1;
+	}
 	if (it16_start > 415 || it16_end > 415 || it16_start > it16_end) {
 		cerr << "invalid it16_start it16_end" << endl;
 		return;
@@ -595,7 +668,7 @@ void Go_c17_80() {// enumeration test
 		p_cptg[1] += p_cpt[1];
 	}
 	cout << "total\t\t" << p_cptg[0]
-		<< "\t" << p_cptg[1] << endl;
+		<< "\t" << p_cptg[1] << "\t" << p_cpt2g[10] << "\t" << p_cpt2g[11] << endl;
 }
 
 void BuildAutoMorph(); // in go_17sol_tables.cpp

@@ -132,6 +132,22 @@ typedef union p9x9 {
 	char puz[82];
 	char gr[9][9];
 } p9_9;
+//=========== preprocessor  base sequences 
+
+#define SKT_MORPHTOA \
+int band[27];\
+for (int i = 0; i < 9; i++) {\
+band[i] = p.m[z[p.c[i]]];\
+band[i + 9] = p.m[z[p.c[i] + 9]];\
+band[i + 18] = p.m[z[p.c[i] + 18]];	}
+
+#define SKT_MORPHTOP \
+int band[27];\
+for (int i = 0; i < 9; i++) {\
+band[i] = p.map[z[p.cols[i]]];\
+band[i + 9] = p.map[z[p.cols[i] + 9]];\
+band[i + 18] = p.map[z[p.cols[i] + 18]];}
+
 //==============================tables and functions  in tab0 and tab0b
 
 extern const  char *  empty_puzzle;

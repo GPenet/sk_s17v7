@@ -79,7 +79,7 @@ int main(int narg, char *argv[]) {
 	char * s_strings[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//optionnal 10 strings
 
 	uint32_t command = 0, 
-		vx[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, //integers 0 to 9
+		vx[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,999 }, //integers 0 to 9
 		bfx[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };// bit fields 
 
 	for(int i=0;i<narg;i++)	{
@@ -87,10 +87,14 @@ int main(int narg, char *argv[]) {
 		int ir=Search_ccd(ww);
 		if(ir<0) continue;
 		if (ir == 3){// -vn-xxxx
-			if (ww[3] - '-') continue; //must be -vn-  with n 0_9
-			int ind=ww[2] - '0';
-			if (ind < 0 || ind>9)continue;
-			vx[ind] = atoi(&ww[4]);
+			if (ww[3] - '-') continue; //must be -vn-  with n 0_9 b x
+			if (ww[2] == 'b')      vx[10] = atoi(&ww[4]);  // JIM  -vb- for TBN
+			else if (ww[2] == 'x') vx[11] = atoi(&ww[4]);  // JIM  -vx- for BX3
+			else {
+				int ind = ww[2] - '0';
+				if (ind < 0 || ind > 9) continue;
+				vx[ind] = atoi(&ww[4]);
+			}
 			continue;
 		}	
 		else if (ir == 4){//  -bn- followed by a bit field bits rigth to left max 8 bits

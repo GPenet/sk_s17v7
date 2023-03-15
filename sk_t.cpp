@@ -188,6 +188,8 @@ int AddUA32NoSubset(uint32_t * t, uint32_t & nt, uint32_t ua) {// ua1x27  + 5 bi
 	return 1;
 }
 
+
+
 int TblMult3[9] = { 0, 3, 6, 9, 12, 15, 18, 21, 24 };  // 3*i
 int TblMult9[9] = { 0, 9, 18, 27, 36, 45, 54, 63, 72 };  // 9*i
 int C_minirow[81] = {// TblDiv3 as 27 sub table cell to minirow 

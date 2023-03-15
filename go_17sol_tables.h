@@ -5,6 +5,25 @@ extern int G17ComparedOrderedBand(int * zs0, int * band);
 extern int G17ComparedOrdered2Bands(int * zs0, int * band);
 
 
+struct AUTOMORPH {
+	int i416;
+	int r[3], c[9], m[9], x;// rows columns map filler
+	inline void InitBase(int i16 = 0) {
+		i416 = i16;
+		for (int i = 0; i < 9; i++)		c[i] = m[i] = i;
+		for (int i = 0; i < 3; i++)		r[i] = i;
+	}
+	void Dump() {
+		cout << "perm status i416=" << i416 << endl;
+		cout << "rows " << r[0] << r[1] << r[2] << endl;
+		cout << "cols " << c[0] << c[1] << c[2]
+			<< c[3] << c[4] << c[5] << c[6]
+			<< c[7] << c[8] << endl;
+		cout << "digs " << m[0] << m[1] << m[2]
+			<< m[3] << m[4] << m[5] << m[6]
+			<< m[7] << m[8] << endl;
+	}
+};
 
 // minlex starts and gangsters minlex processing t416
 struct BANDMINLEX{// receive a band send back i416 and morphing data
@@ -12,8 +31,13 @@ struct BANDMINLEX{// receive a band send back i416 and morphing data
 	int * band0; //0 based band int band0 [27] in the calling program
 	int box_morphed[3][9], box_mapped[3][9],map[9];
 	int minirows[9], *bbx, *ccx, *rrx, ccx2[3], ccx3[3];
+
+
 	struct PERM{
-		int rows[3], cols[9], map[9],i416;
+		int i416;
+		int rows[3], cols[9], map[9];
+		//uint16_t i416;
+		//uint8_t rows[3], cols[9], map[9];
 		inline void InitBase(int i16 = 0 ){
 			i416 = i16;
 			for (int i = 0; i < 9; i++)		cols[i] = map[i] = i;
@@ -50,7 +74,6 @@ struct BANDMINLEX{// receive a band send back i416 and morphing data
 	int GetAutoMorphs(int ei416, PERM * tpout);
 };
 
-
 struct MINLEXUSINGBANDS{
 	BANDMINLEX::PERM *tpp,pout[3];
 	int * b0 ; // original solution grid
@@ -64,10 +87,6 @@ struct MINLEXUSINGBANDS{
 	int IsLexMinDirect(int * grid, int  i1b1, 	BANDMINLEX::PERM *tpp, int ntpp, int diag = 0);
 };
 
-struct AUTOMORPH {
-	uint16_t i415;
-	uint8_t r[3], c[9], m[9],x;// rows columns map filler
-};
 extern int perm_0_8_size3[84][3];
 extern int perm_0_8_size4[126][4];
 extern int t16_min_clues[416];
@@ -89,7 +108,9 @@ extern MINLEXUSINGBANDS minlexusingbands;
 extern int MinLexUsingBandsCompB23(int * zcomp, int b23[6][9], int diag);
 extern int tgen_band_cat[24][5];
 extern AUTOMORPH automorphs[519];
+extern  BANDMINLEX::PERM automorphsp[519];
 
-
+extern char tblnauto[416];
+extern uint16_t tblnautostart[416];
 // tua64 functions follow
 //Banbminlex functions follow
