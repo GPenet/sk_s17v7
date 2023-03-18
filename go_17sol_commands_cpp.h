@@ -640,11 +640,15 @@ void Go_c17_80() {// enumeration test
 	cout << sgo.vx[1] << " -v1- second id 0_415" << endl;
 	cout << sgo.vx[2] << " -v2- if 1 printout asked" << endl;
 	cout << sgo.vx[4] << " -v4- 0 mode p2a 1 mode p2b 2 mode p1" << endl;
+	cout << sgo.vx[5] << " -v6- band 2 index if not 0" << endl;
+	cout << sgo.vx[11] << " -vx- band 3 index if not 999" << endl;
 	int it16_start = sgo.vx[0], it16_end = sgo.vx[1];
 	memset(&op, 0, sizeof op);
 	op.first = 0;
 	op.last = 100000;
 	op.t18 = 1;
+	op.ton= sgo.vx[2];
+	op.b2 = sgo.vx[5];
 	op.bx3 = sgo.vx[11];
 	int x = (int)sgo.vx[4];
 	if (x == 2) op.p1 = 1;
@@ -668,7 +672,9 @@ void Go_c17_80() {// enumeration test
 		p_cptg[1] += p_cpt[1];
 	}
 	cout << "total\t\t" << p_cptg[0]
-		<< "\t" << p_cptg[1] << "\t" << p_cpt2g[10] << "\t" << p_cpt2g[11] << endl;
+		<< "\t" << p_cptg[1] << "\t" << p_cpt2g[10] << "\t" << p_cpt2g[11] 
+		<< "\t" << p_cpt2g[12] << "\t" << p_cpt2g[13] 
+		<< "\t" << p_cpt2g[14] << "\t" << p_cpt2g[15] << endl;
 }
 
 void BuildAutoMorph(); // in go_17sol_tables.cpp

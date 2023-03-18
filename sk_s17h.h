@@ -15,7 +15,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	char* b2start;
 	int first, last;
 	int ton;//test on and test level
-	uint64_t f3, f4, f7,f10; // filters p_cpt2g [3] [4) [7]
+	uint64_t f0, f3, f4, f7,f10; // filters p_cpt2g [3] [4) [7]
 	int upto3, upto4; // active below f3 below f4
 	int dv12, dv3;// print fresh uas bands 1 2 band 3
 	int dumpa;
@@ -25,6 +25,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		known = k;
 		tbn = sgo.vx[10];
 		bx3 = sgo.vx[11];
+		f0= sgo.vx[12];
 		if (sgo.bfx[0] & 1)t18 = 1;
 		if (sgo.bfx[0] & 6) {// pass 1 2a 2b
 			p2 = 1;
@@ -89,6 +90,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (b2start)	cout << b2start << " filter band 2 start" << endl;
 
 			if (ton)cout << ton << "  test on  -v1- verbose mode " << endl;
+			if (f0)cout << f0 << "  f0  -vz- diag skip pairs b1b2" << endl;
 			if (f3)cout << f3 << "  f3  -v6- diag filter 3 clues [3]" << endl;
 			if (f4)cout << f4 << "  f4  -v7- diag filter 6 clues [6]" << endl;
 			if (f7)cout << f7 << "  f7  -v8- diag filter go full [7]" << endl;
@@ -1147,9 +1149,9 @@ struct XQ {//to build the UAs b3 to expand
 			memcpy(&t2b[n2b], t2a, n2a * sizeof t2b[0]);
 		}
 	}
-	int Isoutsize2();
-	int Isoutsize3();
-	int Isoutsize4();
+	uint64_t Isoutsize2();
+	uint64_t Isoutsize3();
+	uint64_t Isoutsize4();
 	int NoDisjoint() {
 		register uint32_t r1 = tout[0] , r2 ;
 		for (uint32_t i = 1; i < nout; i++) {
@@ -1384,8 +1386,8 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	void GoB1();//  band 3 miss1 at start
 	void GoB1toMiss0(uint32_t bf);//  band 3 miss1 at start
 	void GoBMore1();//  band 3 miss>1 at start
-	void GoBMoretoMiss0(uint32_t ubf); 
-	void GoBMoretoMiss1(uint32_t ubf); 
+	void GoBMoretoMiss0(uint64_t ubf);
+	void GoBMoretoMiss1(uint64_t ubf);
 
 
 	uint32_t Get2d(int d1, int d2) {
@@ -1643,8 +1645,8 @@ struct GEN_BANDES_12 {// encapsulating global data
 	void Find_band3B_pass1B(int m10 = 1);
 	void F3B_See();
 	inline void F3B_See_18();// one NED return 1 if equal not loaded
-	inline void F3B_See_Com();// one NED  after see diag
-	inline void F3B_See_ComOld();// one NED  after see diag
+	void F3B_See_Com();// one NED  after see diag
+	void F3B_See_Com_GetMin();// one NED  after see diag
 
 
 	//============= loops control for UAs 5;6;7 digits collection (collect more=

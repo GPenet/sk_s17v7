@@ -294,6 +294,7 @@ int GEN_BANDES_12::ValidBand2() {
 			for (int j = 0; j < 6; j++)	cold[i] ^= 1 << grid0[i + 9 * j];
 		}
 		memcpy(gangcols, cold, sizeof gangcols);
+		if (op.b2 && (t416_to_n6[it16_2] != op.b2)) return 0;
 		//if (op.p1)Find_band3B_pass1(0);
 		if (op.p1)Find_band3B_pass1B(0);
 		else Find_band3B(0);
@@ -543,7 +544,7 @@ inline void GEN_BANDES_12::F3B_See_18() {// one NED return 1 if equal not loaded
 	if(Band2_3Check(gcheck)) 
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
-inline void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
+void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	// morph all to band 3 minimale 
 	char wb1[28];// band in char mode
 	int wb1i[27]; // band in 0-8 integer mode
@@ -553,45 +554,26 @@ inline void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loade
 	for (int i = 0; i < 27; i++) wb1i[i] = wb1[i] - '1';
 	int gw[81];
 	memcpy(gw, wb1i, sizeof wb1i);
-	BandReShape(myband1.band0, &gw[27], pband3);
-	BandReShape(myband2.band0, &gw[54], pband3);
-	ib1check = i1t16;	ib2check = i3t16;	ib3check = i2t16;
-	ibasecheck = it16;
+	BandReShape(grid0, &gw[27], pband3);
+	BandReShape(&grid0[27], &gw[54], pband3);
+	// push it to minimal b1b2
+
+	ib1check = i3t16;	ib2check = i1t16;	ib3check = i2t16;
+	ibasecheck = it16_3;
 	// re do p2check if needed
 	bandminlex.Getmin(&gw[27], &pcheck2, 0);
 	bandminlex.Getmin(&gw[54], &pcheck3, 0);
-
-	//pcheck2 = pband3;	pcheck3 = pband2;
-
+	if (1) {
+		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+		cout << " " << ibasecheck << "," << ib1check << " " << ib2check << " " << ib3check << endl;
+	}
 	if (Band2_3Check(gw))
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
-
-void GEN_BANDES_12::F3B_See(){
-	int ir = bandminlex.Getmin(&grid0[54], &pband3, 0);
-	if (ir < 0) {//would be bug  did not come in enumeration
-		cerr << "gen band 3 invalid return Getmin" << endl;
-		return;
-	}
-	it16_3 = pband3.i416;
-	i3t16 = t416_to_n6[it16_3];
-	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
-	if (i3t16 > i2t16) return;// direct not a pass 1 
-	if (op.t18) {// reverse case one NED in 8 p1 mode
-		if (i3t16 >= i1t16)F3B_See_18();
-	}
-	return;
-	if (i3t16 <= i1t16) {// check the solution grid morphed to ED
-		 F3B_See_Com();// no stack lower			
-	}
-	if (i3t16 == i1t16 && i3t16 == i2t16) {// keep it see later to filter if needed
-		return;
-		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
-		return;
-	}
+void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 }
 
-
+/*
 inline void GEN_BANDES_12::F3B_See_ComOld() {
 	int na = tblnauto[it16_3];
 	if (!na) {
@@ -645,13 +627,38 @@ inline void GEN_BANDES_12::F3B_See_ComOld() {
 	// not 100% optimal, but redundancy is accepted
 	bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
+*/
+void GEN_BANDES_12::F3B_See(){
+	int ir = bandminlex.Getmin(&grid0[54], &pband3, 0);
+	if (ir < 0) {//would be bug  did not come in enumeration
+		cerr << "gen band 3 invalid return Getmin" << endl;
+		return;
+	}
+	it16_3 = pband3.i416;
+	i3t16 = t416_to_n6[it16_3];
+	p_cpt2g[10]++;
+	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
+	if (i3t16 > i2t16) return;// direct not a pass 1 
+	p_cpt2g[11]++;
+	if (op.ton && p_cpt2g[11] < 1000) {
+		for (int i = 0; i < 81; i++) fout1 << grid0[i] + 1;
+		fout1 << ";" << i1t16 << ";" << i2t16 << ";" << i3t16 << endl;
+	}
+
+	// reverse case in p2b one NED in even p1 mode
+	//if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
+	// always b3 ib b1 one NED
+	if (i3t16 <= i1t16)  F3B_See_Com();
+}
 
 
 int GEN_BANDES_12::Band2_3Check(int* zw) {
 	int na = tblnauto[ibasecheck]; //ia 0-415 not index
+	cout <<" na =" << na << endl;
 	if (!na) {// see later what to do
 		 return  Band2_3CheckNoauto( zw);// good if no auto morph
 	}
+
 	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[ibasecheck]];
 	n_auto_b1b2 = 0;
 	{
@@ -666,6 +673,9 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 		}
 	}
 	n_auto_b2b1 = 0;// possible automorph after perm b1b2
+	cout << " n_auto_b2b1 =" << n_auto_b2b1 << endl;
+	p_cpt2g[12]++;
+
 	if (ib1check == ib2check) {// must try perm bands 12 auto morphs
 		int* z = zw, * z2 = &zw[27];
 		{
@@ -687,6 +697,7 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 		}
 	}
 	//===============  end of "Band2Check" start "Band3Check"
+	p_cpt2g[13]++;
 	if (ib1check == ib3check) {
 		BANDMINLEX::PERM* p = minlexusingbands.pout;
 		p[0].InitBase(ib1check);
@@ -705,6 +716,7 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 			}
 		}
 	}
+	p_cpt2g[14]++;
 	{	//=========================== perm b1b2 and base test (b1=b2)
 		if (n_auto_b2b1) {// possible lower band3 with a perm band1 band2
 			int* z = &zw[54];

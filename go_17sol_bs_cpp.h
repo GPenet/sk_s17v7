@@ -268,6 +268,7 @@ void G17B::Start() {// processing an entry
 #endif
 	if (aigstop)return;
 	p_cpt2g[0] ++;
+	if(op.f0)if (p_cpt2g[0] < op.f0) return;
 	p_cpt2g[1] += genb12.nband3;
 
 	if(sgo.vx[5])		cout <<myband2.band<<" [0] "<< p_cpt2g[0] << endl;
@@ -1590,7 +1591,7 @@ void GUAH54N::Build() {// cut to 30 switch to 54 killer
 			}
 		}
 	}
-	Status();
+	if(op.ton)Status();
 }
 
 //_______________________ expand common step 1_9 clues
@@ -1611,7 +1612,6 @@ void DumpPotential(int det = 0) {
 
 //#define T90 162366
 // 
-#define T18P2
 
 
 int G17B::IsValid7pbf(uint64_t bf) {
@@ -2479,9 +2479,6 @@ next10last://this is the last 17 p1 (10 + 7)
 void G17B::Valid9(SPB03A& s9) {// can be any process
 	if (op.f4 && p_cpt2g[4] == op.f4)cout << "valid 9" << endl;
 	p_cpt2g[56]++;
-#ifdef  T18P2
-	cout << Char54out(bf_cl9) << "valid 9" << endl;
-#endif
 	clean_valid_done = 1;
 	DoBuild9();
 	int nc12 = 9, nc3 = 8;
@@ -3334,19 +3331,19 @@ void G17B::Go_x_12() {// 8 clues limit 12 clues 666
 		locdiag = 1;
 	}
 	myb12 = bf_clc;//  8/ 10;
-	// ncluesb12 = 8; ncluesb3 = 10;
-	//guah54n.GetG2G3_8(myb12, tclx);// try 8
-	//GoCallB3Com();
+	KNOWNX(8)
+	guah54n.GetG2G3_8(myb12, tclx);// try 8
+	CALLB3(10, 8);
 	uint64_t Ac2 = ac_clc;
 	while (bitscanforward64(tclx[2], Ac2)) { 
 		uint64_t bit2 = (uint64_t)1 << tclx[2];
 		Ac2 ^= bit2; //clear bit
 		uint64_t bf2 = bf_clc | bit2;	 // 9  9;
 		guah54n.Build9(tclx);
-		//myb12 = bf2; ncluesb12 = 9; ncluesb3 = 9;/
-		//guah54n.GetG2G3_9(myb12);
-		//GoCallB3Com();
-		//if (aigstop)return;
+		myb12 = bf2;
+		KNOWNX(9)
+		guah54n.GetG2G3_9(myb12);
+		CALLB3(10, 8);
 		uint64_t Ac3 = Ac2;
 		{
 			register uint64_t nb1 = _popcnt64(bf2 & BIT_SET_27),
@@ -3382,6 +3379,7 @@ void G17B::Go_x_12() {// 8 clues limit 12 clues 666
 				{
 					register uint64_t nb1 = _popcnt64(bf4 & BIT_SET_27),
 						nb2 = 11 - nb1;
+					if (nb1 > 6 || nb2 > 6) continue;
 					if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
 					if (nb2 == 6) Ac2 &= BIT_SET_27;
 				}
@@ -4255,7 +4253,7 @@ void STD_B3::GoBMore1() {
 			//cout << "miss2 try miss0 or exit   [8] " << p_cpt2g[8] << endl;
 			//xq.DumpOut();
 //			if(xq.MissxToMiss0(xq.Isoutsize2())) return;
-			int x = xq.Isoutsize2();
+			uint64_t x = xq.Isoutsize2();
 			if (x) {
 				GoBMoretoMiss0(x);
 				return;
@@ -4280,14 +4278,14 @@ void STD_B3::GoBMore1() {
 		return;
 	}
 	if (xq.nmiss == 3) {
-		int x = xq.Isoutsize2();
+		uint64_t x = xq.Isoutsize2();
 		if (!x) {//go direct
 			xq.BuildMissxOut();
 			xq.CleanOut();
 			g17b.GoEndAll(0, BIT_SET_27);
 			return;
 		}
-		int y = xq.Isoutsize3();
+		uint64_t y = xq.Isoutsize3();
 		if (!y) {// push to miss 1
 			GoBMoretoMiss1(x);
 			return;
@@ -4298,17 +4296,17 @@ void STD_B3::GoBMore1() {
 		}
 	}
 	if (xq.nmiss == 4) {
-		int x = xq.Isoutsize3();
+		uint64_t x = xq.Isoutsize3();
 		if (locdiag) {
-			cout << Char27out(x) << "x size 3=" << endl;
+			cout << Char64out(x) << "x size 3=" << endl;
 		}
 		if (!x) {//go direct
 			xq.BuildMissxOut();
 			g17b.GoEndAll(0, BIT_SET_27);
 			return;
 		}
-		int y = xq.Isoutsize4();
-		if (locdiag)	cout << Char27out(y) << "y size 4=" << endl;
+		uint64_t y = xq.Isoutsize4();
+		if (locdiag)	cout << Char64out(y) << "y size 4=" << endl;
 		if (!y) {// push to miss 1
 			if (locdiag) {
 				cout << "<miss4 + size3 push to miss1" << endl;
@@ -4333,10 +4331,10 @@ void STD_B3::GoBMore1() {
 	g17b.GoEndAll(0, BIT_SET_27);
 
 }
-void STD_B3::GoBMoretoMiss0(uint32_t ubf) {
+void STD_B3::GoBMoretoMiss0(uint64_t ubf) {
 	int locdiag = 0;
 	if (!ubf) return ;
-	for (uint32_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
+	for (uint64_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
 		register uint32_t u = xq.tout[i];
 		if (bit & ubf) {// new crit
 			xq.t2b[xq.n2b++] = u;
@@ -4364,13 +4362,13 @@ void STD_B3::GoBMoretoMiss0(uint32_t ubf) {
 	if (_popcnt32(F) == xq.nb3) { GoC0F(F); return; }
 	GoC0(F, A);
 }
-void STD_B3::GoBMoretoMiss1(uint32_t ubf) {
+void STD_B3::GoBMoretoMiss1(uint64_t ubf) {
 	if (g17b.VerifyValidb3())return;
 	int locdiag = 0;
 	if (op.known && g17b.knownt >= 10) locdiag = 1;
 	if (VTEST && p_cpt2g[8] == VTEST) locdiag = 1;
 	if (!ubf) return;
-	for (uint32_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
+	for (uint64_t i = 0, bit = 1; i < xq.nout; i++, bit <<= 1) {
 		register uint32_t u = xq.tout[i];
 		if (bit & ubf) {// new crit
 			xq.t2b[xq.n2b++] = u;
@@ -4784,22 +4782,24 @@ int XQ::Miss0CheckTin() {// see if new invalid or new assigned
 		AddAssigned(as);
 	}
 }
-int XQ::Isoutsize2() {
+uint64_t XQ::Isoutsize2() {
 	if (nout < 2) return 0;
-	uint32_t n = nout; if (n > 30) n = 30;
+	register uint32_t n = nout;
+	if (n > 64) n = 64;
 	for (uint32_t i1 = 0; i1 < n - 1; i1++) {
 		register uint32_t U1 = tout[i1];
 		for (uint32_t i2 = i1+1; i2 < n; i2++) {
 			register uint32_t U2 = tout[i2];
 			if (U1 & U2) continue;
-			return (1 << i1) | (1 << i2);
+			return ((uint64_t)1 << i1) | ((uint64_t)1 << i2);
 		}
 	}
 	return 0;
 }
-int XQ::Isoutsize3() {
+uint64_t XQ::Isoutsize3() {
 	if (nout < 3) return 0;
-	uint32_t n = nout; if (n > 30) n = 30;
+	register uint32_t n = nout;
+	if (n > 64) n = 64;
 	for (uint32_t i1 = 0; i1 < n - 2; i1++) {
 		register uint32_t U1 = tout[i1];
 		for (uint32_t i2 = i1 + 1; i2 < n-1; i2++) {
@@ -4808,17 +4808,17 @@ int XQ::Isoutsize3() {
 			for (uint32_t i3 = i2 + 1; i3 < n; i3++) {
 				register uint32_t U3 = tout[i3];
 				if ((U1 | U2) & U3) continue;
-				return (1 << i1) | (1 << i2) | (1 << i3);
+				return ((uint64_t)1 << i1) | ((uint64_t)1 << i2) | ((uint64_t)1 << i3);
 			}
 		}
 	}
 	return 0;
 }
-int XQ::Isoutsize4() {
+uint64_t XQ::Isoutsize4() {
 	if (nout < 4) return 0;
-	uint32_t n = nout; if (n > 30) n = 30;
-	uint32_t limi1 = n - 3; if (limi1 > 12)limi1 = 12;
-	for (uint32_t i1 = 0; i1 < limi1; i1++) {
+	register uint32_t n = nout;  
+	if (n > 64) n = 64;
+	for (uint32_t i1 = 0; i1 < n-3; i1++) {
 		register uint32_t U1 = tout[i1];
 		for (uint32_t i2 = i1 + 1; i2 < n-2; i2++) {
 			register uint32_t U2 = tout[i2];
@@ -4830,7 +4830,8 @@ int XQ::Isoutsize4() {
 				for (uint32_t i4 = i3 + 1; i4 < n ; i4++) {
 					register uint32_t U4 = tout[i4];
 					if (uo3 & U4) continue;
-					return (1 << i1) | (1 << i2) | (1 << i3) | (1 << i4);
+					return ((uint64_t)1 << i1) | ((uint64_t)1 << i2) |
+						((uint64_t)1 << i3) | ((uint64_t)1 << i4);
 				}
 			}
 		}
@@ -5094,7 +5095,7 @@ next3:
 		spb[2].active ^= bit;
 		spb[3] = spb[2];
 		spb[3].all_previous |= bit;
-		if (locdiag) cout << Char27out(spb[3].all_previous) << " 3 cells " << endl;
+		if (locdiag) cout << Char27out(spb[3].all_previous) << " next3 all cells " << endl;
 
 	}
 	if (ntoassb3 != 4) goto endnext3;
@@ -5159,14 +5160,13 @@ endnext3:
 				if (U)t3b[nt3b++] = U;
 			}
 		}
-		if (!nt3b) {
+		if (!nt3b) {// still un assigned >=2 can not be valid
 			if (VerifyValidb3()) return;
-			if (!Valid3_1_3(spb[3].all_previous))goto next2;
-			// fresh uas see what to do
-			cout << " fresh uas last step 1_3 see what to do [3] " << p_cpt2g[3]
-				<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << " [8] " << p_cpt2g[8] << endl;
-			aigstop = 1;
-			return;
+			if (!Valid3_1_3(spb[3].all_previous))goto next3;
+			for (uint32_t i = 0; i < zhgxn.nua; i++) {
+				BF128 ww = zhgxn.tua[i];
+				t3b[nt3b++] = ww.bf.u32[2];
+			}
 		}
 		//Dumpt3b();
 		//SP3 sp3;

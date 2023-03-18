@@ -79,7 +79,7 @@ int main(int narg, char *argv[]) {
 	char * s_strings[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//optionnal 10 strings
 
 	uint32_t command = 0, 
-		vx[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,999 }, //integers 0 to 9
+		vx[13] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,999,0 }, //integers 0 to 9 + bxz
 		bfx[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };// bit fields 
 
 	for(int i=0;i<narg;i++)	{
@@ -90,6 +90,7 @@ int main(int narg, char *argv[]) {
 			if (ww[3] - '-') continue; //must be -vn-  with n 0_9 b x
 			if (ww[2] == 'b')      vx[10] = atoi(&ww[4]);  // JIM  -vb- for TBN
 			else if (ww[2] == 'x') vx[11] = atoi(&ww[4]);  // JIM  -vx- for BX3
+			else if (ww[2] == 'z') vx[12] = atoi(&ww[4]);  // -vz- for "skip pair c_pt2g[0]
 			else {
 				int ind = ww[2] - '0';
 				if (ind < 0 || ind > 9) continue;
