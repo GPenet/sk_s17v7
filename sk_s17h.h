@@ -41,6 +41,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		b1 = sgo.vx[0];
 		first = sgo.vx[2];
 		last = sgo.vx[3];
+		if (last == 0) last = first;  // default if no -v3- given
 		b2_is = sgo.vx[4];
 		b2 = sgo.vx[5];
 		if (sgo.s_strings[0])	if(strlen(sgo.s_strings[0]))
@@ -1553,7 +1554,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	int i1t16, i2t16, i3t16	,// index 416 ordered in increasing size of valid clues 3
 		ixmin1, ixmin2, ixmin3, maxnb3;
 	char zsol[82], rband2[28];
-	int grid0[81], tc[6], ntc;
+	int grid0[81],  gw[81], tc[6], ntc;
 	int gcheck[82], ib1check, ib2check, ib3check,ibasecheck;
 	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
@@ -1645,8 +1646,9 @@ struct GEN_BANDES_12 {// encapsulating global data
 	void Find_band3B_pass1B(int m10 = 1);
 	void F3B_See();
 	inline void F3B_See_18();// one NED return 1 if equal not loaded
-	void F3B_See_Com();// one NED  after see diag
-	void F3B_See_Com_GetMin();// one NED  after see diag
+	void F3B_See_Com();// one NED b3 first   
+	void F3B_See_Com_GetMin();  
+	int F3B_See_Com_FilterDiag(); 
 
 
 	//============= loops control for UAs 5;6;7 digits collection (collect more=

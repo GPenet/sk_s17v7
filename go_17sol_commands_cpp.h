@@ -640,7 +640,7 @@ void Go_c17_80() {// enumeration test
 	cout << sgo.vx[1] << " -v1- second id 0_415" << endl;
 	cout << sgo.vx[2] << " -v2- if 1 printout asked" << endl;
 	cout << sgo.vx[4] << " -v4- 0 mode p2a 1 mode p2b 2 mode p1" << endl;
-	cout << sgo.vx[5] << " -v6- band 2 index if not 0" << endl;
+	cout << sgo.vx[5] << " -v5- band 2 index if not 9990" << endl;
 	cout << sgo.vx[11] << " -vx- band 3 index if not 999" << endl;
 	int it16_start = sgo.vx[0], it16_end = sgo.vx[1];
 	memset(&op, 0, sizeof op);

@@ -79,7 +79,7 @@ int main(int narg, char *argv[]) {
 	char * s_strings[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };//optionnal 10 strings
 
 	uint32_t command = 0, 
-		vx[13] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,999,0 }, //integers 0 to 9 + bxz
+		vx[13] = { 0, 0, 0, 0, 0, 999, 0, 0, 0, 0,0,999,0 }, //integers 0 to 9 + bxz
 		bfx[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };// bit fields 
 
 	for(int i=0;i<narg;i++)	{

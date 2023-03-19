@@ -220,7 +220,8 @@ void G17B::StartPrint() {
 		cout << myband2.band << endl << endl;
 		for (int i = 0; i < genb12.nband3; i++) {
 			STD_B3& b3 = genb12.bands3[i];
-			cout << b3.band << " b3 i=" << i << endl;
+			cout << b3.band << " b3 i=" << i 
+				<<" bn="<<b3.i416<<" bx="<< t416_to_n6[ b3.i416] << endl;
 			if (op.ton > 3) {
 				for (int j = 0; j < 81; j++)if (b3.g.gsocket4.On(j))
 					cout << j << "\t" <<Char27out( b3.g.pat2[j]) << " ua4" << endl;
@@ -2263,7 +2264,7 @@ void G17B::Expand_7_9(SPB03A& s6) {
 	int locdiag = 0;
 	if (op.ton) {
 		if (op.f3) {
-			if (p_cpt2g[3] == op.f3&& (!op.f4)) {
+			if (p_cpt2g[3] == op.f3) {
 				cout << Char54out(s6.all_previous_cells) << " 6clues [4]" << p_cpt2g[4]
 					<< " nc128=" << t54b12.nc128;
 				cout << Char54out(twu[0]) << " [7]"<< p_cpt2g[7] << endl;
@@ -2271,7 +2272,7 @@ void G17B::Expand_7_9(SPB03A& s6) {
 		}
 		if (op.f4) {
 			if (p_cpt2g[4] == op.f4) {
-				cout << Char54out(s6.all_previous_cells) << "call 7_9 good path" << endl;
+				cout << Char54out(s6.all_previous_cells) << "call 7_9 good path[4]" << p_cpt2g[4] << endl;
 				cout << Char54out(s6.active_cells) << " active " << endl;
 				if (op.ton > 2) {tuv128.Dump(30); locdiag = 1;	}
 				locdiag = 1;
@@ -2754,6 +2755,7 @@ void G17B::Expand_10_12(SPB03A& s9) {
 	int locdiag = 0;
 	if (!((~pk54) & bf_cl9)) 		locdiag = 1;
 
+
 	SPB03A   sp9, sp10,sp11,sp12;
 	T54B12::TUVECT& tuv128 = t54b12.td128[0];
 	uint64_t* twu = tuv128.t;
@@ -2761,6 +2763,14 @@ void G17B::Expand_10_12(SPB03A& s9) {
 	sp9.possible_cells = twu[0];
 	sp9.v = tuv128.v0;
 	memset(&ntbelow[3], 0, 3* sizeof ntbelow[0]);// 10 11  12
+	if (op.f4) {
+		if (p_cpt2g[4] == op.f4) {
+			cout  << "call 10_12 good path[90]" << p_cpt2g[90] << endl;
+			if (op.ton > 2)  tuv128.Dump(30); 
+			locdiag = 1;
+		}
+
+	}
 next10:	//_______ add clue 10
 	{
 		uint64_t p = sp9.possible_cells;
@@ -2878,6 +2888,13 @@ next11: //add clue 11
 	}
 }
 void G17B::EndExpand_10_12() {// this is 18 pass 2 + pass1 first NED
+	if (op.f4) {
+		if (p_cpt2g[4] == op.f4) {
+			DumpPotential();
+			cout << "end 10_12 good path[90]" << p_cpt2g[90] << endl;
+		}
+
+	}
 	if (!(ntbelow[3] | ntbelow[4] | ntbelow[5])) return;
 	p_cpt2g[91]++;	p_cpt2g[95] += ntbelow[3];
 	p_cpt2g[96] += ntbelow[4];	p_cpt2g[97] += ntbelow[5];
@@ -3483,6 +3500,8 @@ void G17B::Go_x_11_17() {// 8 clues limit 11 clues 656 566
 
 void G17B::GoCallB3Com() {
 	p_cpt2g[7]++;
+	if (p_cpt2g[90] == 120475)
+		cout << Char54out(myb12) << " :GoCallB3Com() [7]" << p_cpt2g[7] << endl;
 	int locdiag = 0;
 	if (knownt >= 11) locdiag = 1;	
 	if (op.f7 ){
@@ -4872,7 +4891,7 @@ void XQ::CleanIn() {// usually miss1 last step
 }
 void XQ::CleanOut() {// usually miss1 last step
 	uint32_t nn = nout; nout = 0;
-	uint32_t tx[7][100], ntx[7];
+	uint32_t tx[8][100], ntx[7];
 	memset(ntx, 0, sizeof ntx);
 	for (uint32_t i = 0; i < nn; i++) {
 		register uint32_t u = tout[i],  cc = _popcnt32(u);
