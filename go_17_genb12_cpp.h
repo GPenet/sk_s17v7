@@ -535,6 +535,7 @@ back:
 
 
 void BandReShape(int* s, int* d, BANDMINLEX::PERM p);
+void BandReOrder(int* d);
 inline void GEN_BANDES_12::F3B_See_18() {// one NED return 1 if equal not loaded
 	pcheck2 = pband3;	pcheck3 = pband2;
 	ib1check = i1t16;	ib2check = i3t16;	ib3check = i2t16;
@@ -556,23 +557,22 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	BandReShape(grid0, &gw[27], pband3);
 	BandReShape(&grid0[27], &gw[54], pband3);
 	// push it to minimal b1b2
-	F3B_See_Com_GetMin();
 	ib1check = i3t16;	ib2check = i1t16;	ib3check = i2t16;
 	ibasecheck = it16_3;
-	// re do p2check if needed
-	bandminlex.Getmin(&gw[27], &pcheck2, 0);
-	bandminlex.Getmin(&gw[54], &pcheck3, 0);
 	if (0) {
 		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
 		cout << " " << ibasecheck << "," << ib1check << " " << ib2check << " " << ib3check << endl;
 	}
-	//return;
-	//if (minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, automorphsp, 0))
-
-
-	//if (Band2_3Check(gw))
-	if (!minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, automorphsp, 0))
-	//if(F3B_See_Com_FilterDiag())
+	F3B_See_Com_GetMin();
+	if (0) {
+		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+		cout << endl;
+	}
+	// re do p2check if needed
+	bandminlex.Getmin(&gw[27], &pcheck2, 0);
+	bandminlex.Getmin(&gw[54], &pcheck3, 0);
+	if(Band2_3Check(gw))
+	//if (!minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, automorphsp, 0))
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
 void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
@@ -585,12 +585,13 @@ void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 	for (int imorph = 0; imorph < na; imorph++) {
 		int* z = &gw[27];// morph the band
 		BANDMINLEX::PERM p = t_autom[imorph]; SKT_MORPHTOP
-			int ir = G17ComparedOrderedBand(z, band);
-		if (ir == 1) continue;
+			int ir = G17ComparedOrderedBand(band2min, band);
+		if (ir > 1) continue;
 		if (!ir) { tmini[nmini++] = imorph;		continue; }
 		// now a lower 
 		nmini = 0;
 		tmini[nmini++] = imorph;
+		BandReOrder(band);
 		memcpy(band2min, band, sizeof band2min);
 	}
 	if (tmini[0] < 0) return; // nothing to do
@@ -614,6 +615,9 @@ void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 				}
 			}
 		}
+		memcpy(&gw[27],band2min, sizeof band2min);
+		memcpy(&gw[54], band3min, sizeof band3min);
+
 		//int gwr[81];
 		//BANDMINLEX::PERM& p = automorphsp[tmini[0]];
 		//memcpy(gwr, gw, sizeof gwr);
@@ -673,8 +677,9 @@ void GEN_BANDES_12::F3B_See(){
 
 
 int GEN_BANDES_12::Band2_3Check(int* zw) {
+	p_cpt2g[10]++;	
 	int na = tblnauto[ibasecheck]; //ia 0-415 not index
-	cout <<" na =" << na << endl;
+	//cout <<" na =" << na << endl;
 	if (!na) {// see later what to do
 		 return  Band2_3CheckNoauto( zw);// good if no auto morph
 	}
@@ -693,7 +698,6 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 		}
 	}
 	n_auto_b2b1 = 0;// possible automorph after perm b1b2
-	cout << " n_auto_b2b1 =" << n_auto_b2b1 << endl;
 	p_cpt2g[12]++;
 
 	if (ib1check == ib2check) {// must try perm bands 12 auto morphs

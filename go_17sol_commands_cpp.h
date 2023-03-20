@@ -498,7 +498,24 @@ void BandReShape(int* s, int* d, BANDMINLEX::PERM p) {
 		memcpy(&d[18], temp, sizeof temp);
 	}
 }
-
+void BandReOrder(int* d) {
+	int temp[9];// now reorder 
+	if (d[0] > d[9]) {
+		memcpy(temp, &d[0], sizeof temp);
+		memcpy(&d[0], &d[9], sizeof temp);
+		memcpy(&d[9], temp, sizeof temp);
+	}
+	if (d[0] > d[18]) {
+		memcpy(temp, &d[0], sizeof temp);
+		memcpy(&d[0], &d[18], sizeof temp);
+		memcpy(&d[18], temp, sizeof temp);
+	}
+	if (d[9] > d[18]) {
+		memcpy(temp, &d[9], sizeof temp);
+		memcpy(&d[9], &d[18], sizeof temp);
+		memcpy(&d[18], temp, sizeof temp);
+	}
+}
 BANDMINLEX::PERM t_auto20[108];
 
 void Go_c17_20() {// Morph to clear redundancy in pass1 entry file
