@@ -3481,7 +3481,7 @@ int MINLEXUSINGBANDS::IsLexMinDiagB(int * grid, int i1b1, int i1b2, int i1b3,
 	for (int i = 0; i < 81; i++)bdiagonal[i] = b0[C_transpose_d[i]];
 	for (int ib = 0; ib < 3; ib++){
 		int ir = bandminlex.Getmin(&bdiagonal[27 * ib], &pout[ib]);
-		if (ir < 0){ cout << "bug IsLexMinDiag " << endl;	return 1; }
+		if (ir < 0){ cout << "bug IsLexMinDiag " << endl;	return 2; }
 		iband[ib] = t416_to_n6[pout[ib].i416];
 		if (iband[ib] < i1b1) return 1;
 	}

@@ -662,7 +662,7 @@ void Go_c17_80() {// enumeration test
 	int it16_start = sgo.vx[0], it16_end = sgo.vx[1];
 	memset(&op, 0, sizeof op);
 	op.first = 0;
-	op.last = 100000;
+	op.last =200000;
 	op.t18 = 1;
 	op.ton= sgo.vx[2];
 	op.b2 = sgo.vx[5];

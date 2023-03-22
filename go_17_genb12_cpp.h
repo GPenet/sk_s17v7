@@ -297,13 +297,14 @@ int GEN_BANDES_12::ValidBand2() {
 		if (op.p1)Find_band3B_pass1B(0);
 		else Find_band3B(0);
 		if (nband3) {	p_cpt[0]++;	p_cpt[1] += nband3;	}
+		if (((nb12 >> 6) > op.last)) return 1;
 	}
 	return 0;
 }
 void GEN_BANDES_12::Find_band3B(int m10) {
 	//BANDMINLEX::PERM pout;
 	register int  *crcb, bit;
-	nband3 = 0;
+	nband3 = nsgchecked=0;
 	int *rd = rowdb3, *cd = cold, *bd = boxdb3; // to updates rows cols boxes
 	char * zs = zsol;
 	int * zs0 = &grid0[54];
@@ -464,13 +465,15 @@ back:
 	if (m10 != 1)return;
 	if (nband3) {
 		if (op.out_entry) {// send in fout the list of attached solution grids 
-			for (int i = 0; i < nband3; i++)
-				if((!bands3[i].i416)&& i2t16 == 361)
-//				if(i2t16==359&& t416_to_n6[bands3[i].i416] ==361)
+			for (int i = 0; i < nband3; i++) {
 				fout1 << myband1.band << myband2.band
-				<< bands3[i].band
-				<< ";" << i1t16 << ";" << i2t16 << ";"
-				<< t416_to_n6[bands3[i].i416]<< " slice "<< (nb12 >> 6) << endl;
+					<< bands3[i].band;
+				if (op.ton)
+					fout1 << ";" << i1t16 << ";" << i2t16 << ";"
+					<< t416_to_n6[bands3[i].i416]
+					<< " slice " << (nb12 >> 6) << endl;
+				else fout1 << endl;
+			}
 		}
 		else g17b.Start();// call the process for that entry
 	}
@@ -521,13 +524,15 @@ back:
 	if (m10 != 1)return;
 	if (nband3) {
 		if (op.out_entry) {// send in fout the list of attached solution grids 
-			for (int i = 0; i < nband3; i++)
-				if ((!bands3[i].i416) && i2t16 == 361)
-					//				if(i2t16==359&& t416_to_n6[bands3[i].i416] ==361)
-					fout1 << myband1.band << myband2.band
-					<< bands3[i].band
-					<< ";" << i1t16 << ";" << i2t16 << ";"
-					<< t416_to_n6[bands3[i].i416] << " slice " << (nb12 >> 6) << endl;
+			for (int i = 0; i < nband3; i++) {
+				fout1 << myband1.band << myband2.band
+					<< bands3[i].band;
+				if (op.ton)
+					fout1 << ";" << i1t16 << ";" << i2t16 << ";"
+					<< t416_to_n6[bands3[i].i416]
+					<< " slice " << (nb12 >> 6) << endl;
+				else fout1 << endl;
+			}
 		}
 		else g17b.Start();// call the process for that entry
 	}
@@ -559,11 +564,22 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	// push it to minimal b1b2
 	ib1check = i3t16;	ib2check = i1t16;	ib3check = i2t16;
 	ibasecheck = it16_3;
-	if (0) {
-		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout << " " << ibasecheck << "," << ib1check << " " << ib2check << " " << ib3check << endl;
-	}
 	F3B_See_Com_GetMin();
+	if (tblnauto[ibasecheck]) {// check if redundant
+		for (int ich = 0; ich < nsgchecked; ich++) {
+			int* old = sgchecked[ich], aig = 1;
+			for (int j = 0; j < 81; j++) {
+				if (old[j] != gw[j]) { aig = 0; break; }
+			}
+			if (aig) {
+				//for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+				//cout << " seen icheck= " << ich << endl;
+				return; //seen  not valid or rerundant
+			}
+		}
+		int* d = sgchecked[nsgchecked++];
+		memcpy(d, gw, sizeof gw);
+	}
 	if (0) {
 		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
 		cout << endl;
@@ -571,9 +587,15 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	// re do p2check if needed
 	bandminlex.Getmin(&gw[27], &pcheck2, 0);
 	bandminlex.Getmin(&gw[54], &pcheck3, 0);
-	if(Band2_3Check(gw))
-	//if (!minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, automorphsp, 0))
+	if (Band2_3Check(gw)) {
+		if (0) {
+			for (int i = 0; i < 81; i++)fout1 << gw[i] + 1;
+			fout1<<" "<<nb12 << endl;
+		}
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
+
+	}
+	//if (!minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, automorphsp, 0))
 }
 void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 	int na = tblnauto[it16_3];
@@ -596,15 +618,16 @@ void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 	}
 	if (tmini[0] < 0) return; // nothing to do
 	{// morph to imorph
-		if(nmini>1)
+		if(0&&nmini>1)
 		cout << i1t16 << "," << i2t16 << "," << i3t16 << " "
 			<< " morph to nmorph " << nmini << " na0=" << tmini[0]
 			<< " nb12=" <<nb12<< endl;
 		int band3min[27], band3minw[27];
-		BANDMINLEX::PERM& p = automorphsp[tmini[0]];
+		BANDMINLEX::PERM& p = t_autom[tmini[0]];
 		BandReShape(&gw[54], band3min, p);
+		BandReOrder(band3minw);
 		for (int i = 1; i < nmini; i++) {
-			BANDMINLEX::PERM& pw = automorphsp[tmini[i]];
+			BANDMINLEX::PERM& pw = t_autom[tmini[i]];
 			BandReShape(&gw[54], band3minw, pw);
 			for (int j = 0; j < 27; j++) {
 				int ir = band3minw[j] - band3min[j];
@@ -774,8 +797,19 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 			}
 		}
 	}
-	if (minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na))
-		return 0;
+	int ir = minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na);
+	if (ir > 1) {
+		if (1) {
+			for (int i = 0; i < 81; i++)cout << zw[i] + 1;
+			cout << "Band2_3Check error getmin return stop " << nb12 << endl;
+			op.last = 0;
+			return 0;
+		}
+	}
+	if (ir)		return 0;
+
+	//if (minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na))
+	//	return 0;
 	return 1;// good to process
 }
 
@@ -790,9 +824,16 @@ int GEN_BANDES_12::Band2_3CheckNoauto(int* zw) {
 			return 0;
 		return 1;
 	}
-	
-	if (minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, 0))
-		return 0;
+	int ir = minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, 0);
+	if (ir > 1) {
+		if (1) {
+			for (int i = 0; i < 81; i++)cout << zw[i] + 1;
+			cout << " error getmin return stop" << nb12 << endl;
+			op.last = 0;
+			return 0;
+		}
+	}
+	if (ir)		return 0;
 	return 1;// good to process
 }
 
