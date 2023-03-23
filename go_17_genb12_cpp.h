@@ -554,6 +554,16 @@ inline void GEN_BANDES_12::F3B_See_18() {// one NED return 1 if equal not loaded
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
 void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
+	if (n_auto_b1) {
+		{  //redundancy if not b1b1 minimal
+			int* z = &grid0[27];
+			for (int imorph = 0; imorph < n_auto_b1; imorph++) {
+				BANDMINLEX::PERM& p = t_auto_b1[imorph]; 	SKT_MORPHTOP
+					int ir = G17ComparedOrderedBand(z, band);
+				if (ir == 1)	return;
+			}
+		}
+	}
 	// morph all to band 3 minimale 
 	char wb1[28];// band in char mode
 	int wb1i[27]; // band in 0-8 integer mode
@@ -567,10 +577,7 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	// push it to minimal b1b2
 	ib1check = i3t16;	ib2check = i1t16;	ib3check = i2t16;
 	ibasecheck = it16_3;
-	if (0) {
-		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout<<";123;" << i1t16 << "," << i2t16 << "," << i3t16 << endl;
-	}
+
 	F3B_See_Com_GetMin();
 	if (tblnauto[ibasecheck]) {// check if redundant
 		for (int ich = 0; ich < nsgchecked; ich++) {
@@ -592,11 +599,21 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	bandminlex.Getmin(&gw[54], &pcheck3, 0);
 	if (Band2_3Check(gw)) {
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
+		if (op.ton>1) {
+			for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+			cout << ";ok 123;" << i1t16 << "," << i2t16 << "," << i3t16 << endl;
+		}
 	}
 }
 void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 	int na = tblnauto[it16_3];
 	if (!na) return;
+	int locdiag = 0;
+	//if (i2t16 == 364) locdiag = 1;
+	if (locdiag) {
+		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+		cout << ";123;" << i1t16 << "," << i2t16 << "," << i3t16 << endl;
+	}
 	int  band2min[27];
 	memcpy(band2min, &gw[27], sizeof band2min);
 	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[it16_3]];
@@ -612,6 +629,11 @@ void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
 		tmini[nmini++] = imorph;
 		BandReOrder(band);
 		memcpy(band2min, band, sizeof band2min);
+	}
+	if (locdiag) {
+		for (int i = 0; i < 27; i++)cout << band2min[i] + 1;
+		cout  << " morph to nmorph " << nmini << " na0=" << tmini[0]
+			<< " nb12=" << nb12 << endl;
 	}
 	if (tmini[0] < 0) return; // nothing to do
 	{// morph to imorph
