@@ -2810,12 +2810,12 @@ next10:	//_______ add clue 10
 		}
 		sp10.possible_cells = U & sp10.active_cells;// never empty
 		uint64_t nb1 = _popcnt64(sp10.all_previous_cells & BIT_SET_27);
-		//if ((nb1 >7)||(nb1 <3) goto next10;
-		//if (nb1 == 7) sp10.possible_cells &= ~(uint64_t)BIT_SET_27;// only b2
-		//if (nb1 == 3) sp10.possible_cells &= BIT_SET_27;// only b1
+		if ((nb1 >7)||(nb1 <3)) goto next10;
+		if (nb1 == 7) sp10.possible_cells &= ~(uint64_t)BIT_SET_27;// only b2
+		if (nb1 == 3) sp10.possible_cells &= BIT_SET_27;// only b1
 
-		if (nb1 == 6) sp10.possible_cells&= ~(uint64_t)BIT_SET_27;// only b2
-		if (nb1 == 4) sp10.possible_cells &= BIT_SET_27;// only b1
+		//if (nb1 == 6) sp10.possible_cells&= ~(uint64_t)BIT_SET_27;// only b2
+		//if (nb1 == 4) sp10.possible_cells &= BIT_SET_27;// only b1
 
 	}
 
@@ -2861,16 +2861,12 @@ next11: //add clue 11
 		if (locdiag>1 || knownt == 11)cout << Char54out(Uand) << "  <-11 to push to 12" << endl;
 		uint64_t nb1 = _popcnt64(sp11.all_previous_cells & BIT_SET_27);
 
-		//if ((nb1 >6)||(nb1 <5) goto next11;
-
-
+		if ((nb1 >6)||(nb1 <5)) goto next11;
 		if (nb1 == 6)Uand &= ~(uint64_t)BIT_SET_27;// only b2
 		else Uand &= BIT_SET_27;// only b1
 
 		Uand &= sp11.active_cells;// never empty
 		if (!Uand)goto next11;
-
-
 		while (bitscanforward64(tc_10_12[2], Uand)) {
 			uint64_t bit2 = (uint64_t)1 << tc_10_12[2];
 			Uand ^= bit2; //clear bit
@@ -2964,21 +2960,26 @@ void G17B::EndExpand_10_12() {// this is 18 pass 2 + pass1 first NED
 		uint64_t bf10 = ww.bf.u64[0], y = bf10 & ~bf_cl9;
 		bitscanforward64(tc_10_12[0], y);
 		myb12 = bf10 ;
-		KNOWNX(12)
+		KNOWNX(10)
 		guah54n.GetG2G3_10(myb12, tc_10_12[0]);
 		CALLB3(10, 8);
 		uint64_t Ac = ww.bf.u64[1];//  one more clue in bands 1+2
+		{
+			register uint64_t nb1 = _popcnt64(bf10 & BIT_SET_27),
+				nb2 = 10 - nb1;
+			if (nb1 > 7 || nb2 > 7) continue;
+			if (nb1 == 7) Ac &= ~(uint64_t)BIT_SET_27;
+			if (nb2 == 7) Ac &= BIT_SET_27;
+		}
+
 		while (bitscanforward64(tc_10_12[1], Ac)) {
 			uint64_t bit = (uint64_t)1 << tc_10_12[1];
 			Ac ^= bit; //clear bit
 			uint64_t bf11 = bf10 | bit;
-			//myb12 = bf11 ;
-			//ncluesb12 = 11; ncluesb3 = 7;
-			//guah54n.GetG2G3_11(myb12, tc_10_12[0],tc_10_12[1]);
-			//GoCallB3Com();
-			//if (aigstop)return;
-
-
+			myb12 = bf11 ;
+			KNOWNX(11)
+			guah54n.GetG2G3_11(myb12, tc_10_12[0],tc_10_12[1]);
+			CALLB3(11, 7);
 			uint64_t Ac2 = Ac;//  one more clue in bands 1+2
 			{
 				register uint64_t nb1 = _popcnt64(bf11 & BIT_SET_27),
@@ -2991,21 +2992,9 @@ void G17B::EndExpand_10_12() {// this is 18 pass 2 + pass1 first NED
 				uint64_t bit2 = (uint64_t)1 << tc_10_12[2];
 				Ac2 ^= bit2; //clear bit
 				myb12 = bf11 | bit2;
-				if (op.known ) {
-					if (!((~pk54) & myb12)) {
-						cout << Char54out(myb12) << " expected 12 in 11_12 added clue  "
-							<< tc_10_12[2] << endl;
-						knownt = 12;
-					}
-				}
-				if (locdiag > 1) {
-					cout << Char54out(myb12) << "  12 previous [7]" << p_cpt2g[7] << endl;
-					cout << Char54out(Ac) << " active  ";
-				}
-				ncluesb12 = 12; ncluesb3 = 6;
+				KNOWNX(12)
 				guah54n.GetG2G3_12(myb12, tc_10_12);
-				GoCallB3Com();
-				if (aigstop)return;
+				CALLB3(12, 6);
 			}
 		}
 	}
@@ -3325,11 +3314,11 @@ void G17B::Go_7_12() {
 	for (uint32_t iv = 0; iv < ntbelow[0]; iv++) {
 		BF128 ww = tbelow7[iv];
 		uint64_t bf0 = ww.bf.u64[0];
-		//ncluesb12 = 7; ncluesb3 = 11;
-		//guah54n.GetG2G3_7(myb12, tclx[0]);// try direct
-		//GoCallB3Com();
 		uint64_t U = bf0 & ~bf_cl6;
 		bitscanforward64(tclx[0], U);
+		myb12 = bf0;//  7/ 11;
+		guah54n.GetG2G3_7(myb12, tclx[0]);// try direct
+		CALLB3(7, 11);
 		uint64_t Ac = ww.bf.u64[1];
 		while (bitscanforward64(tclx[1], Ac)) {
 			uint64_t bit = (uint64_t)1 << tclx[1];
@@ -3350,7 +3339,7 @@ void G17B::Go_x_12() {// 8 clues limit 12 clues 666
 	myb12 = bf_clc;//  8/ 10;
 	KNOWNX(8)
 	guah54n.GetG2G3_8(myb12, tclx);// try 8
-	CALLB3(10, 8);
+	CALLB3(8, 10);
 	uint64_t Ac2 = ac_clc;
 	while (bitscanforward64(tclx[2], Ac2)) { 
 		uint64_t bit2 = (uint64_t)1 << tclx[2];
@@ -3360,38 +3349,32 @@ void G17B::Go_x_12() {// 8 clues limit 12 clues 666
 		myb12 = bf2;
 		KNOWNX(9)
 		guah54n.GetG2G3_9(myb12);
-		CALLB3(10, 8);
+		CALLB3(9, 9);
 		uint64_t Ac3 = Ac2;
-		{
-			register uint64_t nb1 = _popcnt64(bf2 & BIT_SET_27),
-				nb2 = 10 - nb1;
-			if (nb1 > 6 || nb2 > 6) continue;
-			if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
-			if (nb2 == 6) Ac2 &= BIT_SET_27;
-		}
 		while (bitscanforward64(tclx[3], Ac3)) {
 			uint64_t bit3 = (uint64_t)1 << tclx[3];
 			Ac3 ^= bit3; //clear bit
 			uint64_t bf3 = bf2 | bit3;	 //10 8 
-			//myb12 = bf3; ncluesb12 = 10; ncluesb3 = 8;
-			//guah54n.GetG2G3_10(myb12, tclx[3]);
-			//GoCallB3Com();
-			//if (aigstop)return;
+			myb12 = bf3;  
+			KNOWNX(10)
+			guah54n.GetG2G3_10(myb12, tclx[3]);
+			CALLB3(10, 8);
 			uint64_t Ac4 = Ac3;
 			{
 				register uint64_t nb1 = _popcnt64(bf3 & BIT_SET_27),
 					nb2 =10-nb1;
-				if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
-				if (nb2 == 6) Ac2 &= BIT_SET_27;
+				if (nb1 > 7 || nb2 > 7) continue;
+				if (nb1 == 7) Ac2 &= ~(uint64_t)BIT_SET_27;
+				if (nb2 == 7) Ac2 &= BIT_SET_27;
 			}
 			while (bitscanforward64(tclx[4], Ac4)) {
 				uint64_t bit4 = (uint64_t)1 << tclx[4];
 				Ac4 ^= bit4; //clear bit
 				uint64_t bf4 = bf3 | bit4;	 // 11 7
-				//myb12 = bf4; ncluesb12 = 11; ncluesb3 = 7;
-				//guah54n.GetG2G3_11(myb12, tclx[3], tclx[4]);
-				//GoCallB3Com();
-				//if (aigstop)return;
+				myb12 = bf4; 
+				KNOWNX(11)
+				guah54n.GetG2G3_11(myb12, tclx[3], tclx[4]);
+				CALLB3(11, 7);
 				uint64_t Ac5 = Ac4;
 				{
 					register uint64_t nb1 = _popcnt64(bf4 & BIT_SET_27),

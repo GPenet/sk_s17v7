@@ -1549,6 +1549,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 
 struct GEN_BANDES_12 {// encapsulating global data 
 	STD_B3 bands3[512];
+	int sgchecked[512][81], nsgchecked;// used in pass1 band3 <=
 	int modeb12, go_back, diagmore, diagbug, ip20,
 		it16, it16_2, it16_3, imin16_1, imin16_2, imin16_3;
 	int i1t16, i2t16, i3t16	,// index 416 ordered in increasing size of valid clues 3
@@ -1556,7 +1557,6 @@ struct GEN_BANDES_12 {// encapsulating global data
 	char zsol[82], rband2[28];
 	int grid0[81],  gw[81], tc[6], ntc;
 	int gcheck[82], ib1check, ib2check, ib3check,ibasecheck;
-	int sgchecked[5000][81], nsgchecked;// used in pass1 band3 <=
 	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
 	BANDMINLEX::PERM t_auto_b1[108], // maxi is 107excluding start position

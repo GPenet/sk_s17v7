@@ -572,38 +572,26 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 		cout<<";123;" << i1t16 << "," << i2t16 << "," << i3t16 << endl;
 	}
 	F3B_See_Com_GetMin();
+	if (tblnauto[ibasecheck]) {// check if redundant
+		for (int ich = 0; ich < nsgchecked; ich++) {
+			int* old = sgchecked[ich], aig = 1;
+			for (int j = 0; j < 81; j++) {
+				if (old[j] != gw[j]) { aig = 0; break; }
+			}
+			if (aig)	return; //seen  redundant				
+		}
+		{
+			if (nsgchecked > p_cpt2g[20]) 	p_cpt2g[20] = nsgchecked;
+			int* d = sgchecked[nsgchecked++];
+			memcpy(d, gw, sizeof gw);
+		}
+	}
+
 	// re do p2check if needed
 	bandminlex.Getmin(&gw[27], &pcheck2, 0);
 	bandminlex.Getmin(&gw[54], &pcheck3, 0);
 	if (Band2_3Check(gw)) {
-		if (tblnauto[ibasecheck]) {// check if redundant
-			for (int ich = 0; ich < nsgchecked; ich++) {
-				int* old = sgchecked[ich], aig = 1;
-				for (int j = 0; j < 81; j++) {
-					if (old[j] != gw[j]) { aig = 0; break; }
-				}
-				if (aig)	return; //seen  redundant				
-			}
-			if (nsgchecked >= 600) {
-				cout << "nsgchecked " << nsgchecked 
-					<< " nb3=" << nband3 << " nb12 " << nb12 << endl;
-				for (int ich = 0; ich < nsgchecked; ich++) {
-					int* old = sgchecked[ich];
-					for (int j = 0; j < 81; j++) cout << old[j] + 1;
-					cout << endl;
-				}
-					
-				op.last = 0;
-			}
-			else {
-				if ( nsgchecked > p_cpt2g[20]) 	p_cpt2g[20] = nsgchecked;
-				int* d = sgchecked[nsgchecked++];
-				memcpy(d, gw, sizeof gw);
-			}
-		}
-		if (nband3 < 512)
-			bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
-		else cout << " nband3 too high" << endl;
+		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 	}
 }
 void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
