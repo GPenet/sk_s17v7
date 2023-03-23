@@ -667,6 +667,7 @@ void Go_c17_80() {// enumeration test
 	op.ton= sgo.vx[2];
 	op.b2 = sgo.vx[5];
 	op.bx3 = sgo.vx[11];
+	op.out_entry = op.ton;
 	int x = (int)sgo.vx[4];
 	if (x == 2) op.p1 = 1;
 	else {
@@ -684,14 +685,15 @@ void Go_c17_80() {// enumeration test
 		genb12.nb12 = 0;
 		genb12.NewBand1(i1t16);
 		cout << genb12.i1t16 << "\t" << genb12.it16 << "\t" << p_cpt[0]
-			<< "\t" << p_cpt[1] << endl;
+			<< "\t" << p_cpt[1]<< " nb12 "<< genb12.nb12 << endl;
 		p_cptg[0] += p_cpt[0];
 		p_cptg[1] += p_cpt[1];
 	}
 	cout << "total\t\t" << p_cptg[0]
 		<< "\t" << p_cptg[1] << "\t" << p_cpt2g[10] << "\t" << p_cpt2g[11] 
 		<< "\t" << p_cpt2g[12] << "\t" << p_cpt2g[13] 
-		<< "\t" << p_cpt2g[14] << "\t" << p_cpt2g[15] << endl;
+		<< "\t" << p_cpt2g[14] << "\t" << p_cpt2g[15]
+		<<" max nsgcheck " << p_cpt2g[20] << endl;
 }
 
 void BuildAutoMorph(); // in go_17sol_tables.cpp

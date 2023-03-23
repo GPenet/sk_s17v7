@@ -1556,7 +1556,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	char zsol[82], rband2[28];
 	int grid0[81],  gw[81], tc[6], ntc;
 	int gcheck[82], ib1check, ib2check, ib3check,ibasecheck;
-	int sgchecked[81][512], nsgchecked;// used in pass1 band3 <=
+	int sgchecked[5000][81], nsgchecked;// used in pass1 band3 <=
 	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
 	BANDMINLEX::PERM t_auto_b1[108], // maxi is 107excluding start position
