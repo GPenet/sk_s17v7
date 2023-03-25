@@ -566,7 +566,7 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 		}
 	}
 	int locdiag = 0;
-	//if (nb12 >= 3382708)locdiag = 1;
+	//if (nb12 >= 1539)locdiag = 1;
 	// morph all to band 3 minimale 
 	char wb1[28];// band in char mode
 	int wb1i[27]; // band in 0-8 integer mode
@@ -598,10 +598,18 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 			memcpy(d, gw, sizeof gw);
 		}
 	}
+	if (locdiag) cout << "end check nsgchecked=" << nsgchecked << endl;
 
 	// re do p2check if needed
 	bandminlex.Getmin(&gw[27], &pcheck2, 0);
 	bandminlex.Getmin(&gw[54], &pcheck3, 0);
+	if (locdiag) {
+		cout << " Band2_3Check(gw)" << endl;
+		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+		cout << ";ok 123;" << i1t16 << "," << i2t16 << "," << i3t16
+			<< "  tblnauto[ibasecheck]=" <<(int) tblnauto[ibasecheck] << endl;
+	}
+
 	if (Band2_3Check(gw)) {
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 		if (op.ton>1) {
@@ -714,19 +722,16 @@ void GEN_BANDES_12::F3B_See(){
 	}
 	it16_3 = pband3.i416;
 	i3t16 = t416_to_n6[it16_3];
-	//if (i2t16 == i1t16)cout << "i3t16 " << i3t16 << " nb12="<<nb12 << endl;
-	p_cpt2g[10]++;
 	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
 	if (i3t16 > i2t16) return;// direct not a pass 1 
-	p_cpt2g[11]++;
 	if (0) {
-		for (int i = 0; i < 81; i++) fout1 << grid0[i] + 1;
-		fout1 << ";" << i1t16 << ";" << i2t16 << ";" << i3t16 << endl;
+		cout << " fb3see nb12=" << nb12
+			<<" it16_3="<< it16_3 << " i3t16="<< i3t16 << endl;
+		//return;
 	}
-
 	// reverse case in p2b one NED in even p1 mode
 	//if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
-	// always b3 ib b1 one NED
+	// always b3 <= b1 one NED
 	if (i3t16 <= i1t16)  F3B_See_Com();
 }
 
@@ -734,7 +739,9 @@ void GEN_BANDES_12::F3B_See(){
 int GEN_BANDES_12::Band2_3Check(int* zw) {
 	p_cpt2g[10]++;	
 	int na = tblnauto[ibasecheck]; //ia 0-415 not index
-	//cout <<" na =" << na << endl;
+	int locdiag = 0;
+	//if (nb12 >= 1539)locdiag = 1;
+	if (locdiag)cout <<" na =" << na << endl;
 	if (!na) {// see later what to do
 		 return  Band2_3CheckNoauto( zw);// good if no auto morph
 	}
@@ -756,6 +763,7 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 	p_cpt2g[12]++;
 
 	if (ib1check == ib2check) {// must try perm bands 12 auto morphs
+		if (locdiag)cout << " if (ib1check == ib2check) ="  << endl;
 		int* z = zw, * z2 = &zw[27];
 		{
 			BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
@@ -777,6 +785,8 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 	}
 	//===============  end of "Band2Check" start "Band3Check"
 	p_cpt2g[13]++;
+	if (locdiag)cout << " go b3 n_auto_b1b2="<< n_auto_b1b2 
+		<<"n_auto_b2b1 = "<< n_auto_b2b1  << endl;
 	if (ib1check == ib3check) {
 		BANDMINLEX::PERM* p = minlexusingbands.pout;
 		p[0].InitBase(ib1check);
@@ -796,19 +806,23 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 		}
 	}
 	p_cpt2g[14]++;
+	if (locdiag)cout << " go b3 n_auto_b2b1 = " << endl;
 	{	//=========================== perm b1b2 and base test (b1=b2)
 		if (n_auto_b2b1) {// possible lower band3 with a perm band1 band2
-			int* z = &zw[54];
+			int zbw[27];
 			{  //first morph to band 2 min lexical
+				int* z = &zw[54];
 				BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
-				z = band;// now base for the morphing
+				memcpy(zbw, band, sizeof zbw);
 			}
 			for (int imorph = 0; imorph < n_auto_b2b1; imorph++) {// then apply auto morphs
+				int* z = zbw;
 				BANDMINLEX::PERM& p = t_auto_b2b1[imorph]; SKT_MORPHTOP
 				if (G17ComparedOrderedBand(&zw[54], band) == 1)	return 0;
 			}
 		}
 	}
+	if (locdiag)cout << "ext  go b3 n_auto_b2b1 = " << endl;
 	//====(b2=b3)#b1  perm b2b3 to consider  on automorph b1
 
 	if (ib3check == ib2check) {
@@ -857,12 +871,16 @@ int GEN_BANDES_12::Band2_3CheckNoauto(int* zw) {
 	}
 	else if (ib1check == ib2check) {// must test the perm
 		// morph b1 to b2 see if lower
-		int* z = zw;// morph the band
-		BANDMINLEX::PERM p = pcheck2; SKT_MORPHTOP
-		int ir = G17ComparedOrderedBand(&zw[27], band);
+		int ir;
+		BANDMINLEX::PERM p = pcheck2; 
+		{
+			int* z = zw;// morph the band
+			SKT_MORPHTOP
+			ir = G17ComparedOrderedBand(&zw[27], band);
+		}
 		if (ir == 1) return 0;// don't do the perm if still lower
 		if(!ir){
-			z = &zw[54]; SKT_MORPHTOP
+			int *z = &zw[54]; SKT_MORPHTOP
 			if( G17ComparedOrderedBand(&zw[54], band)==1) return 0;
 		}
 	}
