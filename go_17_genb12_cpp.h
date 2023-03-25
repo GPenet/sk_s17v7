@@ -764,17 +764,19 @@ int GEN_BANDES_12::Band2_3Check(int* zw) {
 
 	if (ib1check == ib2check) {// must try perm bands 12 auto morphs
 		if (locdiag)cout << " if (ib1check == ib2check) ="  << endl;
-		int* z = zw, * z2 = &zw[27];
+		int * z2 = &zw[27],zbw[27];
 		{
+			int* z = zw;
 			BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
 			int ir = G17ComparedOrderedBand(z2, band);
 			if (ir == 1)	return 0;
 			else if (!ir) {// auto morph b1 b2 store it for later
 				t_auto_b2b1[n_auto_b2b1++].InitBase(ib2check);
 			}
-			z = band;// now base for the morphing
+			memcpy(zbw, band, sizeof zbw);
 		}
 		for (int imorph = 0; imorph < na; imorph++) {
+			int* z = zbw;
 			BANDMINLEX::PERM& p = t_autom[imorph];		SKT_MORPHTOP
 			int ir = G17ComparedOrderedBand(z2, band);
 			if (ir == 1)	return 0;
