@@ -1638,6 +1638,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	int Band2Check();
 	int Band3Check();
 	int Band2_3Check(int* zw);
+	int Band2_3Check3(int* zw);
 	int Band2_3CheckNoauto(int* zw);
 	void Find_band2B();
 	int ValidBand2();
@@ -1650,6 +1651,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	void F3B_See_Com();// one NED b3 first   
 	void F3B_See_Com_GetMin();  
 	int F3B_See_Com_FilterDiag(); 
+	int  F3B_See_Com_GetCFX();
 
 
 	//============= loops control for UAs 5;6;7 digits collection (collect more=
