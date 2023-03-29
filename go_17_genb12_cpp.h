@@ -543,14 +543,31 @@ back:
 
 void BandReShape(int* s, int* d, BANDMINLEX::PERM p);
 void BandReOrder(int* d);
+void GEN_BANDES_12::F3B_See() {
+	int ir = bandminlex.Getmin(&grid0[54], &pband3, 0);
+	if (ir < 0) {//would be bug  did not come in enumeration
+		cerr << "gen band 3 invalid return Getmin" << endl;
+		return;
+	}
+	it16_3 = pband3.i416;
+	i3t16 = t416_to_n6[it16_3];
+	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
+	if (i3t16 > i2t16) return;// direct not a pass 1 
+	// reverse case in p2b one NED in even p1 mode
+	if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
+	// always b3 <= b1 one NED
+	if (i3t16 <= i1t16)  F3B_See_Com();
+}
+
 inline void GEN_BANDES_12::F3B_See_18() {// one NED return 1 if equal not loaded
 	pcheck2 = pband3;	pcheck3 = pband2;
 	ib1check = i1t16;	ib2check = i3t16;	ib3check = i2t16;
 	ibasecheck = it16;
 	memcpy(&gcheck[27], &grid0[54], 27 * sizeof gcheck[0]);
 	memcpy(&gcheck[54], &grid0[27], 27 * sizeof gcheck[0]);
-	if(Band2_3Check(gcheck)) 
-		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
+	if (Band2Check()) return;
+	if (Band3Check()) return;
+	bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 }
 void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 	if (n_auto_b1) {
@@ -564,7 +581,6 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 		}
 	}
 	int locdiag = 0;
-	//if (i1t16 == i3t16)locdiag = 1;
 	//if (nb12 >= 1539)locdiag = 1;
 	// morph all to band 3 minimale 
 	char wb1[28];// band in char mode
@@ -583,120 +599,7 @@ void GEN_BANDES_12::F3B_See_Com() {// one NED return 1 if equal not loaded
 		//if (F3B_See_Com_FilterDiag() != 163) return;
 		cout << " F3B_See_Com_GetMin() nb12=" << nb12 << endl;
 	}
-	//F3B_See_Com_GetCFX();
-	//return;//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	p_cpt2g[91]++;
-	//if (p_cpt2g[91] == 61)locdiag = 1; else return ;
-
-	F3B_See_Com_GetMin();
-	if (locdiag) cout << " check nsgchecked=" << nsgchecked << endl;
-	if (tblnauto[ibasecheck]) {// check if redundant
-		for (int ich = 0; ich < nsgchecked; ich++) {
-			int* old = sgchecked[ich], aig = 1;
-			for (int j = 0; j < 81; j++) {
-				if (old[j] != gw[j]) { aig = 0; break; }
-			}
-			if (aig)	return; //seen  redundant				
-		}
-		{
-			if (nsgchecked > p_cpt2g[20]) 	p_cpt2g[20] = nsgchecked;
-			int* d = sgchecked[nsgchecked++];
-			memcpy(d, gw, sizeof gw);
-		}
-	}
-	if (locdiag) cout << "end check nsgchecked=" << nsgchecked << endl;
-
-	// re do p2check if needed
-	bandminlex.Getmin(&gw[27], &pcheck2, 0);
-	bandminlex.Getmin(&gw[54], &pcheck3, 0);
-	if (locdiag) {
-		cout << " Band2_3Check(gw)" << endl;
-		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout << ";ok 123;" << i1t16 << "," << i2t16 << "," << i3t16
-			<< "  tblnauto[ibasecheck]=" <<(int) tblnauto[ibasecheck] << endl;
-	}
-	if (Band2_3Check3(gw)) {
-		if (op.ton == 3) {
-			for (int i = 0; i < 81; i++)fout1 << gw[i] + 1;
-			fout1 << ";" << i1t16 << ";" << i2t16 << ";"
-				<< i3t16 << " p_cpt2g[91] " << p_cpt2g[91] << endl;
-		}
-		else {
-			bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
-		}
-	}
-	else {
-		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout << ";nok 123;" << i1t16 << "," << i2t16 << "," << i3t16
-			<< "  nb12=" << nb12 << endl;
-
-	}
-}
-void GEN_BANDES_12::F3B_See_Com_GetMin() {// one NED  after see diag
-	int na = tblnauto[it16_3];
-	if (!na) return;
-	int locdiag = 0;
-	//if (p_cpt2g[91] == 61)locdiag = 1; 
-	if (locdiag) {
-		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout << ";123;" << i1t16 << "," << i2t16 << "," << i3t16 
-			<< "na= "<<na << endl;
-	}
-	int  band2min[27];
-	memcpy(band2min, &gw[27], sizeof band2min);
-	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[it16_3]];
-	int tmini[108], nmini = 1; tmini[0] = -1;
-	for (int imorph = 0; imorph < na; imorph++) {
-		int* z = &gw[27];// morph the band
-		BANDMINLEX::PERM p = t_autom[imorph]; SKT_MORPHTOP
-			int ir = G17ComparedOrderedBand(band2min, band);
-		if (ir > 1) continue;
-		if (!ir) { tmini[nmini++] = imorph;		continue; }
-		// now a lower 
-		nmini = 0;
-		tmini[nmini++] = imorph;
-		BandReOrder(band);
-		memcpy(band2min, band, sizeof band2min);
-	}
-	if (locdiag) {
-		for (int i = 0; i < 27; i++)cout << band2min[i] + 1;
-		cout  << " morph to nmorph " << nmini << " na0=" << tmini[0]
-			<< " nb12=" << nb12 << endl;
-	}
-
-
-
-	//if (tmini[0] < 0) return; // nothing to do
-	if (locdiag) 	cout << " find b3 nmini=" << nmini << " na0=" << tmini[0] << endl;
-	int band3min[27];
-	memcpy(band3min, &gw[54], sizeof band3min);
-	if (tmini[0] >= 0) {// morph b3 to imorph
-		BANDMINLEX::PERM& p = t_autom[tmini[0]];
-		BandReShape(&gw[54], band3min, p);
-		BandReOrder(band3min);
-	}
-	{// morph to imorph
-		int  band3minw[27];
-		for (int i = 1; i < nmini; i++) {
-			BANDMINLEX::PERM& pw = t_autom[tmini[i]];
-			BandReShape(&gw[54], band3minw, pw);
-			BandReOrder(band3minw);
-			for (int j = 0; j < 27; j++) {
-				int ir = band3minw[j] - band3min[j];
-				if(ir>0) break;
-				if (ir < 0) {
-					memcpy(band3min, band3minw, sizeof band3min);
-					break;
-				}
-			}
-		}
-		memcpy(&gw[27],band2min, sizeof band2min);
-		memcpy(&gw[54], band3min, sizeof band3min);
-		if (locdiag) {
-			for (int i = 0; i < 27; i++)cout << band3min[i] + 1;
-			cout << " band3 " << endl;
-		}	
-	}
+	F3B_See_Com_GetCFX();
 }
 
 int GEN_BANDES_12::F3B_See_Com_FilterDiag(){
@@ -731,165 +634,7 @@ int GEN_BANDES_12::F3B_See_Com_FilterDiag(){
 	}
 	return 1;
 }
-void GEN_BANDES_12::F3B_See(){
-	int ir = bandminlex.Getmin(&grid0[54], &pband3, 0);
-	if (ir < 0) {//would be bug  did not come in enumeration
-		cerr << "gen band 3 invalid return Getmin" << endl;
-		return;
-	}
-	it16_3 = pband3.i416;
-	i3t16 = t416_to_n6[it16_3];
-	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
-	if (i3t16 > i2t16) return;// direct not a pass 1 
-	if (0) {
-		cout << " fb3see nb12=" << nb12
-			<<" it16_3="<< it16_3 << " i3t16="<< i3t16 << endl;
-		//return;
-	}
-	// reverse case in p2b one NED in even p1 mode
-	//if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
-	// always b3 <= b1 one NED
-	if (i3t16 <= i1t16)  F3B_See_Com();
-}
-
-
-int GEN_BANDES_12::Band2_3Check(int* zw) {
-	p_cpt2g[10]++;	
-	int na = tblnauto[ibasecheck]; //ia 0-415 not index
-	int locdiag = 0;
-	//if (nb12 >= 1539)locdiag = 1;
-	if (locdiag)cout <<" na =" << na << endl;
-	if (!na) {// see later what to do
-		 return  Band2_3CheckNoauto( zw);// good if no auto morph
-	}
-
-	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[ibasecheck]];
-	n_auto_b1b2 = 0;
-	{
-		int* z = &zw[27];
-		for (int imorph = 0; imorph < na; imorph++) {
-			BANDMINLEX::PERM& p = t_autom[imorph]; 	SKT_MORPHTOP
-			int ir = G17ComparedOrderedBand(z, band);
-			if (locdiag) {
-				for (int i = 0; i < 27; i++)cout << band[i] + 1;
-				cout << " morph b1b2 " << " ir=" << ir << endl;
-			}
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b1b2[n_auto_b1b2++] = p;
-			}
-		}
-	}
-	n_auto_b2b1 = 0;// possible automorph after perm b1b2
-	p_cpt2g[12]++;
-
-	if (ib1check == ib2check) {// must try perm bands 12 auto morphs
-		if (locdiag)cout << " if (ib1check == ib2check) ="  << endl;
-		int * z2 = &zw[27],zbw[27];
-		{
-			int* z = zw;
-			BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
-			int ir = G17ComparedOrderedBand(z2, band);
-			if (locdiag) {
-				for (int i = 0; i < 27; i++)cout << band[i] + 1;
-				cout << " morph base b2b1 " << " ir=" << ir << endl;
-			}
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b2b1[n_auto_b2b1++].InitBase(ib2check);
-			}
-			memcpy(zbw, band, sizeof zbw);
-		}
-		for (int imorph = 0; imorph < na; imorph++) {
-			int* z = zbw;
-			BANDMINLEX::PERM& p = t_autom[imorph];		SKT_MORPHTOP
-			int ir = G17ComparedOrderedBand(z2, band);
-			if (locdiag) {
-				for (int i = 0; i < 27; i++)cout << band[i] + 1;
-				cout << " morph  b2b1 na= "<<imorph << " ir=" << ir << endl;
-			}
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b2b1[n_auto_b2b1++]=p;
-			}
-		}
-	}
-	//===============  end of "Band2Check" start "Band3Check"
-	p_cpt2g[13]++;
-	if (locdiag)cout << " go b3 n_auto_b1b2="<< n_auto_b1b2 
-		<<"n_auto_b2b1 = "<< n_auto_b2b1  << endl;
-	if (ib1check == ib3check) {
-		BANDMINLEX::PERM* p = minlexusingbands.pout;
-		p[0].InitBase(ib1check);
-		p[1] = pcheck2;
-		p[2] = pcheck3;
-		if (minlexusingbands.IsLexMinDirect(zw, ib1check, t_autom, na))
-			return 0;
-		return 1;
-	}
-	{	//========================== morphs on b1b2 base test
-		if (n_auto_b1b2) {// still direct automorphism b1b2
-			for (int imorph = 0; imorph < n_auto_b1b2; imorph++) {
-				BANDMINLEX::PERM& p = t_auto_b1b2[imorph];
-				int* z = &zw[54]; SKT_MORPHTOP
-				if (G17ComparedOrderedBand(z, band) == 1)	return 0;
-			}
-		}
-	}
-	p_cpt2g[14]++;
-	if (locdiag)cout << " go b3 n_auto_b2b1 = " << endl;
-	{	//=========================== perm b1b2 and base test (b1=b2)
-		if (n_auto_b2b1) {// possible lower band3 with a perm band1 band2
-			int zbw[27];
-			{  //first morph to band 2 min lexical
-				int* z = &zw[54];
-				BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
-				memcpy(zbw, band, sizeof zbw);
-			}
-			for (int imorph = 0; imorph < n_auto_b2b1; imorph++) {// then apply auto morphs
-				int* z = zbw;
-				BANDMINLEX::PERM& p = t_auto_b2b1[imorph]; SKT_MORPHTOP
-				if (G17ComparedOrderedBand(&zw[54], band) == 1)	return 0;
-			}
-		}
-	}
-	if (locdiag)cout << "ext  go b3 n_auto_b2b1 = " << endl;
-	//====(b2=b3)#b1  perm b2b3 to consider  on automorph b1
-
-	if (ib3check == ib2check) {
-		if (zw[27] - 1) return 0; // must be '2' in r4c1 (should always be)
-		for (int imorph = 0; imorph < na; imorph++) {
-			BANDMINLEX::PERM& p = t_autom[imorph];
-			int ir;
-			{
-				int* z = &zw[54], * z2 = &zw[27];
-				SKT_MORPHTOP
-					ir = G17ComparedOrderedBand(z2, band);
-				if (ir == 1) return 0;
-			}
-			if (ir < 1) {
-				int* z = &zw[27], * z2 = &zw[54];
-				SKT_MORPHTOP
-					if (G17ComparedOrderedBand(z2, band) == 1) return 0;
-			}
-		}
-	}
-	int ir = minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na);
-	if (ir > 1) {
-		if (1) {
-			for (int i = 0; i < 81; i++)cout << zw[i] + 1;
-			cout << "Band2_3Check error getmin return stop " << nb12 << endl;
-			op.last = 0;
-			return 0;
-		}
-	}
-	if (ir)		return 0;
-
-	//if (minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na))
-	//	return 0;
-	return 1;// good to process
-}
-
+ 
 int GEN_BANDES_12::Band2_3CheckNoauto(int* zw) {
 	BANDMINLEX::PERM* t_autom =automorphsp;
 	if (ib1check == ib3check) {
@@ -931,145 +676,16 @@ int GEN_BANDES_12::Band2_3CheckNoauto(int* zw) {
 	if (ir)		return 0;
 	return 1;// good to process
 }
-
-
-int GEN_BANDES_12::Band2_3Check3(int* zw) {
-	p_cpt2g[10]++;
-	int na = tblnauto[ibasecheck]; //ia 0-415 not index
-	int locdiag = 0;
-	//if (p_cpt2g[91] == 61)locdiag = 1;
-	if (locdiag)cout << " na =" << na << endl;
-	if (!na) {// see later what to do
-		return  Band2_3CheckNoauto(zw);// good if no auto morph
-	}
-
-	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[ibasecheck]];
-	n_auto_b1b2 = 0;
-	{
-		int* z = &zw[27];
-		for (int imorph = 0; imorph < na; imorph++) {
-			BANDMINLEX::PERM& p = t_autom[imorph]; 	SKT_MORPHTOP
-				int ir = G17ComparedOrderedBand(z, band);
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b1b2[n_auto_b1b2++] = p;
-			}
-		}
-	}
-	n_auto_b2b1 = 0;// possible automorph after perm b1b2
-	p_cpt2g[12]++;
-
-	if (ib1check == ib2check) {// must try perm bands 12 auto morphs
-		if (locdiag)cout << " if (ib1check == ib2check) =" << endl;
-		int* z2 = &zw[27], zbw[27];
-		{
-			int* z = zw;
-			BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
-				int ir = G17ComparedOrderedBand(z2, band);
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b2b1[n_auto_b2b1++].InitBase(ib2check);
-			}
-			memcpy(zbw, band, sizeof zbw);
-		}
-		for (int imorph = 0; imorph < na; imorph++) {
-			int* z = zbw;
-			BANDMINLEX::PERM& p = t_autom[imorph];		SKT_MORPHTOP
-				int ir = G17ComparedOrderedBand(z2, band);
-			if (ir == 1)	return 0;
-			else if (!ir) {// auto morph b1 b2 store it for later
-				t_auto_b2b1[n_auto_b2b1++] = p;
-			}
-		}
-	}
-	//===============  end of "Band2Check" start "Band3Check"
-	p_cpt2g[13]++;
-	if (locdiag)cout << " go b3 n_auto_b1b2=" << n_auto_b1b2
-		<< "n_auto_b2b1 = " << n_auto_b2b1 << endl;
-	if (ib1check == ib3check) {
-		if (locdiag)cout << "F3B_See_Com_FilterDiag() 3 times same id" << endl;
-		if (!F3B_See_Com_FilterDiag()) return 0;
-		//BANDMINLEX::PERM* p = minlexusingbands.pout;
-		//p[0].InitBase(ib1check);
-		//p[1] = pcheck2;
-		//p[2] = pcheck3;
-		//if (minlexusingbands.IsLexMinDirect(zw, ib1check, t_autom, na))
-		//	return 0;
-		if (locdiag)cout << "back valid 3 times same id" << endl;
-		return 1;
-	}
-	{	//========================== morphs on b1b2 base test
-		if (n_auto_b1b2) {// still direct automorphism b1b2
-			for (int imorph = 0; imorph < n_auto_b1b2; imorph++) {
-				BANDMINLEX::PERM& p = t_auto_b1b2[imorph];
-				int* z = &zw[54]; SKT_MORPHTOP
-					if (G17ComparedOrderedBand(z, band) == 1)	return 0;
-			}
-		}
-	}
-	p_cpt2g[14]++;
-	if (locdiag)cout << " go b3 n_auto_b2b1 = " << endl;
-	{	//=========================== perm b1b2 and base test (b1=b2)
-		if (n_auto_b2b1) {// possible lower band3 with a perm band1 band2
-			int zbw[27];
-			{  //first morph to band 2 min lexical
-				int* z = &zw[54];
-				BANDMINLEX::PERM& p = pcheck2; SKT_MORPHTOP
-					memcpy(zbw, band, sizeof zbw);
-			}
-			for (int imorph = 0; imorph < n_auto_b2b1; imorph++) {// then apply auto morphs
-				int* z = zbw;
-				BANDMINLEX::PERM& p = t_auto_b2b1[imorph]; SKT_MORPHTOP
-					if (G17ComparedOrderedBand(&zw[54], band) == 1)	return 0;
-			}
-		}
-	}
-	if (locdiag)cout << "ext  go b3 n_auto_b2b1 = " << endl;
-	//====(b2=b3)#b1  perm b2b3 to consider  on automorph b1
-
-	if (ib3check == ib2check) {
-		if (zw[27] - 1) return 0; // must be '2' in r4c1 (should always be)
-		for (int imorph = 0; imorph < na; imorph++) {
-			BANDMINLEX::PERM& p = t_autom[imorph];
-			int ir;
-			{
-				int* z = &zw[54], * z2 = &zw[27];
-				SKT_MORPHTOP
-					ir = G17ComparedOrderedBand(z2, band);
-				if (ir == 1) return 0;
-			}
-			if (ir < 1) {
-				int* z = &zw[27], * z2 = &zw[54];
-				SKT_MORPHTOP
-					if (G17ComparedOrderedBand(z2, band) == 1) return 0;
-			}
-		}
-	}
-	int ir = minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na);
-	if (ir > 1) {
-		if (1) {
-			for (int i = 0; i < 81; i++)cout << zw[i] + 1;
-			cout << "Band2_3Check error getmin return stop " << nb12 << endl;
-			op.last = 0;
-			return 0;
-		}
-	}
-	if (ir)		return 0;
-
-	//if (minlexusingbands.IsLexMinDiagB(zw, ib1check, ib2check, ib3check, t_autom, na))
-	//	return 0;
-	return 1;// good to process
-}
-
-int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
+void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 	p_cpt2g[91]++;
 
 	int na = tblnauto[ibasecheck]; //ia 0-415 not index
 	if (!na) {// see later what to do
-		//return  Band2_3CheckNoauto(zw);// good if no auto morph
-		return 1;
+		if(  Band2_3CheckNoauto(gw))// good if no auto morph
+		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
+		return;
 	}
-	int locdiag = 1;
+	int locdiag = 0;
 	//if (p_cpt2g[91] == 61)locdiag = 1; else return 0;
 	//if (locdiag)cout << " na =" << na << endl;
 	int  band2min[27],band3min[27];
@@ -1095,7 +711,7 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			 << "  p_cpt2g[91] " << p_cpt2g[91] << endl;
 	}
 	// here, can not change first band
-	if (band2min[0] - 1) return 0; // must be '2' in r4c1 to be CFX
+	if (band2min[0] - 1) return; // must be '2' in r4c1 to be CFX
 	
 	bandminlex.Getmin(band2min, &pcheck2, 0);// re do p2check  
 	//bandminlex.Getmin(&gw[54], &pcheck3, 0);
@@ -1111,7 +727,7 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 					for (int i = 0; i < 27; i++)cout << band[i] + 1;
 					cout << " killed b2 as base " << endl;
 				}
-				return 0;
+				return;
 			}
 			if (!ir)t_auto_b2b1[n_auto_b2b1++].InitBase(ib2check);
 			memcpy(zbw, band, sizeof zbw);
@@ -1125,7 +741,7 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 					for (int i = 0; i < 27; i++)cout << band[i] + 1;
 					cout << " killed b2 as base morph " << endl;
 				}
-				return 0;
+				return;
 			}
 			else if (!ir) {// auto morph b1 b2 store it for later
 				t_auto_b2b1[n_auto_b2b1++] = p;
@@ -1177,7 +793,7 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			for (int imorph = 0; imorph < n_auto_b2b1; imorph++) {// then apply auto morphs
 				int* z = zbw;
 				BANDMINLEX::PERM& p = t_auto_b2b1[imorph]; SKT_MORPHTOP
-					if (G17ComparedOrderedBand(band3min, band) == 1)	return 0;
+					if (G17ComparedOrderedBand(band3min, band) == 1)	return;
 			}
 		}
 	}
@@ -1191,10 +807,10 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			for (int i = 0; i < 81; i++)cout << gw[i] + 1;
 			cout << "Band2_3Check error getmin return stop p_cpt2g[91] " << p_cpt2g[91] << endl;
 			op.last = 0;
-			return 0;
+			return;
 		}
 	}
-	if (ir) return 0;
+	if (ir) return;
 	
 	if (locdiag) cout << " check nsgchecked=" << nsgchecked << endl;
 	if (tblnauto[ibasecheck]) {// check if redundant
@@ -1203,7 +819,7 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			for (int j = 0; j < 81; j++) {
 				if (old[j] != gw[j]) { aig = 0; break; }
 			}
-			if (aig)	return 0; //seen  redundant
+			if (aig)	return; //seen  redundant
 		}
 		{
 			if (nsgchecked > p_cpt2g[20]) 	p_cpt2g[20] = nsgchecked;
@@ -1219,6 +835,6 @@ int  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 	else {
 		bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 	}
-	return 0;
+	return;
 }
 
