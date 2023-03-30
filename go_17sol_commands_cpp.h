@@ -685,7 +685,7 @@ void Go_c17_80() {// enumeration test
 		genb12.nb12 = 0;
 		genb12.NewBand1(i1t16);
 		cout << genb12.i1t16 << "\t" << genb12.it16 << "\t" << p_cpt[0]
-			<< "\t" << p_cpt[1]<< " nb12 "<< genb12.nb12 << endl;
+			<< "\t" << p_cpt[1] << endl;
 		p_cptg[0] += p_cpt[0];
 		p_cptg[1] += p_cpt[1];
 	}

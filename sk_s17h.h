@@ -1649,7 +1649,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	void F3B_See_Com();// one NED b3 first   
 	int F3B_See_Com_FilterDiag(); 
 	void  F3B_See_Com_GetCFX();
-
+	int DebugMiss();
 
 	//============= loops control for UAs 5;6;7 digits collection (collect more=
 	int iband, ibox, iminirow, ibox2, iminirow2, pat1, pat2, ncells;
