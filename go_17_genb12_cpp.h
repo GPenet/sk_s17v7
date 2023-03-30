@@ -870,7 +870,7 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 		fout1 << ";" << i1t16 << ";" << i2t16 << ";"
 			<< i3t16<<" p_cpt2g[91] "<< p_cpt2g[91] << endl;
 	}
-	//else 	bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
+	else 	bands3[nband3++].InitBand3(it16_3, &zsol[54], pband3);
 	
 	return;
 }
