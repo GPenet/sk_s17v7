@@ -2,7 +2,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #include "main.h"
 //#include "Zhn_cpp.h"
-
+extern uint64_t  p_cpt2g[100];
 
 void ASMtestdet(int &x32, uint64_t &x64 ,int & r32,uint64_t & r64) {
 	r32 = 1 << x32;
@@ -136,7 +136,7 @@ int main(int narg, char *argv[]) {
 	long tfin=GetTimeMillis();
     PrintTimeCout(sgo.tdeb,tfin);
 	PrintTime(sgo.tdeb, tfin);
-	return 0;
+	return (int) p_cpt2g[1];
 }
 
 void SGO::ParseInt(char * ze, int  delimiter){

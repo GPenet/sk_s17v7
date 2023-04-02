@@ -696,6 +696,102 @@ void Go_c17_80() {// enumeration test
 		<<" max nsgcheck " << p_cpt2g[20] << endl;
 }
 
+void Go_c17_90() {  // JIM
+
+	// Process a list of SG's
+
+	char pgrd[128];
+
+	op.SetUp(10, 0);    // get -b0- (pass 1 or 2)
+
+	zh_g2.grid0 = genb12.grid0;
+	zh_g2.zsol = zh_g2.stdfirstsol;
+	zh_g.modevalid = 1;
+
+	char ze[128];
+	//char ws[128];
+
+	int* zs0 = genb12.grid0;
+	int ib1, ib2, ib3;
+	int ib1a, ib2a, ib3a;
+	//int rlen, nsg;
+	int nb3 = 0;    // nband3
+
+	BANDMINLEX::PERM perm_ret;
+
+	FILE* SGF = fopen(sgo.finput_name, "r");
+
+	if (!SGF) {
+		cout << "[c90] not found: " << sgo.finput_name << endl;
+		return;
+	}
+
+	cout << "[c90] Processing " << sgo.finput_name << endl;
+
+	while (fgets(ze, 120, SGF)) {
+		if (strlen(ze) < 81) continue;  // skip blank lines
+		if (ze[0] != '1') continue;     // skip grids with 1st byte not '1'
+
+		g17b.aigstop = 0;
+		genb12.nb12 = atoi(&ze[94]) << 6;  // reproduce original slice number
+
+		// ======================= morph entry 
+
+		if (memcmp(ze, pgrd, 27)) {    // new band1
+			if (nb3) {   // don't change grid0/zsol yet!
+				genb12.nband3 = nb3;
+				genb12.ValidInitGang();
+				g17b.Start();
+			}
+
+			nb3 = 0;
+			for (int i = 0; i < 81; i++) zs0[i] = ze[i] - '1';
+			bandminlex.Getmin(zs0, &perm_ret);
+			ib1 = perm_ret.i416; ib1a = t416_to_n6[ib1];
+			genb12.i1t16 = ib1a;
+			memset(&pgrd[27], 0, 27);  // new b1 always forces new b2 
+		}
+
+		if (memcmp(&ze[27], &pgrd[27], 27)) { // new band2
+			if (nb3) {
+				genb12.nband3 = nb3;
+				genb12.ValidInitGang();
+				g17b.Start();
+			}
+			nb3 = 0;
+			for (int i = 0; i < 81; i++) zs0[i] = ze[i] - '1';
+			myband1.InitBand2_3(ib1, ze, perm_ret, 0);
+			bandminlex.Getmin(&zs0[27], &perm_ret);
+			ib2 = perm_ret.i416; ib2a = t416_to_n6[ib2];
+			myband2.InitBand2_3(ib2, &ze[27], perm_ret, 1);
+			genb12.i2t16 = ib2a;
+		}
+
+		for (int i = 0; i < 81; i++) zs0[i] = ze[i] - '1';
+		bandminlex.Getmin(&zs0[54], &perm_ret);
+		ib3 = perm_ret.i416; ib3a = t416_to_n6[ib3];
+		genb12.bands3[nb3++].InitBand3(ib3, &ze[54], perm_ret);
+		memcpy(pgrd, ze, 81);
+	}
+
+	fclose(SGF);
+
+	if (nb3) {   // process the last b12 set
+		genb12.nband3 = nb3;
+		genb12.ValidInitGang();
+		g17b.Start();
+	}
+
+	cout << "print final stats" << endl;
+	for (int i = 0; i < 100; i++) {
+		if (!p_cpt2g[i])continue;
+		cout << p_cpt2g[i] << "\t\t" << libs_c17_00_cpt2g[i] << endl;
+	}
+}
+
+
+
+
 void BuildAutoMorph(); // in go_17sol_tables.cpp
 
 //====== 15  extraction des 17 6 6 5

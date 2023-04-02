@@ -101,6 +101,8 @@ void Go_0() {
 	case 16: Go_c17_16(); break; // add solution+bands index
 	case 20: Go_c17_20(); break; // study redundancy entry file pass1
 	case 80:  Go_c17_80(); break; // enumeration test 
+	case 90: Go_c17_90(); break; // XSG (explicit soln grids)
+
 	}
 	cerr << "go_0 return" << endl;
 }

@@ -41,7 +41,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		b1 = sgo.vx[0];
 		first = sgo.vx[2];
 		last = sgo.vx[3];
-		if (last == 0) last = first;  // default if no -v3- given
+		if (last == 0) if (last == 0) { last = first; sgo.vx[3] = first; }  // default if no -v3- given
 		b2_is = sgo.vx[4];
 		b2 = sgo.vx[5];
 		if (sgo.s_strings[0])	if(strlen(sgo.s_strings[0]))
@@ -1637,17 +1637,17 @@ struct GEN_BANDES_12 {// encapsulating global data
 	int F17Novalid1_2();
 	int Band2Check();
 	int Band3Check();
-	int Band2_3CheckNoauto(int* zw);
+	int Band2_3CheckNoauto();
 	void Find_band2B();
 	int ValidBand2();
 	void ValidInitGang();
 	void Find_band3B(int m10 = 1);
-	void Find_band3B_pass1(int m10 = 1);
 	void Find_band3B_pass1B(int m10 = 1);
+	void OutEntry();
 	void F3B_See();
 	inline void F3B_See_18();// one NED return 1 if equal not loaded
 	void F3B_See_Com();// one NED b3 first   
-	int F3B_See_Com_FilterDiag(); 
+	int F3B_See_Com_FilterDiag(int debug=0); 
 	void  F3B_See_Com_GetCFX();
 	int DebugMiss();
 

@@ -5579,7 +5579,7 @@ void G17B::Out17(uint32_t bfb3) {
 
 
 
-	sprintf(&ws[81], ";%5d;%3d;%3d;%3d",(int)( genb12.nb12 / 64), genb12.i1t16, genb12.i2t16, t416_to_n6[myband3->i416]);     
+	sprintf(&ws[81], ";%3d;%3d;%3d;%5d", genb12.i1t16, genb12.i2t16, t416_to_n6[myband3->i416],(int)( genb12.nb12 >> 6));
 	fout1 << ws << endl;
 	/*
 	fout1 << ws << ";";
