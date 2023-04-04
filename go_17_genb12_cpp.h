@@ -303,7 +303,7 @@ int GEN_BANDES_12::ValidBand2() {
 }
 void GEN_BANDES_12::OutEntry() {
 	p_cpt2g[1] += nband3;   // update bands3 count
-	char ws[19];
+	char ws[21];
 	for (int i = 0; i < nband3; i++) {
 		fout1 << myband1.band << myband2.band
 			<< bands3[i].band;
@@ -461,7 +461,7 @@ void GEN_BANDES_12::F3B_See() {
 	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
 	if (i3t16 > i2t16) return;// direct not a pass 1 
 	// reverse case in p2b one NED in even p1 mode
-	if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
+	//if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
 	// always b3 <= b1 one NED
 	if (i3t16 <= i1t16)  F3B_See_Com();
 }
@@ -548,13 +548,12 @@ int GEN_BANDES_12::F3B_See_Com_FilterDiag(int debug){
 	BANDMINLEX::PERM perm_ret;
 	bandminlex.Getmin(zs0d, &perm_ret);
 	int ib1d = perm_ret.i416, ib1ad = t416_to_n6[ib1d];
+	if (ib1ad < i3t16) return 0;
 	bandminlex.Getmin(&zs0d[27], &perm_ret);
 	int ib2d = perm_ret.i416, ib2ad = t416_to_n6[ib2d];
+	if (ib2ad < i3t16) return 0;
 	bandminlex.Getmin(&zs0d[54], &perm_ret);
 	int ib3d = perm_ret.i416, ib3ad = t416_to_n6[ib3d];
-	if (debug) cout << "diag status " << ib1ad << " " << ib2ad << " " << ib3ad << endl;
-	if (ib1ad < i3t16) return 0;
-	if (ib2ad < i3t16) return 0;
 	if (ib3ad < i3t16) return 0;
 	if (ib1ad == i3t16) {
 		if (ib2ad < i1t16 || ib3ad < i1t16) return 0;
@@ -565,37 +564,24 @@ int GEN_BANDES_12::F3B_See_Com_FilterDiag(int debug){
 	else if (ib3ad == i3t16) {
 		if (ib1ad < i1t16 || ib2ad < i1t16) return 0;
 	}
+	if (debug) cout << "diag status " << ib1ad << " " << ib2ad << " " << ib3ad << endl;
 	return ib1ad;
 }
  
-/*  370 in excess 
-231648975574923168968715423349862517615374892782591346;370;370;370 p_cpt2g[91] 45750
-254268391547571864392934572816319625478645718923782943165;370;370;370 p_cpt2g[91] 45327
-254278591346561374892934862517312648975689715423745923168;370;370;370 p_cpt2g[91] 43948
-278591346561374892934862517349625178615748923782913465;370;370;370 p_cpt2g[91] 42028
-254278913465561748923934625178349862517615374892782591346;370;370;370 p_cpt2g[91] 44909
-254278943165564718923931625478342571896615892347789364512;370;370;370 p_cpt2g[91] 44633
 
-*/
 
 int GEN_BANDES_12::Band2_3CheckNoauto() {
 	int locdiag = 0;
 
 	//	if (p_cpt2g[91] == 60482)locdiag = 1; else return 0;
-	//if (p_cpt2g[91] == 290)locdiag = 1;	if (p_cpt2g[91] == 297)locdiag = 1;
-	//if (p_cpt2g[91] == 496)locdiag = 1;	 
+	//if (p_cpt2g[91] == 7068)locdiag = 1;	if (p_cpt2g[91] == 8701)locdiag = 1;
+	//if (p_cpt2g[91] == 8489)locdiag = 1;	 if (p_cpt2g[91] == 9238)locdiag = 1;
 	if (locdiag) {
 		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
-		cout << " 368 370 370 [91]" << p_cpt2g[91] << endl;
-	}
-	if (locdiag)
 		cout << "entry no auto in diag" << endl;
-	BANDMINLEX::PERM* t_autom = automorphsp;
-	if (ib1check == ib3check){
-		if (gw[27] - 1) return 0; //here  must be '2' in r4c1
-		return F3B_See_Com_FilterDiag(locdiag);
 	}
-	else if (ib1check == ib2check) {// must test the perm
+	BANDMINLEX::PERM* t_autom = automorphsp;
+	 if (ib1check == ib2check) {// must test the perm
 		bandminlex.Getmin(&gw[27], &pcheck2, 0);// re do p2check  
 		// morph b1 to b2 see if lower
 		int ir,ir2;
@@ -605,7 +591,7 @@ int GEN_BANDES_12::Band2_3CheckNoauto() {
 			SKT_MORPHTOP
 			ir = G17ComparedOrderedBand(&gw[27], band);
 		}
-		if (locdiag)	cout << "ir1=" <<ir<< endl;
+		if (locdiag)	cout << "ib1check == ib2check ir1=" <<ir<< endl;
 
 		if (ir == 1) return 0;// don't do the perm if still lower
 		if(!ir){
@@ -613,6 +599,10 @@ int GEN_BANDES_12::Band2_3CheckNoauto() {
 			ir2 = G17ComparedOrderedBand(&gw[54], band);
 			if (locdiag)	cout << "ir2=" << ir2 << endl;
 			if( ir2==1) return 0;
+		}
+		if (ib1check == ib3check) {
+			if (gw[27] - 1) return 0; //here  must be '2' in r4c1
+			return F3B_See_Com_FilterDiag(locdiag);
 		}
 	}
 	else if (ib2check == ib3check) {// check perm b2 b3

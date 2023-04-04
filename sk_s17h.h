@@ -51,7 +51,8 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		f3 = sgo.vx[6];	f4 = sgo.vx[7];		
 		f7 = sgo.vx[8]; f10 = sgo.vx[9];
 
-		if (sgo.bfx[1] & 1)upto3 = 1;		if (sgo.bfx[1] & 2)upto4 = 1;
+		if (sgo.bfx[1] & 1)upto3 = 1;		
+		if (sgo.bfx[1] & 2)upto4 = 1;
 		if (sgo.bfx[1] & 4)dv12 = 1;
 		if (sgo.bfx[1] & 8)dumpa = 1;
 		if (sgo.bfx[1] & 16)dv3 = 1;
@@ -99,8 +100,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 			if (dumpa)cout << "  -b1-...x  dump uas b12 at the start" << endl;
 			if (upto3)cout << "upto debugging [3]  sgo.bfx[1] & 1 " << endl;
 			if (upto4)cout << "upto debugging [4]  sgo.bfx[1] & 2 " << endl;
-			if (dv12)cout << " print fresh adds sgo.bfx[1] & 4 " << endl;
-			if (dumpa)cout << " print initial uas 12 sgo.bfx[1] & 8 " << endl;
+			if (dv3)cout << " -b1-...x print fresh adds " << endl;
 
 		}
 	}
@@ -553,6 +553,8 @@ struct GUAH54N {
 			uint32_t nr = n++;
 			killer &= u;
 			v0.setBit(nr);
+			v6.clearBit(nr);// free if fresh ua
+			v9.clearBit(nr);// free if fresh ua
 			register uint32_t cell;
 			register uint64_t U = u;
 			while (bitscanforward64(cell, U)) {
@@ -565,11 +567,29 @@ struct GUAH54N {
 			for (uint32_t i = 0; i < 128; i++) {
 				if (v0.Off(i))break;
 				if (det > 1)
-					cout << 100 * (mode2_3 + 1) + i81<<" ";
+					cout << 100 * (mode2_3 ) + i81<<" ";
 				for (int j = 0; j < 54; j++)
 					if (vc[j].On(i)) cout << ".";
 					else cout << "1";
 				cout << "  " << i << endl;
+			}
+			if (det > 2) {
+				v0.Print(" v0");
+				v6.Print(" v6");
+				v9.Print(" v9");
+			}
+		}
+		void DumpFiltered(uint64_t u) {
+			for (uint32_t i = 0; i < 128; i++) {
+				if (v0.Off(i))break;
+				char ws[55], aig = 1;
+				memset(ws, '.', sizeof ws); ws[54] = 0;
+				for (uint64_t j = 0, bit = 1; j < 54; j++, bit <<= 1) {
+					if (vc[j].On(i)) continue;
+					if (bit & u) { aig = 0; break; }
+					else ws[j] = '1';
+				}
+				if(aig)cout<<ws  << "  " << i << endl;
 			}
 
 		}
@@ -613,7 +633,7 @@ struct GUAH54N {
 			BF128 v= myz.vc[tc[0]];
 			for (int j = 1; j < 6; j++)
 				v &= myz.vc[tc[j]];
-			myz.v6 = v;
+			myz.v6 = v; myz.v9 = v;
 			if ((v & myz.v0).isNotEmpty()) {
 				tind6[ntind6++] = i;
 				if (myz.mode2_3) g3_6.setBit(myz.i81);
@@ -781,8 +801,9 @@ struct GUAH54N {
 	}
 
 	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){
+		
 		register int iz = indg2[i81];
-		if (g2_9.Off(i81)) {
+		if (g2_9.Off(i81)) {	
 			g2_9.setBit(i81);
 			tind9[ntind9++] = iz;
 			tmg2[ntmg2++] = i81;
@@ -805,7 +826,7 @@ struct GUAH54N {
 		if (n >= 80 && cc12 > 14) return;
 		if (n >= 100 && cc12 > 13) return;
 		if(n>120 && n<128)
-		cout << "\t\t\tadded g2 " << indg2[i81] << " " << zz[indg2[i81]].n << endl;
+		cout << "\t\t\tadded g2 " << iz << " " << zz[iz].n << endl;
 		zz[iz].Enter(bf);
 	}
 	inline void AddA3(uint64_t bf, int32_t i81) {
@@ -891,6 +912,19 @@ struct GUAH54N {
 			myz.v9.Print("v9");
 		}
 	}
+	void StatusFiltered(uint64_t u) {
+		cout << "GUAH54N status filtered"<< endl;
+		for (uint32_t i = 0; i < nzzused; i++) {
+			Z128& myz = zz[i];
+			if (myz.killer & u)continue;
+			cout << myz.mode2_3 << " " << myz.i81 << "\t"
+					<< " n=" << myz.n << endl;
+			myz.DumpFiltered(u);
+				
+			
+		}
+	}
+
 }guah54n;
 
 //_____ processing band3
