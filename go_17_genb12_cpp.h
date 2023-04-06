@@ -461,7 +461,7 @@ void GEN_BANDES_12::F3B_See() {
 	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
 	if (i3t16 > i2t16) return;// direct not a pass 1 
 	// reverse case in p2b one NED in even p1 mode
-	//if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
+	if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
 	// always b3 <= b1 one NED
 	if (i3t16 <= i1t16)  F3B_See_Com();
 }
@@ -567,15 +567,13 @@ int GEN_BANDES_12::F3B_See_Com_FilterDiag(int debug){
 	if (debug) cout << "diag status " << ib1ad << " " << ib2ad << " " << ib3ad << endl;
 	return ib1ad;
 }
- 
-
 
 int GEN_BANDES_12::Band2_3CheckNoauto() {
 	int locdiag = 0;
-
-	//	if (p_cpt2g[91] == 60482)locdiag = 1; else return 0;
-	//if (p_cpt2g[91] == 7068)locdiag = 1;	if (p_cpt2g[91] == 8701)locdiag = 1;
-	//if (p_cpt2g[91] == 8489)locdiag = 1;	 if (p_cpt2g[91] == 9238)locdiag = 1;
+	//if (p_cpt2g[91] == 8975)locdiag = 1;
+	//if (p_cpt2g[91] == 8012)locdiag = 1;
+	//if (p_cpt2g[91] == 7068)locdiag = 1;
+	//if (!locdiag) return 0;
 	if (locdiag) {
 		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
 		cout << "entry no auto in diag" << endl;
@@ -600,15 +598,48 @@ int GEN_BANDES_12::Band2_3CheckNoauto() {
 			if (locdiag)	cout << "ir2=" << ir2 << endl;
 			if( ir2==1) return 0;
 		}
-		if (ib1check == ib3check) {
-			if (gw[27] - 1) return 0; //here  must be '2' in r4c1
-			return F3B_See_Com_FilterDiag(locdiag);
-		}
 	}
 	else if (ib2check == ib3check) {// check perm b2 b3
 		if (locdiag)cout << "ib2check == ib3check  " << endl;
 		if (gw[27] - 1) return 0; //here  must be '2' in r4c1
 	}
+	 if (ib1check == ib3check) {
+		 if (gw[27] - 1) return 0; //here  must be '2' in r4c1
+		 int ir = G17ComparedOrderedBand(&gw[27], &grid0[27]);
+		 if (ir == 1) {
+			 if (locdiag) cout << " lower source " << endl;
+			 return 0;
+		 }
+		 if (!F3B_See_Com_FilterDiag(locdiag)) return 0;;
+		 // try also band3 as first perm 3 1 2 to see if lower
+		 bandminlex.Getmin(&gw[54], &pcheck3, 0);// redo perm
+		 {
+			 int* z = gw;
+			 BANDMINLEX::PERM& p = pcheck3; SKT_MORPHTOP
+				 int ir = G17ComparedOrderedBand(&gw[27], band);
+			 if (ir == 1) {
+				 if (locdiag) {
+					 for (int i = 0; i < 27; i++)cout << band[i] + 1;
+					 cout << " killed b3 as base /b1" << endl;
+				 }
+				 return 0;
+			 }
+		 }
+		 // try also band3 as first perm 3 2 1 to see if lower
+		 {
+			 int* z = & gw[27];
+			 BANDMINLEX::PERM& p = pcheck3; SKT_MORPHTOP
+				 int ir = G17ComparedOrderedBand(&gw[27], band);
+			 if (ir == 1) {
+				 if (locdiag) {
+					 for (int i = 0; i < 27; i++)cout << band[i] + 1;
+					 cout << " killed b3 as base /b2" << endl;
+				 }
+				 return 0;
+			 }
+		 }
+
+	 }
 
 	int ir = minlexusingbands.IsLexMinDiagB(gw, ib1check, ib2check, ib3check, t_autom, 0);
 	if (locdiag) {
@@ -643,11 +674,18 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 		return;
 	}
 	int locdiag = 0;
-	//if (p_cpt2g[91] == 2304)locdiag = 1; else return;
+	//if (p_cpt2g[91] ==343)locdiag = 1; 
+	//if (p_cpt2g[91] == 472)locdiag = 1;
+	//if (p_cpt2g[91] == 480)locdiag = 1;
+	//if (!locdiag) return;
 	if (locdiag)cout << "in diag  na =" << na << endl;
 	int  band2min[27],band3min[27];
 	memcpy(band2min, &gw[27], sizeof band2min);
 	memcpy(band3min, &gw[54], sizeof band3min);
+	if (locdiag) {
+		for (int i = 0; i < 81; i++)cout << gw[i] + 1;
+		cout << "start status [91]" << p_cpt2g[91] << endl;
+	}
 	BANDMINLEX::PERM* t_autom = &automorphsp[tblnautostart[it16_3]];
 	int tmini[108], nmini = 1; tmini[0] = -1;
 	for (int imorph = 0; imorph < na; imorph++) {
@@ -676,8 +714,17 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 				if (locdiag) cout << " kill band3 lower " << endl;
 				return;
 			}
-
+			if (!ir) {
+				int* z = &gw[27];// check perm
+				SKT_MORPHTOP
+				int ir = G17ComparedOrderedBand(band2min, band);
+				if (ir == 1) {
+					if (locdiag) cout << " kill band2 lower after perm " << endl;
+					return;
+				}
+			}
 		}
+
 	}
 
 
@@ -685,7 +732,6 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 	// here, can not change first band
 	
 	bandminlex.Getmin(band2min, &pcheck2, 0);// re do p2check  
-	//bandminlex.Getmin(&gw[54], &pcheck3, 0);
 	n_auto_b2b1 = 0;
 	if (ib1check == ib2check) { // if lower using b2 as base, not a CFX
 		int* z2 = band2min, zbw[27];
@@ -719,7 +765,8 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			}
 		}
 	}
-	if (locdiag) 	cout << " find b3 nmini=" << nmini << " na0=" << tmini[0] << endl;
+	if (locdiag) 	cout << " find b3 nmini=" << nmini << " na0=" << tmini[0] 
+		<<" n_auto_b2b1="<< n_auto_b2b1 << endl;
 	if (tmini[0] >= 0) {// morph b3 to imorph
 		BANDMINLEX::PERM& p = t_autom[tmini[0]];
 		BandReShape(&gw[54], band3min, p);
@@ -741,7 +788,43 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 			}
 		}
 	}
+	if (ib1check == ib3check) {// if same bx three bands 
+		int ir = G17ComparedOrderedBand(band2min, &grid0[27]);
+		if (ir == 1) {
+			if (locdiag) cout << " lower source " << endl;
+			return;
+		}
+		/* wait for an example needing this (validation test needed)
+		// try also band3 as first perm 3 1 2 to see if lower
+		bandminlex.Getmin(&gw[54], &pcheck3, 0);// redo perm
+		int* z2 = band2min;
+		{
+			int* z = gw;
+			BANDMINLEX::PERM& p = pcheck3; SKT_MORPHTOP
+				int ir = G17ComparedOrderedBand(z2, band);
+			if (ir == 1) {
+				if (locdiag) {
+					for (int i = 0; i < 27; i++)cout << band[i] + 1;
+					cout << " killed b3 as base /b1" << endl;
+				}
+				return;
+			}
+		}
+		for (int imorph = 0; imorph < na; imorph++) {
+			int* z = zbw;
+			BANDMINLEX::PERM& p = t_autom[imorph];		SKT_MORPHTOP
+				int ir = G17ComparedOrderedBand(z2, band);
+			if (ir == 1) {
+				if (locdiag) {
+					for (int i = 0; i < 27; i++)cout << band[i] + 1;
+					cout << " killed b3/b1 as base morph " << endl;
+				}
+				return;
+			}
 
+		}
+		*/
+	}
 	memcpy(&gw[27], band2min, sizeof band2min);
 	memcpy(&gw[54], band3min, sizeof band3min);
 	if (locdiag) {
@@ -750,9 +833,9 @@ void  GEN_BANDES_12::F3B_See_Com_GetCFX() {
 		F3B_See_Com_FilterDiag(locdiag);
 	}
 /*
-234597618861234597975861342392175864517648923648923175;374;374;374 p_cpt2g[91] 943
-234891567675234918891567342367125894512948673948673125;374;374;374 p_cpt2g[91] 1384
-234891567675234918891567342367948125512673894948125673;374;374;374 p_cpt2g[91] 1376
+234597618861234597975861342392175864517648923648923175;374;374;374 p_cpt2g[91] 943/343
+234891567675234918891567342367125894512948673948673125;374;374;374 p_cpt2g[91] 1384/480
+234891567675234918891567342367948125512673894948125673;374;374;374 p_cpt2g[91] 1376/472
 */
 	if (locdiag)cout << " go b3 n_auto_b2b1 = "<< n_auto_b2b1 << endl;
 	{	//=========================== perm b1b2 and base test (b1=b2)
