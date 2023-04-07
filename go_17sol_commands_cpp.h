@@ -178,10 +178,7 @@ void Go_c17_10() {
 			continue;
 		}
 		if (op.t18) {
-			if (op.p2 && (cbs.b[0] > 6 || cbs.b[1] > 6 || cbs.b[2] > 6)) {
-				if (op.ton)cout << "t18  pass2 not 666 666" << endl;
-				continue;
-			}
+			op.p2b = 0;
 		}
 		if ((!op.t18) && op.p2) {
 			op.p2b = 0;

@@ -1475,6 +1475,7 @@ int T54B12::Build_td128(SPB03A& s9) {
 	uint32_t* tc = g17b.tc_7_9;
 	uint32_t lastbloc = t54b12.ncblocs;
 	tvw[0] = s9.v;
+
 	for (uint32_t i = 1; i <= lastbloc; i++) {
 		TUVECT& vv = tc128[i];
 		BF128 v = vv.v0, * vc = vv.vc;
@@ -1488,9 +1489,10 @@ int T54B12::Build_td128(SPB03A& s9) {
 	{
 		register uint64_t Ac = s9.active_cells,
 			nb1=_popcnt64(s9.all_previous_cells &BIT_SET_27);
-		if (nb1 > 6 || nb1 < 3) return 1; // no 66
-		if (nb1 == 6) Ac &= ~(uint64_t)BIT_SET_27;// only b2
-		if (nb1 == 3) Ac &= BIT_SET_27;// only b1
+		// p1+p2 must now accept 7
+		if (nb1 >7 || nb1 < 2) return 1; // no 66
+		if (nb1 == 7) Ac &= ~(uint64_t)BIT_SET_27;// only b2
+		if (nb1 == 2) Ac &= BIT_SET_27;// only b1
 		for (uint32_t i = 0; i <= lastbloc; i++) {
 			register uint64_t* t = tc128[i].t;
 			BF128 V = tvw[i];
@@ -1984,7 +1986,7 @@ next9: // add clue 9 build td and call next step (min 10 clues)
 			else {
 				if (knownt == 9) {
 					cout << " whith known empty td after 9 see what to do" << endl;
-					//t54b12.DebugC();
+					t54b12.DebugC();
 				}
 				if (aigstop) return;	goto next9;
 			}
@@ -2027,19 +2029,15 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 	if (op.t18) {
 		if (op.p1) {// 9;10;11 clues  b12
 			myb12 = s9.all_previous_cells;
-			ncluesb12 = 9; ncluesb3 = 9;
 			guah54n.GetG2G3_9(myb12);// try direct
-			GoCallB3Com();
-			if (aigstop)return;
+			CALLB3(9, 9);
 			uint64_t Ac = s9.active_cells;
 			while (bitscanforward64(tc_10_12[0], Ac)) {
 				uint64_t bit1 = (uint64_t)1 << tc_10_12[0];
 				Ac ^= bit1; //clear bit
 				myb12 = s9.all_previous_cells | bit1;
-				ncluesb12 = 10; ncluesb3 = 8;
 				guah54n.GetG2G3_10(myb12, tc_10_12[0]);
-				GoCallB3Com();
-				if (aigstop)return;
+				CALLB3(10, 8);
 				uint64_t Ac2 = Ac;// others are not active now
 				{
 					register uint64_t  A = s9.all_previous_cells | bit1,
@@ -2054,38 +2052,46 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 						register uint64_t bit2 = (uint64_t)1 << tc_10_12[1];
 						Ac2 ^= bit2; //clear bit
 						myb12 = s9.all_previous_cells | bit1 | bit2;
-						ncluesb12 = 11; ncluesb3 = 7;
 						guah54n.GetG2G3_11(myb12, tc_10_12[0], tc_10_12[1]);
-						GoCallB3Com();
-						if (aigstop)return;
+						CALLB3(11, 7);
 					}
 				}
 			}
 		}
-		else {// 12 clues 666
+		else {// 12 clues 666 + p1
+			myb12 = s9.all_previous_cells;
+			guah54n.GetG2G3_9(myb12);// try direct
+			CALLB3(9, 9);
 			uint64_t Ac = s9.active_cells;
 			while (bitscanforward64(tc_10_12[0], Ac)) {
 				uint64_t bit1 = (uint64_t)1 << tc_10_12[0];
 				Ac ^= bit1; //clear bit
+				myb12 = s9.all_previous_cells | bit1;
+				guah54n.GetG2G3_10(myb12, tc_10_12[0]);
+				CALLB3(10, 8);
 				uint64_t Ac2 = Ac;// others are not active now
 				{
 					register uint64_t A = s9.all_previous_cells | bit1,
 						nb1 = _popcnt64(A & BIT_SET_27),
 						nb2 = 10 - nb1;// here 10 clues 
-					if (nb1 > 6 || nb2 > 6) continue;
-					if (nb1 == 6) Ac2 &= ~(uint64_t)BIT_SET_27;
-					if (nb2 == 6) Ac2 &= BIT_SET_27;
+					if (nb1 > 7 || nb2 > 7) return;
+					if (nb1 == 7) Ac2 &= ~(uint64_t)BIT_SET_27;
+					if (nb2 == 7) Ac2 &= BIT_SET_27;
 				}
 				while (bitscanforward64(tc_10_12[1], Ac2)) {
 					{
 						register uint64_t bit2 = (uint64_t)1 << tc_10_12[1];
 						Ac2 ^= bit2; //clear bit
 						bit2 |= bit1;
+						myb12 = s9.all_previous_cells  | bit2;
+						guah54n.GetG2G3_11(myb12, tc_10_12[0], tc_10_12[1]);
+						CALLB3(11, 7);
 						uint64_t Ac3 = Ac2;// others are not active now
 						{
 							register uint64_t A = s9.all_previous_cells | bit2,
 								nb1 = _popcnt64(A & BIT_SET_27),
 								nb2 = 10 - nb1;// here 10 clues 
+							if (nb1 > 6 || nb2 > 6) continue;
 							if (nb1 == 6) Ac3 &= ~(uint64_t)BIT_SET_27;
 							if (nb2 == 6) Ac3 &= BIT_SET_27;
 						}
@@ -2093,12 +2099,9 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 							register uint64_t bit3 = (uint64_t)1 << tc_10_12[2];
 							Ac3 ^= bit3; //clear bit
 							bit3 |= bit2;
-
 							myb12 = s9.all_previous_cells | bit3;
-							ncluesb12 = 12; ncluesb3 = 6;
 							guah54n.GetG2G3_12(myb12, tc_10_12);
-							GoCallB3Com();
-							if (aigstop)return;
+							CALLB3(12, 6);
 						}
 					}
 				}
@@ -2107,9 +2110,8 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 	}
 	else if(op.p1) {// t17 p1 9 10
 		myb12 = s9.all_previous_cells;
-		ncluesb12 = 9; ncluesb3 = 8;
 		guah54n.GetG2G3_9(myb12);// try direct
-		if (aigstop)return;
+		CALLB3(9, 8);
 		uint64_t Ac = s9.active_cells;
 		{
 			register uint64_t nb1 = _popcnt64(myb12 & BIT_SET_27),
@@ -2122,19 +2124,28 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 			uint64_t bit1 = (uint64_t)1 << tc_10_12[0];
 			Ac ^= bit1; //clear bit
 			myb12 = s9.all_previous_cells | bit1 ;
-			ncluesb12 = 10; ncluesb3 = 7;
 			guah54n.GetG2G3_10(myb12, tc_10_12[0]);
-			GoCallB3Com();
-			if (aigstop)return;
-
+			CALLB3(10, 7);
 		}
-
 	}
 	else {// t17  p2 11+6
 		uint64_t Ac =s9.active_cells;
+		myb12 = s9.all_previous_cells;
+		guah54n.GetG2G3_9(myb12);// try direct
+		if (!op.p2b)CALLB3(9, 8);
+		{
+			register uint64_t nb1 = _popcnt64(myb12 & BIT_SET_27),
+				nb2 = 10 - nb1;// here 10 clues 
+			if (nb1 > 7 || nb2 > 7) return;
+			if (nb1 == 7) Ac &= ~(uint64_t)BIT_SET_27;
+			if (nb2 == 7) Ac &= BIT_SET_27;
+		}
 		while (bitscanforward64(tc_10_12[0], Ac)) {
 			uint64_t bit1 = (uint64_t)1 << tc_10_12[0];
 			Ac ^= bit1; //clear bit
+			myb12 = s9.all_previous_cells | bit1 ;
+			guah54n.GetG2G3_10(myb12, tc_10_12[0]);
+			if (!op.p2b)CALLB3(10, 7);
 			uint64_t Ac2 = Ac;// others are not active now
 			{
 				register uint64_t A = s9.all_previous_cells | bit1,
@@ -2154,10 +2165,8 @@ void G17B::Valid9(SPB03A& s9) {// can be any process
 					register uint64_t bit2 = (uint64_t)1 << tc_10_12[1];
 					Ac2 ^= bit2; //clear bit
 					myb12 = s9.all_previous_cells | bit1 | bit2;
-					ncluesb12 = 11; ncluesb3 = 6;
 					guah54n.GetG2G3_11(myb12, tc_10_12[0], tc_10_12[1]);
-					GoCallB3Com();
-					if (aigstop )return;
+					CALLB3(11, 6);
 				}
 			}
 		}
