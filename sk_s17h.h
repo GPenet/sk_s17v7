@@ -1409,7 +1409,7 @@ struct STD_B3 :STD_B416 {// data specific to bands 3
 	int triplet_perms[9][2][3];
 	uint32_t i_27_to_81[27], i_9_to_81[9]; //band i81 for guas guas3
 	uint32_t i_81_to_27[81]; //band i81 for guas guas3
-	uint32_t  poutdone,
+	uint32_t  poutdone, aigskip,
 		tg2_4[50], ntg2_4, tg2_6[50], ntg2_6;
 	//_______________________
 	void InitBand3(int i16, char* ze, BANDMINLEX::PERM& p);
@@ -1706,7 +1706,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	}
 
 	uint64_t pk54;
-	int b3lim,	 aigstop, aigstopxy,knownt,
+	int b3lim,	 aigstop, aigstopxy,nb3_not_found,knownt,
 		npuz, a_17_found_here ;
 	int ng2,ng3;
 	int grid0[81];

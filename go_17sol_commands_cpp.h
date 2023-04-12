@@ -425,6 +425,23 @@ void Go_c17_12() {// check diagonal status in a 665
 	
 			break;
 		}
+		case 7: {// add info at the end dll output
+			if (strlen(ze) < 162)break;		char* ze2 = &ze[strlen(ze)];
+			CLBS cbs;	int  nclues = 0;	memset(&cbs, 0, sizeof cbs);
+			for (int i = 0; i < 81; i++) if (ze[i+82] != '.') 	cbs.Add(i);			
+			fout1<<&ze[82] << ";" << ib1a << ";" << ib2a << ";" << ib3a
+				<< "; bands; " << cbs.b[0] << ";" << cbs.b[1] << ";" << cbs.b[2]
+				 << endl;
+			break;
+		}
+		case 8: {// same want 6 items in output
+			if (strlen(ze) < 162)break;		char* ze2 = &ze[strlen(ze)];
+			CLBS cbs;	int  nclues = 0;	memset(&cbs, 0, sizeof cbs);
+			for (int i = 0; i < 81; i++) if (ze[i + 82] != '.') 	cbs.Add(i);
+			fout1 << &ze[82] << ";" << ib1a << ";" << ib2a << ";" << ib3a
+				<< "; " << cbs.b[0] << cbs.b[1] << cbs.b[2]		<< endl;
+			break;
+		}
 		}
 	}
 
