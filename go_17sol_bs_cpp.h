@@ -284,6 +284,7 @@ void G17B::Start() {// processing an entry
 		aigstop = 1;
 		guah54n.Status(2);
 	}
+	if (op.out_one) aigstop = 0;// reinit stop at first
 
 }
 

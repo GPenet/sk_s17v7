@@ -458,7 +458,11 @@ void GEN_BANDES_12::F3B_See() {
 	}
 	it16_3 = pband3.i416;
 	i3t16 = t416_to_n6[it16_3];
-	if (op.bx3 < 416)if (op.bx3 != i3t16) return;
+	if (op.bx3 < 416) {
+		if(op.b3low){ if (op.bx3 > i3t16) return; }
+		else if (op.bx3 != i3t16) return;
+
+	}
 	if (i3t16 > i2t16) return;// direct not a pass 1 
 	// reverse case in p2b one NED in even p1 mode
 	if (op.t18) if (i3t16 >= i1t16)F3B_See_18();
