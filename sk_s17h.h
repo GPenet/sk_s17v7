@@ -548,13 +548,10 @@ struct GUAH54N {
 			n = 0;
 			killer = ~0;
 		}
-		void Enter(uint64_t u) {
-			if (n >= 128) return;
+		void EnterInit(uint64_t u) {
 			uint32_t nr = n++;
 			killer &= u;
 			v0.setBit(nr);
-			v6.clearBit(nr);// free if fresh ua
-			v9.clearBit(nr);// free if fresh ua
 			register uint32_t cell;
 			register uint64_t U = u;
 			while (bitscanforward64(cell, U)) {
@@ -562,6 +559,7 @@ struct GUAH54N {
 				vc[cell].clearBit(nr);
 			}
 		}
+		void EnterFresh(uint64_t u);
 		void Dump(int det=0) {
 			cout << "dump mode " << mode2_3 << " i81" << i81 << endl;
 			for (uint32_t i = 0; i < 128; i++) {
@@ -605,14 +603,16 @@ struct GUAH54N {
 		}
 
 	}zz[162];
+	
 	struct BLOC0 {// only one ua maxi 16
 		uint64_t ua, id;
 	}bloc0[40];
+	
 	uint32_t nbl0, nzzused, nzzg2;
 	uint32_t tind6[162], ntind6;
 	uint32_t tind9[162], ntind9;
-	uint32_t tg2[81], ntg2,tmg2[20], ntmg2;
-	uint32_t tg3[81], ntg3,tmg3[20], ntmg3;
+	uint32_t tg2[81], ntg2 , tmg2[20], ntmg2;
+	uint32_t tg3[81], ntg3 , tmg3[20], ntmg3;
 	BF128 g2, g3,g2_6,g3_6,g2_9,g3_9;
 	int indg2[81], indg3[81];
 
@@ -622,7 +622,7 @@ struct GUAH54N {
 		memset(indg2, 255, sizeof indg2);
 		memset(indg3, 255, sizeof indg3);
 	}
-	inline void InitCom() { ntmg2 = ntmg3 = 0; }
+	inline void InitCom() { ntmg2 = ntmg3 = 0;}
 	void Build();
 	void Build6( uint32_t* tc) {
 		g2_6.SetAll_0(); g3_6 = g2_6;
@@ -659,7 +659,7 @@ struct GUAH54N {
 	}
 	inline void GetG2G3A(uint64_t bf) {
 		g2.SetAll_0(); g3 = g2;
-		ntg2 = ntg3 = 0;
+		ntg2 = ntg3 = 0;		
 		// see bloc 0
 		for (uint32_t i = 0; i < nbl0; i++) {
 			if (!(bf & bloc0[i].ua)) {
@@ -675,6 +675,7 @@ struct GUAH54N {
 				}
 			}
 		}
+		
 	}
 	void GetG2G3_7(uint64_t bf, uint32_t cell1) {
 		GetG2G3A(bf);
@@ -800,10 +801,11 @@ struct GUAH54N {
 		}
 	}
 
-	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){
-		
+	inline void AddA2(uint64_t bf,  int32_t i81,int cc12){		
 		register int iz = indg2[i81];
-		if (g2_9.Off(i81)) {	
+		int n = zz[iz].n;
+		if (n >= 128) return;
+		if (g2_9.Off(i81)) {
 			g2_9.setBit(i81);
 			tind9[ntind9++] = iz;
 			tmg2[ntmg2++] = i81;
@@ -812,6 +814,7 @@ struct GUAH54N {
 				tind6[ntind6++] = iz;
 			}
 		}
+		
 		else {
 			uint32_t nx = ntmg2;
 			tmg2[ntmg2++] = i81;
@@ -822,12 +825,8 @@ struct GUAH54N {
 				}
 			}
 		}
-		int n =  zz[iz].n;
-		if (n >= 80 && cc12 > 14) return;
-		if (n >= 100 && cc12 > 13) return;
-		if(n>120 && n<128)
-		cout << "\t\t\tadded g2 " << iz << " " << zz[iz].n << endl;
-		zz[iz].Enter(bf);
+		
+		zz[iz].EnterFresh(bf);
 	}
 	inline void AddA3(uint64_t bf, int32_t i81) {
 		register int ix = indg3[i81];
@@ -841,6 +840,7 @@ struct GUAH54N {
 				tind6[ntind6++] = ix;
 			}
 		}
+		
 		else {
 			uint32_t nx = ntmg3;
 			tmg3[ntmg3++] = i81;
@@ -851,9 +851,9 @@ struct GUAH54N {
 				}
 			}
 		}
-
+		
 		int n = zz[ix].n;
-		zz[ix].Enter(bf);
+		zz[ix].EnterFresh(bf);
 	}
 
 	void Add(uint64_t bf, BF128* vc, BF128 & v0,

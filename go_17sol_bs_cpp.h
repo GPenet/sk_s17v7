@@ -273,7 +273,7 @@ void G17B::Start() {// processing an entry
 	p_cpt2g[1] += genb12.nband3;
 	nb3_not_found = genb12.nband3;
 
-	if(sgo.vx[5])		cout <<myband2.band<<" [0] "<< p_cpt2g[0] << endl;
+	//if(sgo.vx[5])		cout <<myband2.band<<" [0] "<< p_cpt2g[0] << endl;
 	//if (p_cpt2g[0] > 1) {		aigstop = 1; return;	}
 
 	StartInit();// do all preliminary setups
@@ -284,7 +284,7 @@ void G17B::Start() {// processing an entry
 		aigstop = 1;
 		guah54n.Status(2);
 	}
-	if (op.out_one) aigstop = 0;// reinit stop at first
+	if (op.out_one && aigstop==1) aigstop = 0;// reinit stop at first
 
 }
 
@@ -1547,7 +1547,20 @@ int T54B12::Build_td128(SPB03A& s9) {
 	if (nd128 < 128)nd128 = 128;// fresh uas in add
 	return 0;
 }
-
+void GUAH54N::Z128::EnterFresh(uint64_t u) {
+	if (n >= 128) return;
+	uint32_t nr = n++;
+	killer &= u;
+	v0.setBit(nr);
+	if(u&g17b.bf_cl6)	v6.clearBit(nr);// free if hit
+	if (u & g17b.bf_cl9)v9.clearBit(nr); 
+	register uint32_t cell;
+	register uint64_t U = u;
+	while (bitscanforward64(cell, U)) {
+		U ^= (uint64_t)1 << cell;
+		vc[cell].clearBit(nr);
+	}
+}
 void GUAH54N::Build() {// cut to 30 switch to 54 killer
 	Init();
 	for (int i81 = 0; i81 < 81; i81++) {
@@ -1568,7 +1581,7 @@ void GUAH54N::Build() {// cut to 30 switch to 54 killer
 				register uint64_t U = g0.tua[i];
 				//if (n > 30 && nn > 16) break;
 				U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
-				myz.Enter(U);
+				myz.EnterInit(U);
 			}
 		}
 	}
@@ -1592,7 +1605,7 @@ void GUAH54N::Build() {// cut to 30 switch to 54 killer
 			for (uint32_t i = 0; i < n; i++) {
 				register uint64_t U = g0.tua[i];
 				U = (U & BIT_SET_27) | ((U & BIT_SET_B2) >> 5);// mode 54
-				myz.Enter(U);
+				myz.EnterInit(U);
 			}
 		}
 	}
@@ -1711,6 +1724,9 @@ next3:
 }
 void G17B::Expand_46(SPB03A& s3) {
 	if (aigstop) return;
+	//if (p_cpt2g[3] > 1) return;
+	//cout << " [3] " << p_cpt2g[3] << " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] 
+	//	<< " [8] " << p_cpt2g[8] << endl;
 	int locdiag = 0;
 	if (op.known ) {
 		cout << Char54out(s3.all_previous_cells) << " entry 3 [3] "	<< p_cpt2g[3] << endl;
@@ -1800,6 +1816,10 @@ next6:
 }
 void G17B::Expand_7_9(SPB03A& s6) {
 	if (aigstop) return;
+	//if (p_cpt2g[4] > 1106) { aigstop = 2; return; }
+	//if (p_cpt2g[4] == 1106)cout << Char54out(bf_cl6) << " [4] " << p_cpt2g[4] << " [5] " << p_cpt2g[5] << " [7] " << p_cpt2g[7]
+	//	<< " [8] " << p_cpt2g[8] << endl;
+
 	if (knownt >= 9)return;
 	if (t54b12.nc128<128)t54b12.nc128=128;// be sure to have fresh uas outside
 	// ____ build a reduced table of uas/guas for band 3
@@ -1817,8 +1837,7 @@ void G17B::Expand_7_9(SPB03A& s6) {
 		if (op.f3) {
 			if (p_cpt2g[3] == op.f3) {
 				cout << Char54out(s6.all_previous_cells) << " 6clues [4]" << p_cpt2g[4]
-					<< " nc128=" << t54b12.nc128;
-				cout << Char54out(twu[0]) << " [7]"<< p_cpt2g[7] << endl;
+					<< " [7]"<< p_cpt2g[7] << " [8]" << p_cpt2g[8] << endl;
 			}
 		}
 		if (op.f4) {
@@ -1919,7 +1938,7 @@ next8: //add clue 8 and find valid below size 8
 				w.bf.u64[1] = sp8.active_cells;
 				tbelow8[ntbelow[1]++] = w;
 				//tandbelow[1] &= w.bf.u64[0];
-				p_cpt2g[55]++;
+				p_cpt2g[5]++;
 				goto next8;
 			}
 			else U = ua_ret7p;
@@ -2287,7 +2306,6 @@ next10:
 	}
 
 }
-
 
 void G17B::Expand_10_12(SPB03A& s9) {
 	if (aigstop) return;
@@ -3018,7 +3036,15 @@ void G17B::Go_x_11_17() {// 8 clues limit 11 clues 656 566
 void G17B::GoCallB3Com() {
 	p_cpt2g[7]++;
 	int locdiag = 0;
-	if (knownt >= 11) locdiag = 1;	
+	//cout << Char54out(myb12) << " [7] " << p_cpt2g[7] << " [8] " << p_cpt2g[8] << endl;
+	//if (p_cpt2g[8] > 400) { aigstop = 2; return; }
+	//if (p_cpt2g[7] == 269) {
+		//cout <<"this is where the deviation starts" <<endl;
+		//DumpPotential();
+		//locdiag = 1;
+	//}
+
+	if (knownt >= 11) locdiag = 1;
 	if (op.f7 ){
 		if(op.f4 && p_cpt2g[4] == op.f4)
 		if (p_cpt2g[7] == op.f7)			locdiag = 1;		
@@ -3946,13 +3972,14 @@ uint64_t G17B::GetLastD() {
 
 
 //____________processing band 3 to the end
-void OutFreshUa(uint64_t u,uint32_t u3, const char * lib) {
+void OutFreshUa(uint64_t u,uint32_t u3, int i81, int n,const char * lib) {
 	if (op.known)if (g17b.pk54 &u) return;
 	cout << Char54out(u) << "\t";
 	cout << Char27out(u3) << lib
 		<< "   [3]" << p_cpt2g[3] << "   [4]" << p_cpt2g[4]
-		<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
-		<< endl;
+		//<< "[7]" << p_cpt2g[7] << "   [8]" << p_cpt2g[8]
+		<<" i81="<<i81 << " n=" << n	<< endl;
+
 
 }
 int G17B::IsValid_myb12() {
@@ -4041,7 +4068,12 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 					if (ndigs == 2) {
 						int i81 = myband3->GetI81_x(ua);
 						if (i81 >= 0) {
-							if (op.dv3)OutFreshUa(U, w.bf.u32[2], " added 0A");
+							if (op.dv3) {
+								int iz = guah54n.indg2[i81];
+								int n = guah54n.zz[iz].n;
+								if (n >= 120)
+									OutFreshUa(U, w.bf.u32[2], i81, n, " added 0A");
+							}
 							guah54n.AddA2(U, i81,(int)cc0);
 							guah54n.g2.setBit(i81);
 							p_cpt2g[20]++;
@@ -4051,11 +4083,11 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 					p_cpt2g[19]++;
 					if (cc == 4) {
 						myband3->Addm4(w);
-						if (op.dv3)OutFreshUa(U, w.bf.u32[2], " added 4");
+						//if (op.dv3)OutFreshUa(U, w.bf.u32[2], " added 4");
 					}
 					else {
 						myband3->Addmm(w);
-						if (op.dv3)OutFreshUa(U, w.bf.u32[2], " added >4");
+						//if (op.dv3)OutFreshUa(U, w.bf.u32[2], " added >4");
 					}
 					continue;
 				}
@@ -4063,8 +4095,21 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 				else {
 					if (cc == 2) {
 						int i81 = myband3->GetI81_2(w.bf.u32[2]);
-						if (op.dv3) OutFreshUa(U, w.bf.u32[2], " added ob");
+						if (op.dv3) {
+							int iz = guah54n.indg2[i81];
+							int n = guah54n.zz[iz].n;
+							if(n>120)
+							OutFreshUa(U, w.bf.u32[2],i81, n," added ob");
+						}
 						guah54n.AddA2(U, i81,(int)cc0);
+
+						//if (p_cpt2g[4] == 1106) {
+							//int iz = guah54n.indg2[i81];
+							//cout << "i81=" << i81 <<" iz="<< iz << endl;
+							//guah54n.zz[iz].Dump(3);
+						//}
+							
+							//if (p_cpt2g[8] > 230) guah54n.zz[34].Dump(3);
 						guah54n.g2.setBit(i81);
 						p_cpt2g[20]++;
 					}

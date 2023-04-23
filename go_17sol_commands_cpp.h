@@ -10,7 +10,7 @@ const char * libs_c17_00_cpt2g[100] = {
 	"3 3 clues ",	
 	"4 6 clues ",	
 	"5 7p clues last ",
-	"6 active 6 clues",
+	"6 9 clues",
 	"7 set b12 ",
 	"8 go b3",
 	"9 min ok g2 g3",
