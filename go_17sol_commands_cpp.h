@@ -709,6 +709,79 @@ void Go_c17_80() {// enumeration test
 		<< "\t" << p_cpt2g[14] << "\t" << p_cpt2g[15]
 		<<" max nsgcheck " << p_cpt2g[20] << endl;
 }
+uint8_t Gethexa(char c) {
+	char ret = 0;
+	if (c >= '0' && c <= '9')ret = c - '0';
+	else if (c >= 'A' && c <= 'F')ret = c - 'A'+10;
+	return ret;
+}
+char* Char8out(uint8_t w) {
+	static char ws[9];
+	strncpy(ws, empty_puzzle, 8);
+	ws[8] = 0;
+	for (int j = 7; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
+	return ws;
+
+}
+char* Char4out(uint8_t w) {
+	static char ws[5];
+	strncpy(ws, empty_puzzle, 4);
+	ws[4] = 0;
+	for (int j = 3; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
+	return ws;
+
+}
+
+void Go_c17_81() {// enumeration split of known
+	cout << "Go_c17_84 split in slices " << endl;
+	cout << sgo.vx[0] << " -v0-  id 0_415" << endl;
+	if (sgo.vx[0] > 415) {
+		cerr << "invalid it16_start it16_end" << endl;
+		return;
+	}
+	cout << sgo.vx[4] << " -v4- 0 mode p2a 1 mode p2b 2 mode p1" << endl;
+	memset(&op, 0, sizeof op);
+	op.last = 200000;
+	op.t18 = 1;
+	op.out_entry = -1;
+	op.b2 = sgo.vx[5];
+	op.bx3 = sgo.vx[11];
+	int x = (int)sgo.vx[4];
+	if (x == 2) op.p1 = 1;
+	else {	op.p2 = 1; if (x == 1) op.p2b = 1;	}
+
+	// Load in memory 
+	//uint8_t bitfield_sgs[200000000 / 8];
+	//uint64_t nbitfield_sgs;
+	char* ze = finput.ze;
+	nbitfield_sgs = 0;
+	uint64_t nl=0,idl=0,nbits=0,ntot=0,n;
+	while (finput.GetLigne()) {
+		nl++;
+		idl = nbitfield_sgs;
+		n =(int) strlen(ze);
+		if (n & 1) {	ze[n] = '0'; n++; ze[n] = 0;}
+		for (int i = 0; i < n; i += 2) {
+			uint8_t c1 = Gethexa(ze[i]), c2 = Gethexa(ze[i + 1]); // one byte
+			c1 |= (c2 << 4);
+			bitfield_sgs[nbitfield_sgs++] = c1;// store byte
+			ntot += 8;
+			nbits += _popcnt32(c1);
+		}
+	}
+	cout << "nl= " << nl << " idl=" << idl <<" ntot="<<ntot<<" nbits="<<nbits
+		<< " nbitfield_sgs=" << nbitfield_sgs << endl;
+	memset(p_cptg, 0, sizeof p_cptg);// used in debugging sequences only
+	memset(p_cpt2g, 0, sizeof p_cpt2g);// used in debugging sequences only
+	genb12.Start(11);// mode p2a or p2b or p1
+	memset(p_cpt, 0, sizeof p_cpt);// band2 and band 3 count
+	genb12.nb12 = 0;
+	genb12.NewBand1(sgo.vx[0]);
+	cout <<"last " << p_cpt[0] << "\t" << p_cpt[1] << endl;
+
+}
+
+
 
 void Go_c17_90() {  // JIM
 

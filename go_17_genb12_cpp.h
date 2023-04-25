@@ -262,6 +262,52 @@ void GEN_BANDES_12::ValidInitGang() {
 	}
 	memcpy(gangcols, cold, sizeof gangcols);
 }
+
+void Process81_Split() {
+	char* thexa = "0123456789ABCDEF";
+	if (genb12.nb12 & 63) return;
+	uint64_t sliceclosed = (genb12.nb12 >> 6) - 1;
+	if (!sliceclosed) {
+		for (int i = 0; i < 200; i++) {
+			register char byte = bitfield_sgs[i];
+			cout << thexa[byte & 15] << thexa[(byte >> 4) & 15];
+		}
+		cout << endl;
+	}
+	GINT64 w64; w64.u64 = 0;
+	uint64_t i8deb = p_cptg[1] >> 3;
+	uint32_t shift =(uint32_t) (p_cptg[1] - (i8deb << 3)), nn = (uint32_t)(p_cpt[1] - p_cptg[1]);
+	cout <<sliceclosed<< " slice \t" << p_cptg[1] << " \t" << p_cpt[1]
+		<< "\t8d=" << i8deb << "\tshift=" << shift << " nn=" << nn << endl;
+	p_cptg[1] = p_cpt[1];
+	register uint32_t r1 , r2 , rshift = shift;
+	register uint8_t* p = bitfield_sgs + i8deb;
+	{
+		register uint8_t* pw = p;
+		cout << "check  start" << endl;
+		for (int i = 0; i < 10; i++) {
+			r1 = *pw++;
+			cout << thexa[r1 & 15] << thexa[(r1 >> 4) & 15];
+		}
+		cout << endl;
+	}
+
+
+	r1 = *p++;
+	r1 >>=  shift;// next byte n high bits
+	nn -= 8-shift;
+	while (nn>0) {
+		r2 = *p++;
+		r2 <<=8- shift;
+		r1 |= r2;
+		register char byte = r1;
+		cout << thexa[byte&15]<< thexa[(byte>>4) &15];
+		r1>>= 8;
+		nn -= 8;
+	}
+	register char byte = r1;
+	cout << thexa[byte & 15] << thexa[(byte >> 4) & 15]<<endl;
+}
 int GEN_BANDES_12::ValidBand2() {
 	if (g17b.aigstop)return 1;
 	myband2.InitBand2_3(it16_2, &zsol[27], pband2);
@@ -292,10 +338,9 @@ int GEN_BANDES_12::ValidBand2() {
 		}
 		memcpy(gangcols, cold, sizeof gangcols);
 		if (op.b2<416 && (t416_to_n6[it16_2] != op.b2)) return 0;
-	
-		//if (op.p1)Find_band3B_pass1(0);
 		if (op.p1)Find_band3B_pass1B(0);
 		else Find_band3B(0);
+		if (op.out_entry < 0) Process81_Split();
 		if (nband3) {	p_cpt[0]++;	p_cpt[1] += nband3;	}
 		if (((nb12 >> 6) > op.last)) return 1;
 	}
@@ -303,6 +348,7 @@ int GEN_BANDES_12::ValidBand2() {
 }
 void GEN_BANDES_12::OutEntry() {
 	p_cpt2g[1] += nband3;   // update bands3 count
+	if (op.out_entry < 0) return;
 	char ws[21];
 	for (int i = 0; i < nband3; i++) {
 		fout1 << myband1.band << myband2.band

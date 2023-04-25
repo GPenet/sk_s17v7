@@ -60,6 +60,9 @@ uint64_t tfull[50000];
 
 uint64_t p_cptg[40], p_cpt1g[20], p_cpt2g[100];
 uint64_t p_cpt[40], p_cpt1[20];
+// buffer to load the knwon status of 18s in solution grids
+uint8_t bitfield_sgs[200000000 / 8];
+uint64_t nbitfield_sgs;
 
 
 
@@ -80,9 +83,10 @@ void Go_0() {
 		strcpy(&zn[ll], "_file1.txt");
 		fout1.open(zn);
 	}
-	if (sgo.command >= 10
-		&& sgo.command <21 && sgo.command != 15
-		&& sgo.command != 80){// input file expected
+	int need_input_file[7] = { 10,12,15,16,20,81,90 },need=0;
+	for(int i=0;i<7;i++)
+		if (sgo.command == need_input_file[i]) { need = 1; break; }
+	if (need){// input file expected
 		if (!sgo.finput_name) {
 			cerr << "missing input file name" << sgo.finput_name << endl; return;
 		}
@@ -101,6 +105,7 @@ void Go_0() {
 	case 16: Go_c17_16(); break; // add solution+bands index
 	case 20: Go_c17_20(); break; // study redundancy entry file pass1
 	case 80:  Go_c17_80(); break; // enumeration test 
+	case 81:  Go_c17_81(); break; //split 18 status known per slice 
 	case 90: Go_c17_90(); break; // XSG (explicit soln grids)
 
 	}
