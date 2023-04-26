@@ -66,10 +66,40 @@ const char * libs_c17_00_cpt2g[100] = {
 	"95 n10",	"96 n11","97 n12","98 maxn12","99 ",
 
 };
+uint8_t Gethexa(char c) {
+	char ret = 0;
+	if (c >= '0' && c <= '9')ret = c - '0';
+	else if (c >= 'A' && c <= 'F')ret = c - 'A' + 10;
+	return ret;
+}
+char* Char8out(uint8_t w) {
+	static char ws[9];
+	strncpy(ws, empty_puzzle, 8);
+	ws[8] = 0;
+	for (int j = 7; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
+	return ws;
+
+}
+char* Char4out(uint8_t w) {
+	static char ws[5];
+	strncpy(ws, empty_puzzle, 4);
+	ws[4] = 0;
+	for (int j = 3; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
+	return ws;
+
+}
+
+
+
+
+
 void Go_c17_00( ) {// p2 process
-	cout << "Go_c17_00 search batch 17 clues  " << endl;
+	cout << "Go_c17_00 search batch 17/18 clues  " << endl;
 	op.SetUp(0);
-	int it16_start = sgo.vx[0];
+	if (op.f18_status)if (genb12.F18_Init()) return;
+	cout << "end test f18" << endl;
+	return;
+	//int it16_start = sgo.vx[0];
 	g17b.aigstop=0;
 	if (sgo.vx[2] < 0) {
 		cerr << "invalid value for skip" << endl;
@@ -709,28 +739,6 @@ void Go_c17_80() {// enumeration test
 		<< "\t" << p_cpt2g[14] << "\t" << p_cpt2g[15]
 		<<" max nsgcheck " << p_cpt2g[20] << endl;
 }
-uint8_t Gethexa(char c) {
-	char ret = 0;
-	if (c >= '0' && c <= '9')ret = c - '0';
-	else if (c >= 'A' && c <= 'F')ret = c - 'A'+10;
-	return ret;
-}
-char* Char8out(uint8_t w) {
-	static char ws[9];
-	strncpy(ws, empty_puzzle, 8);
-	ws[8] = 0;
-	for (int j = 7; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
-	return ws;
-
-}
-char* Char4out(uint8_t w) {
-	static char ws[5];
-	strncpy(ws, empty_puzzle, 4);
-	ws[4] = 0;
-	for (int j = 3; j >= 0; j--) if (w & (1 << j))			ws[j] = '1';
-	return ws;
-
-}
 
 void Go_c17_81() {// enumeration split of known
 	cout << "Go_c17_84 split in slices " << endl;
@@ -780,8 +788,6 @@ void Go_c17_81() {// enumeration split of known
 	cout <<"last " << p_cpt[0] << "\t" << p_cpt[1] << endl;
 
 }
-
-
 
 void Go_c17_90() {  // JIM
 
@@ -875,8 +881,6 @@ void Go_c17_90() {  // JIM
 		cout << p_cpt2g[i] << "\t\t" << libs_c17_00_cpt2g[i] << endl;
 	}
 }
-
-
 
 
 void BuildAutoMorph(); // in go_17sol_tables.cpp
@@ -1108,7 +1112,6 @@ void Go_c17_16() {
 		else cout << ze << "non resolu" << endl;
 	}
 }
-
 
 
 /*

@@ -66,11 +66,10 @@ uint64_t nbitfield_sgs;
 
 
 
+#include "go_17sol_commands_cpp.h"
 #include "go_17_bands_cpp.h"  
-
 #include "go_17_genb12_cpp.h"     
 #include "go_17sol_bs_cpp.h"    
-#include "go_17sol_commands_cpp.h"
 
 
 
@@ -86,6 +85,7 @@ void Go_0() {
 	int need_input_file[7] = { 10,12,15,16,20,81,90 },need=0;
 	for(int i=0;i<7;i++)
 		if (sgo.command == need_input_file[i]) { need = 1; break; }
+	if (sgo.command == 0 && sgo.bfx[4] & 1) need = 1;
 	if (need){// input file expected
 		if (!sgo.finput_name) {
 			cerr << "missing input file name" << sgo.finput_name << endl; return;

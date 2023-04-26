@@ -2289,7 +2289,7 @@ next10:
 		while (bitscanforward64(tcells[4], Uand)) {
 			uint64_t bit2 = (uint64_t)1 << tcells[4];
 			Uand ^= bit2; //clear bit
-			myb12 = cb3.bf12 = sp10.all_previous_cells | bit2;
+			myb12 = sp10.all_previous_cells | bit2;
 			if (knownt >= 10) {
 				cout << Char54out(myb12) << " 11" << endl;
 				if (!((~pk54) & myb12)) {
@@ -3165,7 +3165,6 @@ void STD_B3::GoAg23(int debug) {
 }
 void STD_B3::GoA() {
 	g17b.nt3more = 0;
-	CALLBAND3& cb3e = g17b.cb3;
 	p_cpt2g[8]++;
 	if (VTEST && p_cpt2g[8] > VTEST) return;
 	int locdiag = 0;
@@ -4149,72 +4148,6 @@ int  G17B::Valid3mm(uint32_t bf) {
 
 
 //__________ new potential valid bands 1+2
-
-void G17B::GoCallB3_12(CALLBAND3& cb3w) {
-	/*
-	return; // not yet adjusted to gua54hn
-	p_cpt2g[7]++;
-	if (sgo.bfx[3] & 1) return; // only ohase 1
-
-	//if (op.f4 == p_cpt2g[4])cout << Char54out(myb12) << "  [7] "
-	//	<< p_cpt2g[7] << endl;
-	int locdiag = 0;
-
-	if (op.known) {
-		if (knownt > 12) return;
-		if (knownt == 12) locdiag = 1;
-	}
-
-
-
-	if (locdiag) {
-		cout << "b3_12 [7]" << p_cpt2g[7] << endl;
-		cout << Char54out(bf_cl9) << " clues " << tc_10_12[0]
-			<< "  " << tc_10_12[1] << "  " << tc_10_12[2] << endl;
-		locdiag = 1;
-	}
-	if (p_cpt2g[7] == op.f7) {
-		cout << Char54out(myb12) << "GoCallB3_12 in diag [7]  " << p_cpt2g[7] << endl;
-		locdiag = 1;
-		if (op.known) {
-			cout << "genb12.bands3[0].nbgm " << genb12.bands3[0].nbgm
-				<< " genb12.bands3[0].nbgmm " << genb12.bands3[0].nbgmm << endl;
-			//genb12.bands3[0].DumpTgmm();
-		}
-	}
-	if (op.f7 && p_cpt2g[7] > op.f7) { aigstop = 1; return; }
-
-	//guah54n.GetG2G3_12(cb3w.g2t, cb3w.g3t);
-	if (sgo.bfx[3] & 2) return; // stop here
-
-	if (locdiag) {
-		guah54n.g2.Print("g2");
-	}
-	//return;
-	if (locdiag) {
-		cout << "g2t g3t done" << endl; //return;
-		if (op.ton > 1) {
-			guah54n.g2.Print("g2");
-			//guah54.DumpA2(); guah54.DumpB2(1);
-		}
-	}
-	{
-		register uint64_t F = g17b.myb12 & ~g17b.bf_cl9; // cells 6 to x
-		ncluesxp = 0;
-		register int cell;// build table of cells
-		while (bitscanforward64(cell, F)) {
-			F ^= (uint64_t)1 << cell;
-			tcluesxp[ncluesxp++] = cell;
-		}
-	}
-	//p_cpt2g[16] += cb3.g2t.Count(); p_cpt2g[18] += cb3.g3t.Count();
-	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
-		STD_B3& b3 = genb12.bands3[ib3];
-		b3.Go(cb3w);
-	}
-	if (op.known && knownt == 12) knownt = 13;	*/
-
-}
 void STD_B3::Checkkown4() {
 
 	cout << "check tgm ngm=" << nbgm << endl;

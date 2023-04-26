@@ -1,4 +1,58 @@
 
+int GEN_BANDES_12::F18_Init() {// initial filter on Jim data base status
+	cout << "initial load of the 'per slice' status of the entry file " << endl;
+	char* ze = finput.ze;
+	current_slice = op.first;
+	sliceread = -1;
+	while (finput.GetLigne()) {
+		if (strlen(ze) < 12) {
+			cout << "invalid file for SG known" << endl;
+			return 1;
+		}
+		finput.ze[8] = 0;
+		sliceread = atoi(finput.ze);
+		if (sliceread < current_slice)continue;
+		if (sliceread == current_slice)break;
+		cout << "could not reach first slice with SG status" << endl;
+		return 1;
+	}
+	if (finput.eof()) {
+		cout << "unexpected eof file with SG status" << endl;
+		return 1;
+	}
+	return F18_Load();
+}
+int GEN_BANDES_12::F18_Load() {
+	if (finput.eof()) return 1;
+	register char* ze = finput.ze,*ze2= ze+10;
+	nbitfield_sgs = 0;
+	bit_slice = 0;// restart use at first bit
+	while (1) {
+		int n = (int)strlen(ze2);
+		cout << ze2 << " to load current_slice " << current_slice << endl;
+		ze2[n]= '0';// to be sure to have even number to use
+		for (int i = 0; i < n; i += 2) {
+			uint8_t c1 = Gethexa(ze2[i]), c2 = Gethexa(ze2[i + 1]); // one byte
+			c1 |= (c2 << 4);
+			bitfield_sgs[nbitfield_sgs++] = c1;// store byte2
+		}	
+		finput.GetLigne();
+		if (finput.eof()) break;
+		finput.ze[8] = 0;
+		int slice = atoi(finput.ze);
+		if (slice != sliceread){
+			if (slice != (sliceread + 1)) {
+				cout <<"not right stucture in file with SG status" << endl;
+				return 1;
+			}
+			sliceread ++;
+			break;
+		}
+	}
+	maxbits =int ( nbitfield_sgs << 3);
+	cout << " end load nbitfield_sgs=" << nbitfield_sgs << endl;
+	return 0;
+}
 
 void GEN_BANDES_12::GetStartB2(int ip) {//set  rows 3_9 column 1
 	char const *tp[20] = {// 3 out of 6 ordered 
@@ -267,46 +321,39 @@ void Process81_Split() {
 	char* thexa = "0123456789ABCDEF";
 	if (genb12.nb12 & 63) return;
 	uint64_t sliceclosed = (genb12.nb12 >> 6) - 1;
-	if (!sliceclosed) {
-		for (int i = 0; i < 200; i++) {
-			register char byte = bitfield_sgs[i];
-			cout << thexa[byte & 15] << thexa[(byte >> 4) & 15];
-		}
-		cout << endl;
-	}
 	GINT64 w64; w64.u64 = 0;
 	uint64_t i8deb = p_cptg[1] >> 3;
 	uint32_t shift =(uint32_t) (p_cptg[1] - (i8deb << 3)), nn = (uint32_t)(p_cpt[1] - p_cptg[1]);
 	cout <<sliceclosed<< " slice \t" << p_cptg[1] << " \t" << p_cpt[1]
 		<< "\t8d=" << i8deb << "\tshift=" << shift << " nn=" << nn << endl;
+	char wss[11];
+	sprintf(wss,"%8d ;",(int) sliceclosed);
+	wss[10] = 0;
+	fout1 << wss;
 	p_cptg[1] = p_cpt[1];
 	register uint32_t r1 , r2 , rshift = shift;
 	register uint8_t* p = bitfield_sgs + i8deb;
-	{
-		register uint8_t* pw = p;
-		cout << "check  start" << endl;
-		for (int i = 0; i < 10; i++) {
-			r1 = *pw++;
-			cout << thexa[r1 & 15] << thexa[(r1 >> 4) & 15];
-		}
-		cout << endl;
-	}
-
-
 	r1 = *p++;
 	r1 >>=  shift;// next byte n high bits
 	nn -= 8-shift;
+	int nout = 40;
 	while (nn>0) {
 		r2 = *p++;
 		r2 <<=8- shift;
 		r1 |= r2;
 		register char byte = r1;
-		cout << thexa[byte&15]<< thexa[(byte>>4) &15];
+		fout1 << thexa[byte & 15] << thexa[(byte >> 4) & 15];
 		r1>>= 8;
 		nn -= 8;
+		nout--;
+		if (!nout) {
+			fout1<<endl << wss;
+			nout = 40;
+		}
 	}
 	register char byte = r1;
-	cout << thexa[byte & 15] << thexa[(byte >> 4) & 15]<<endl;
+	fout1 << thexa[byte & 15] << thexa[(byte >> 4) & 15] << endl;
+
 }
 int GEN_BANDES_12::ValidBand2() {
 	if (g17b.aigstop)return 1;
@@ -321,6 +368,13 @@ int GEN_BANDES_12::ValidBand2() {
 			if (w == 0) {
 				long tfin = GetTimeMillis();
 				cout << "next slice to use=\t" << w1 << "\tmil=" << (tfin - sgo.tdeb) / 1000 << "\tnb2=" << p_cpt2g[0] << endl;
+				if (op.f18_status) {// load next slice of status
+					if (F18_Load()) {
+						cout << "stop problem in F18 file " << endl;
+						g17b.aigstop = 2;
+						return 1;
+					}
+				}
 			}
 		}
 		if (((nb12 >> 6) > op.last)) return 1;
@@ -486,8 +540,22 @@ next:// erase previous fill and look for next
 back:
 	if (--ii >= 0) goto next;
 	//if (m10 != 1)return;
+	int nn = 0;
 	if (nband3) {
-		if (op.out_entry) OutEntry();
+		if (op.f18_status) {
+			for (int i = 0; i < nband3; i++) {
+				int mybit = bit_slice++;
+				if (mybit < maxbits) { //check if keep
+					int mybyte = mybit >> 3, ir = mybit - (mybyte << 3),
+						bit = 1 << ir;
+					if (bitfield_sgs[mybyte & bit]) continue;// known status
+				}
+				if (nn != i)bands3[nn++] = bands3[i];
+			}
+			nband3 = nn;
+			if (nn)if (m10 == 1)g17b.Start();// call the process for that entry
+		}
+		else if (op.out_entry) OutEntry();
 		else if (m10 == 1)g17b.Start();// call the process for that entry
 	}
 

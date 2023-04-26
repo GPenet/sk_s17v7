@@ -8,6 +8,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		b3low, // running band 1 pass1 for slices in pass2 bfx[0] & 16
 		out_one,// limit output to one per band 3 .bfx[2] & 1
 		out_entry, //output of the entry file for test DLL .bfx[2] & 2
+		f18_status, // Jim filter SG with known status .bfx[4] & 1
 	    known; // 1 if known process 2 if known filter active .bfx[2] & 4
 	// bfx[2] & 8 special use b2_is as limit b3
 	int b1;//band 1 in process 
@@ -62,7 +63,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		if (known)if (sgo.bfx[2] & 4) known = 2;
 
 		// sgo.bfx[3] is for partial process 
-
+		if (sgo.bfx[4] & 1) f18_status = 1;
 		if (p) {
 			cout << Char9out(sgo.bfx[0]) << " sgo.bfx[0 " << endl;
 			cout << "standard processing commands_______________" << endl;
@@ -1256,113 +1257,6 @@ struct XQ {//to build the UAs b3 to expand
 		cout << "end xq status \n" << endl;
 	}
 }xq;
-struct CALLBAND3 {
-	uint64_t bf12;
-	uint32_t ncl;
-	CBS cbsx;
-	void Dump() {
-		cout << Char54out(bf12) << " b12 to process ncl=" << ncl
-			 << endl;
-
-	}
-};
-struct CRITB3 {
-	uint32_t minix[4],// triplet bf1 bf2 bf3  
-		critbf, pairs27, mincount,
-		t1a,t2a[27],nt2a,
-		assigned, active,
-		ncl, nb3, nmiss;
-	inline void Init(int ncb12, int ncb3) {
-		memset(this, 0, sizeof(*this));
-		ncl = ncb12;
-		nb3 = ncb3 ;
-	}
-
-	inline void Addoutbfone(uint32_t bf) { assigned |= bf; nmiss--; }
-	inline int Addone(uint32_t i27) {// back 1 if not possible
-		int bit27 = 1 << i27;
-		int imini = i27 / 3, bitmini = 1 << imini;
-		assigned |= bit27;
-		if (!(bit27 & critbf)) {// clue added outfield
-			if (!nmiss)return 1;// not possible
-			nmiss--;
-			if (!nmiss) active &= critbf;// no more outfield
-			return 0;;
-		}
-		// now add in field within mincount
-		if (minix[3] & bitmini) {// 2 clues expected
-			critbf ^= bit27; minix[3] ^= bitmini;
-			minix[1] ^= bitmini;//send the bit in one pair to assign
-			if (!nmiss)active &= critbf; 
-			return 0;
-		}
-		if (minix[2] & bitmini) {
-			if (pairs27 & bit27) {// 2 clues not common clue one more clue
-				if (!nmiss)return 1;// not possible
-				critbf ^= bit27;	minix[2] ^= bitmini;
-				nmiss--;
-				if (!nmiss) active &= critbf;// no more outfield
-				return 0;
-			}
-		}
-		// now the last clue in the mini row
-		register int mask = ~(7 << (3 * imini));// clear minirow
-		critbf &= mask;
-		if( !nmiss )active &= critbf; 
-		if (minix[1] & bitmini) minix[1] ^= bitmini; // one clue expected 		
-		else if (minix[2] & bitmini)minix[2] ^= bitmini;//common cell in 2 pairs 
-		else if (minix[0] & bitmini)minix[0] ^= bitmini;// triplet
-		return 0;
-	}
-	inline int AddAssign(uint32_t bfa, int debug = 0) {// back 1 if not possible
-		if (assigned & bfa)return 1; //should never be
-		if (debug)Status(" entry add assign ");
-		active &= ~bfa; // minimum is to kill new assign
-		register int i27, X = bfa;
-		while (bitscanforward(i27, X)) {
-			if (debug) {
-				cout << "i27 =" << i27 << " ";
-				Status(" assign i27 ");
-			}
-			X ^= 1 << i27;// clear bit
-			if (Addone(i27))return 1;
-			if (debug) cout << " back addone" << endl;
-		}
-		return 0;
-	}
-
-	void AssignBf2(int bf) {// all or part of the bf2
-		minix[2] &= ~bf;// clean the bf2 
-		int imini;
-		while (bitscanforward(imini, bf)) {
-			int  mask = 7 << (3 * imini), m27 = pairs27 & mask;
-			bf ^= 1 << imini;// clean the bf
-			critbf &= ~mask;// clean the mini row as crit field
-			active &= ~mask;// no more clue in this minirow
-			pairs27 ^= m27;// clean the 27 pairs to assign
-			assigned |= mask ^ m27;// assign the third cell of the mini row
-		}
-	}
-	inline void AssignCritical() {//always called with nmiss=0
-		active = critbf;
-		if (minix[2])  AssignBf2(minix[2]);
-	}
-	inline int GetToAss() { return (nb3 - _popcnt32(assigned)); }
-	void Status(const char* lib) {
-		cout << lib << "critical Status mincount =" << mincount << " nmiss=" << nmiss
-			<< " nb3 = " << nb3 << endl;
-		cout << Char27out(critbf) << " critical bf" << endl;
-		cout << Char27out(pairs27) << " pairs 27" << endl;
-		cout << Char27out(assigned) << " assigned" << endl;
-		cout << Char27out(active) << " active" << endl;
-		if (minix[1])cout << Char9out(minix[1]) << "     minis bf1" << endl;
-		if (minix[2])cout << Char9out(minix[2]) << "     minis bf2" << endl;
-		if (minix[3])cout << Char9out(minix[3]) << "     minis bf3" << endl;
-		if (minix[0])cout << Char9out(minix[0]) << " mini triplets" << endl << endl;
-	}
-
-}scritb3;
-
 
 // standard  bands  
 struct STD_B416 {
@@ -1593,6 +1487,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 	int gcheck[82], ib1check, ib2check, ib3check,ibasecheck;
 	//int skip, last;// restart point; last entry in the batch
 	uint64_t   nb12;
+	int sliceread, current_slice,bit_slice,maxbits;
 	BANDMINLEX::PERM t_auto_b1[108], // maxi is 107excluding start position
 		t_auto_b1b2[108], t_auto_b2b1[108],
 		pband2, pband3,  pcheck2 , pcheck3;
@@ -1665,6 +1560,8 @@ struct GEN_BANDES_12 {// encapsulating global data
 	uint32_t uadigs_for_check[500], nua_for_check, nua_check;
 
 	//================================= functions
+	int F18_Init();// inital sg status in 18search Jim's Filter
+	int F18_Load();// load current slice
 	void GetStartB2(int i); // one of the 20 starts 
 	void Start(int mode = 0);
 	void NewBand1(int iw);
@@ -1752,7 +1649,6 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	int nclgo, nmiss;
 	int  ncluesb12, ncluesb3, mincluesb3;
 	uint32_t anduab3;// b3 expand
-	CALLBAND3 cb3;
 
 	STD_B3* myband3;
 
@@ -1779,10 +1675,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 	uint32_t t3[1000], nt3,		t3_2[1000], nt3_2,
 		uasb3_1[1000], uasb3_2[1000], uas_in[1000],
 		nuasb3_1, nuasb3_2, nuas_in, b3_andout;
-	inline void Init_t3o(CRITB3 & cr) {
-		nt3o = 0; t3ando = ~0; 
-		t3infield = cr.critbf;
-	}
+
 	inline void AddT3o(uint32_t u) {
 		if (nt3o >= 1000)return;
 		t3o[nt3o++] = u; 
@@ -1851,14 +1744,8 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		}
 	}
 
-	void GoCallB3_12(CALLBAND3& cb3);
-
 	void GoCallB3Com();
-
-
-
 	uint64_t GetLastD();
-
 
 	uint32_t IsValidB3(uint32_t bf,int debug=0);
 
