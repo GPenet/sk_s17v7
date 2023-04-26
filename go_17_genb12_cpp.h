@@ -20,7 +20,7 @@ int GEN_BANDES_12::F18_Init() {// initial filter on Jim data base status
 		cout << "unexpected eof file with SG status" << endl;
 		return 1;
 	}
-	return F18_Load();
+	return 0;// F18_Load();
 }
 int GEN_BANDES_12::F18_Load() {
 	if (finput.eof()) return 1;
@@ -367,17 +367,19 @@ int GEN_BANDES_12::ValidBand2() {
 			w &= 63;
 			if (w == 0) {
 				long tfin = GetTimeMillis();
+				if ((w1 > op.last)) return 1;
 				cout << "next slice to use=\t" << w1 << "\tmil=" << (tfin - sgo.tdeb) / 1000 << "\tnb2=" << p_cpt2g[0] << endl;
 				if (op.f18_status) {// load next slice of status
+					current_slice = (int)w1;
 					if (F18_Load()) {
 						cout << "stop problem in F18 file " << endl;
 						g17b.aigstop = 2;
 						return 1;
 					}
+
 				}
 			}
 		}
-		if (((nb12 >> 6) > op.last)) return 1;
 		ValidInitGang();// also called from existing 17 in test
 		if(F17Novalid1_2())return ((nb12 >> 6) > op.last);
 		if (op.p1)Find_band3B_pass1B();
@@ -539,7 +541,6 @@ next:// erase previous fill and look for next
 	}
 back:
 	if (--ii >= 0) goto next;
-	//if (m10 != 1)return;
 	int nn = 0;
 	if (nband3) {
 		if (op.f18_status) {
@@ -548,11 +549,16 @@ back:
 				if (mybit < maxbits) { //check if keep
 					int mybyte = mybit >> 3, ir = mybit - (mybyte << 3),
 						bit = 1 << ir;
-					if (bitfield_sgs[mybyte & bit]) continue;// known status
+					if (bitfield_sgs[mybyte] & bit) continue;// known status
 				}
-				if (nn != i)bands3[nn++] = bands3[i];
+				if (nn != i)bands3[nn] = bands3[i];
+				nn++;
 			}
+			if (op.f18_status_test)
+			cout << " slice " << current_slice << " nb3=" << nband3 << " nn="
+				<< nn << endl;
 			nband3 = nn;
+			if(!op.f18_status_test)
 			if (nn)if (m10 == 1)g17b.Start();// call the process for that entry
 		}
 		else if (op.out_entry) OutEntry();

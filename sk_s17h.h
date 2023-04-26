@@ -9,6 +9,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 		out_one,// limit output to one per band 3 .bfx[2] & 1
 		out_entry, //output of the entry file for test DLL .bfx[2] & 2
 		f18_status, // Jim filter SG with known status .bfx[4] & 1
+		f18_status_test, //bfx[4] & 4
 	    known; // 1 if known process 2 if known filter active .bfx[2] & 4
 	// bfx[2] & 8 special use b2_is as limit b3
 	int b1;//band 1 in process 
@@ -64,6 +65,7 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 
 		// sgo.bfx[3] is for partial process 
 		if (sgo.bfx[4] & 1) f18_status = 1;
+		if (sgo.bfx[4] & 4) f18_status_test = 1;
 		if (p) {
 			cout << Char9out(sgo.bfx[0]) << " sgo.bfx[0 " << endl;
 			cout << "standard processing commands_______________" << endl;

@@ -98,7 +98,7 @@ void Go_c17_00( ) {// p2 process
 	op.SetUp(0);
 	if (op.f18_status)if (genb12.F18_Init()) return;
 	cout << "end test f18" << endl;
-	return;
+	//return;
 	//int it16_start = sgo.vx[0];
 	g17b.aigstop=0;
 	if (sgo.vx[2] < 0) {
