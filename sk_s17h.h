@@ -1574,10 +1574,10 @@ struct GEN_BANDES_12 {// encapsulating global data
 	void Find_band2B();
 	int ValidBand2();
 	void ValidInitGang();
-	void Find_band3B(int m10 = 1);
-	void Find_band3B_pass1B(int m10 = 1);
+	void Find_band3B(int m10 = 1);;
 	void OutEntry();
-	void F3B_See();
+	void F3pass1_See();
+	void F3pass2_See();
 	inline void F3B_See_18();// one NED return 1 if equal not loaded
 	void F3B_See_Com();// one NED b3 first   
 	int F3B_See_Com_FilterDiag(int debug=0); 
