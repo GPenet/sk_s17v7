@@ -23,9 +23,9 @@ int GEN_BANDES_12::F18_Init() {// initial filter on Jim data base status
 	return 0;// F18_Load();
 }
 int GEN_BANDES_12::F18_Load() {
-	if (finput.eof()) return 1;
-	register char* ze = finput.ze,*ze2= ze+10;
 	nbitfield_sgs = 0;
+	if (finput.eof()) return 0;
+	register char* ze = finput.ze,*ze2= ze+10;
 	bit_slice = 0;// restart use at first bit
 	while (1) {
 		int n = (int)strlen(ze2);
@@ -364,7 +364,7 @@ int GEN_BANDES_12::ValidBand2() {
 		nband3 = 0;
 		if((nb12 >> 6) < op.first) return 0;// here restart value, kept untouched if no band 3 found
 		{// print a restart point every 64 bands 1+2 seen
-			uint64_t w = genb12.nb12, w1 = w >> 6;
+			uint64_t w = nb12-1, w1 = w >> 6;
 			w &= 63;
 			if (w == 0) {
 				long tfin = GetTimeMillis();
