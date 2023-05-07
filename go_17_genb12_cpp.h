@@ -252,6 +252,46 @@ int GEN_BANDES_12::F17Novalid1_2() {
 	return 0;
 }
 
+void Process81_SplitLast() {
+	if (!(genb12.nb12 & 63)) return;// need partial last
+	char* thexa = "0123456789ABCDEF";
+	uint64_t sliceclosed = (genb12.nb12 >> 6) ;
+	GINT64 w64; w64.u64 = 0;
+	uint64_t i8deb = p_cptg[1] >> 3;
+	uint32_t shift = (uint32_t)(p_cptg[1] - (i8deb << 3));
+	int nn = (uint32_t)(p_cpt[1] - p_cptg[1]);
+	cout << sliceclosed << " slice \t" << p_cptg[1] << " \t" << p_cpt[1]
+		<< "\t8d=" << i8deb << "\tshift=" << shift << " nn=" << nn << endl;
+	char wss[11];
+	sprintf(wss, "%8d ;", (int)sliceclosed);
+	wss[10] = 0;
+	fout1 << wss;
+	p_cptg[1] = p_cpt[1];
+	register uint32_t r1, r2, rshift = shift;
+	register uint8_t* p = bitfield_sgs + i8deb;
+	r1 = *p++;
+	r1 >>= shift;// next byte n high bits
+	nn -= 8 - shift;
+	int nout = 40;
+	while (nn > 0) {
+		r2 = *p++;
+		r2 <<= 8 - shift;
+		r1 |= r2;
+		register char byte = r1;
+		fout1 << thexa[byte & 15] << thexa[(byte >> 4) & 15];
+		r1 >>= 8;
+		nn -= 8;
+		nout--;
+		if (!nout) {
+			fout1 << endl << wss;
+			nout = 40;
+		}
+	}
+	register char byte = r1;
+	fout1 << thexa[byte & 15] << thexa[(byte >> 4) & 15] << endl;
+
+}
+
 void GEN_BANDES_12::Find_band2B() {
 	int * zs0= &grid0[27];
 	register int  *crcb, bit;
@@ -306,6 +346,11 @@ next:// erase previous fill and look for next
 	}
 back:
 	if (--ii >= 0) goto next;
+	if (op.out_entry < 0) {
+		Process81_SplitLast();
+	}
+
+
 }
 
 void GEN_BANDES_12::ValidInitGang() {
@@ -336,7 +381,7 @@ void Process81_Split() {
 	register uint8_t* p = bitfield_sgs + i8deb;
 	r1 = *p++;
 	r1 >>=  shift;// next byte n high bits
-	nn -= 8-shift;
+	nn -= 8-shift; 
 	int nout = 40;
 	while (nn>0) {
 		r2 = *p++;
