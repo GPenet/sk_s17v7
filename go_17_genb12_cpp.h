@@ -426,8 +426,9 @@ int GEN_BANDES_12::ValidBand2() {
 				}
 			}
 		}
+		if ((nb12 >> 6) > op.last) return 1;
 		ValidInitGang();// also called from existing 17 in test
-		if(F17Novalid1_2())return ((nb12 >> 6) > op.last);
+		if(F17Novalid1_2())return 0;
 		Find_band3B();
 		return 0;
 	}
