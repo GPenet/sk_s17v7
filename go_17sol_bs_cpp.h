@@ -3059,7 +3059,7 @@ void G17B::GoCallB3Com() {
 	}
 	tcluesxpdone = 0;
 	guah54n.InitCom();//open the door for g2 g3 seen later 
-	int tb3[256], ntb3 = 0;
+	int tb3[512], ntb3 = 0;
 	for (int ib3 = 0; ib3 < genb12.nband3; ib3++) {
 		STD_B3& b3 = genb12.bands3[ib3];
 		if (b3.aigskip)continue;// op first and one 18 found
