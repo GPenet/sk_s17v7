@@ -29,6 +29,9 @@ int GEN_BANDES_12::F18_Load() {
 	bit_slice = 0;// restart use at first bit
 	while (1) {
 		int n = (int)strlen(ze2);
+		//erase carriage return if there
+		if (n && ze2[n - 1] < 20)
+			{n--;  ze2[n] = 0;	}
 		cout << ze2 << " to load current_slice " << current_slice << endl;
 		ze2[n]= '0';// to be sure to have even number to use
 		for (int i = 0; i < n; i += 2) {
