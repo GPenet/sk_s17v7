@@ -1306,7 +1306,7 @@ void T54B12::Build_ta128(uint64_t* t, uint32_t n) {
 	memset(vsize, 0, sizeof vsize);
 	for (uint32_t i = 0; i < n; i++) {
 		int bloc = i >> 7, ir = i - (bloc << 7);
-		uint64_t cc = t[i] >> 59;
+		uint64_t cc = _popcnt64(t[i] & BIT_SET_2X);
 		if (cc > 24) continue;//safety
 		vsize[cc][bloc].setBit(ir);
 	}
@@ -1778,7 +1778,7 @@ next5:
 		if (!p) goto next4;
 		SKTEXA(sp4, sp5, tc_4_6[1]);
 		sp5.v &= tuv128.vc[tc_4_6[1]];
-		if (!(sp5.possible_cells = twu[sp5.v.getFirst128()] & sp4.active_cells))goto next4;
+		if (!(sp5.possible_cells = twu[sp5.v.getFirst128()] & sp4.active_cells))goto next5;
 	}
 next6:
 	{
@@ -1786,13 +1786,28 @@ next6:
 		if (!p) goto next5;
 		SKTEXA(sp5, sp6, tc_4_6[2]);
 		sp6.v &= tuv128.vc[tc_4_6[2]];
-		if (!(sp6.possible_cells = twu[sp6.v.getFirst128()] & sp5.active_cells)) {
-			// no possible valid 6 clues should not come
+		register int ix = sp6.v.getFirst128();
+		if (ix >= 0) {
+			if (!(sp6.possible_cells = twu[ix] & sp5.active_cells))goto next6;
+		}
+		else {// no possible valid 6 clues should not come
 			if (zh2b[1].IsValid(sp6.all_previous_cells)) {
 				uint32_t i = zh2gxn.nua - 1;
 				register uint64_t ua = zh2gxn.tua[i],ua54 = 
 					(ua & BIT_SET_27) | ((ua & BIT_SET_B2) >> 5);
+				//if (op.f0 == p_cpt2g[0])
+					//if (_popcnt64(ua) < 10) {
+						cout << Char54out(ua) << "invalid AddA next6 "
+							<< "  [3] " << p_cpt2g[3]
+							<< " [4] " << p_cpt2g[4] << endl;
+						cout << Char54out(sp6.all_previous_cells) << " cells nback=" << zh2gxn.nua << endl;
+						t54b12.DebugB();
+						aigstop = 1;
+						return;
+					//}
 				t54b12.AddA(ua54);		t54b12.AddB(ua54);
+				if (!(sp6.possible_cells = ua54 & sp5.active_cells))goto next6;
+
 			}
 			else {cout << "bug exp 4-7 lower 7" << endl;aigstop = 1; return;}
 		}
